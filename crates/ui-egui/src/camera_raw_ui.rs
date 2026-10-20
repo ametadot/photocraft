@@ -24,6 +24,20 @@ use crate::PhotocraftApp;
 use crate::theme::Tokens;
 use crate::widgets;
 
+#[path = "camera_raw_workspace.rs"]
+mod workspace;
+pub use workspace::Workspace;
+
+/// Read-only retained source/recipe seam for a separately reviewed saving adapter.
+pub fn retained_reviews(app: &PhotocraftApp) -> Vec<(RawOpen, CameraRaw)> {
+    workspace::retained_reviews(app)
+}
+
+/// Complete retained membership, source descriptors and current readiness for control clients.
+pub fn workspace_snapshot(app: &PhotocraftApp) -> Value {
+    workspace::snapshot(app)
+}
+
 const PROXY_SIDE: usize = 900;
 const PANEL_W: f32 = 330.0;
 const BANDS: [&str; 8] = ["Red", "Orange", "Yellow", "Green", "Aqua", "Blue", "Purple", "Magenta"];
@@ -222,12 +236,16 @@ pub fn without_develop_note(warnings: &[String]) -> Vec<String> {
 /// Queues the open-time dialog for the active document (shown on the next frame).
 pub fn queue_open_dialog(app: &mut PhotocraftApp, name: &str, path: Option<&str>, bytes: Option<&[u8]>) {
     if let Some(st) = app.session.active() {
-        app.pending_raw_open = Some(RawOpen {
-            document: st.doc.id,
-            name: name.to_string(),
-            path: path.map(str::to_string),
-            bytes: bytes.map(|b| std::sync::Arc::new(b.to_vec())),
-        });
+        let raw =
+            RawOpen { document: st.doc.id, name: name.to_string(), path: path.map(str::to_string), bytes: bytes.map(|b| std::sync::Arc::new(b.to_vec())) };
+        if app.pending_raw_open.is_none() && app.camera_raw.is_none() {
+            if app.raw_workspace.selected.is_empty() && app.raw_workspace.queued.is_empty() {
+                app.raw_workspace.selected.push(raw.document);
+            }
+            app.pending_raw_open = Some(raw);
+        } else {
+            app.raw_workspace.queued.push_back(raw);
+        }
     }
 }
 
@@ -471,6 +489,14 @@ pub fn on_redevelop_event(app: &mut PhotocraftApp, e: &photocraft_engine::jobs::
 
 /// Cancel: closes the dialog; for the open-time dialog also the document it was opening.
 fn cancel(app: &mut PhotocraftApp) {
+    if app.camera_raw.as_ref().is_some_and(|d| d.target == Target::OpenRaw) {
+        if !app.jobs.opens.is_empty() || app.raw_redevelop.is_some() {
+            app.ui.status = "Wait for pending photographs before cancelling the review".into();
+            app.ui.status_error = true;
+            return;
+        }
+        workspace::discard_retained(app);
+    }
     let Some(d) = app.camera_raw.take() else { return };
     if let (Target::OpenRaw, Some(raw)) = (d.target, &d.raw_open)
         && let Some(index) = document_index(app, raw.document)
@@ -678,6 +704,12 @@ pub fn menu(app: &mut PhotocraftApp, ctx: &egui::Context, id: &str, params: &Val
         return Some(opened);
     }
     let ui = params.get("ui")?;
+    if let Some(request) = ui.get("workspace") {
+        if ui.as_object().is_none_or(|o| o.len() != 1) {
+            return Some(Err("workspace must be sent on its own".into()));
+        }
+        return Some(workspace::control(app, ctx, request));
+    }
     let Some(fields) = ui.as_object() else {
         return Some(Err("Camera Raw ui must be an object".into()));
     };
@@ -791,6 +823,9 @@ fn menu_update(app: &mut PhotocraftApp, ctx: &egui::Context, ui: &Value) -> Opti
     }
     super::camera_raw_scope_ui::persist(app, ctx);
     if ui.get("cancel").and_then(Value::as_bool) == Some(true) {
+        if app.camera_raw.as_ref().is_some_and(|d| d.target == Target::OpenRaw) && (!app.jobs.opens.is_empty() || app.raw_redevelop.is_some()) {
+            return Some(Err("Wait for pending photographs before cancelling the review".into()));
+        }
         cancel(app);
         return Some(Ok(json!({"cancelled": true})));
     }
@@ -1004,7 +1039,9 @@ fn curve_editor(ui: &mut egui::Ui, p: &mut CameraRaw, dirty: &mut bool, state: &
 }
 
 pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
+    workspace::advance(app);
     if app.camera_raw.is_none()
+        && app.raw_redevelop.is_none()
         && let Some(raw) = app.pending_raw_open.take()
         && let Err(e) = open_raw(app, ctx, raw)
     {
@@ -1058,6 +1095,8 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
     let screen = ctx.content_rect();
     let current_display = app.session.active().and_then(|st| app.session.color.canvas_display(&st.doc).ok());
     let mut action: Option<&str> = None;
+    let entries = workspace::entries(app);
+    let mut activate = None;
     egui::Area::new(egui::Id::new("camera-raw-dialog")).order(egui::Order::Foreground).fixed_pos(screen.min).show(ctx, |ui| {
         let Some(d) = app.camera_raw.as_mut() else { return };
         history_keys(d, ctx);
@@ -1088,6 +1127,23 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
         let ok_label = if d.target == Target::OpenRaw { tl!("Open") } else { tl!("OK") };
         let footer_h = 48.0;
         let body = ERect::from_min_max(pos2(full.left(), title.bottom()), pos2(full.right(), full.bottom() - footer_h));
+        let mut body = body;
+        if d.target == Target::OpenRaw && !entries.is_empty() {
+            let strip = ERect::from_min_max(body.min, pos2(body.left() + 170.0, body.bottom()));
+            let mut film = ui.new_child(egui::UiBuilder::new().max_rect(strip.shrink(6.0)));
+            film.set_clip_rect(strip);
+            egui::ScrollArea::vertical().id_salt("raw-workspace-strip").show(&mut film, |ui| {
+                for (id, name, selected, texture) in &entries {
+                    if let Some(texture) = texture {
+                        ui.image((texture.id(), vec2(148.0, 90.0)));
+                    }
+                    if ui.selectable_label(*selected, name).clicked() {
+                        activate = Some((*id, ui.input(|i| i.modifiers.command)));
+                    }
+                }
+            });
+            body.min.x = strip.right();
+        }
         let scope = &mut app.ui.camera_raw_scope;
         // Clip both pixels and scope overlays before painting the settings dock/footer.
         let preview_body = ERect::from_min_max(body.min, pos2((body.right() - PANEL_W).max(body.left() + 1.0), body.bottom()));
@@ -1280,6 +1336,12 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
             d.params = edited;
         }
     });
+    if let Some((id, toggle)) = activate
+        && let Err(error) = workspace::activate(app, ctx, id, toggle)
+    {
+        app.ui.status = error;
+        app.ui.status_error = true;
+    }
     super::camera_raw_scope_ui::persist(app, ctx);
     if ctx.input(|i| i.key_pressed(egui::Key::Y))
         && let Some(d) = app.camera_raw.as_mut()
@@ -1699,5 +1761,46 @@ mod tests {
         menu(&mut app, &ctx, "filter.cameraRaw", &json!({"ui": {"loadSettings": true}})).unwrap().unwrap();
         frame(&mut app);
         assert_eq!(app.camera_raw.as_ref().unwrap().params.clarity, 25.0);
+    }
+    #[test]
+    fn workspace_retains_batch_and_preview_settings() {
+        let (mut app, dng) = raw_app();
+        let ctx = egui::Context::default();
+        app.open_bytes("first.dng", &dng).unwrap();
+        app.open_bytes("second.dng", &dng).unwrap();
+        let ids: Vec<_> = workspace::entries(&app).iter().map(|e| e.0).collect();
+        assert_eq!(ids.len(), 2, "second admission must not replace the first");
+        workspace::activate(&mut app, &ctx, ids[0], false).unwrap();
+        app.camera_raw.as_mut().unwrap().params.exposure = 1.25;
+        workspace::activate(&mut app, &ctx, ids[1], true).unwrap();
+        assert_eq!(app.raw_workspace.selected.len(), 2);
+        let snapshot = workspace_snapshot(&app);
+        assert_eq!(snapshot["photos"].as_array().unwrap().len(), 2);
+        assert_eq!(snapshot["photos"][0]["params"]["exposure"], 1.25);
+        assert_eq!(snapshot["ready"], true);
+        assert_eq!(app.camera_raw.as_ref().unwrap().params.exposure, 0.0);
+        workspace::activate(&mut app, &ctx, ids[0], false).unwrap();
+        assert_eq!(app.camera_raw.as_ref().unwrap().params.exposure, 1.25);
+        assert_eq!(workspace::entries(&app).iter().map(|e| e.0).collect::<Vec<_>>(), ids);
+        assert!(workspace::activate(&mut app, &ctx, photocraft_doc::DocId(u64::MAX), false).is_err());
+        assert_eq!(app.camera_raw.as_ref().unwrap().params.exposure, 1.25);
+        cancel(&mut app);
+        assert!(app.session.documents().is_empty());
+        assert!(workspace::entries(&app).is_empty());
+    }
+
+    #[test]
+    fn workspace_cancel_preserves_unrelated_editor_document() {
+        let (mut app, dng) = raw_app();
+        let ctx = egui::Context::default();
+        app.run("file.new", json!({"width": 16, "height": 16})).unwrap();
+        let original = app.session.active().unwrap().doc.id;
+        app.open_bytes("first.dng", &dng).unwrap();
+        app.open_bytes("second.dng", &dng).unwrap();
+        let first = app.pending_raw_open.as_ref().unwrap().document;
+        workspace::activate(&mut app, &ctx, first, false).unwrap();
+        cancel(&mut app);
+        assert_eq!(app.session.documents().len(), 1);
+        assert_eq!(app.session.documents()[0].doc.id, original);
     }
 }

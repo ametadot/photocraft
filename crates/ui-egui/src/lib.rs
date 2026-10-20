@@ -768,6 +768,7 @@ pub struct PhotocraftApp {
     /// A raw file just opened interactively, waiting for the open-time Camera Raw dialog (shown
     /// on the next frame, which has the egui context).
     pub(crate) pending_raw_open: Option<camera_raw_ui::RawOpen>,
+    pub(crate) raw_workspace: camera_raw_ui::Workspace,
     /// The open-time re-develop (or its Camera Raw step) running in the background.
     pub(crate) raw_redevelop: Option<camera_raw_ui::Redevelop>,
     /// Filter › Adaptive Wide Angle dialog (wide_angle_ui).
@@ -973,6 +974,7 @@ impl PhotocraftApp {
             gradient: Default::default(),
             camera_raw: None,
             pending_raw_open: None,
+            raw_workspace: Default::default(),
             raw_redevelop: None,
             wide_angle: None,
             dialog_edits: Default::default(),
