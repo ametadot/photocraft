@@ -496,6 +496,7 @@ against committed **sha256 manifests**. All pins are in one place:
 | Directory | What | Source | Manifest |
 |---|---|---|---|
 | `corpus/photoshop/` | 256 PSDs we authored with Photoshop: smart filters, layer-style effect shapes, the text engine, adjustments in every mode and depth | https://github.com/storytold/photocraft-corpus (ours, MIT OR Apache-2.0) | `xtask/photoshop-corpus.sha256` |
+| `corpus/gimp/` | 14 XCF files written by GIMP 3.2.6 with GIMP's merged rendering of each as a PNG (28 files), the oracles of the XCF reader | https://github.com/storytold/photocraft-corpus (ours, MIT OR Apache-2.0; its own pin) | `xtask/gimp-corpus.sha256` |
 | `corpus/psd/` | 170 small psd-tools and ag-psd files, the mix most PSD tests use | psd-tools and ag-psd upstreams (MIT) | `xtask/psd-corpus.sha256` |
 | `corpus/psd-tools/` | the complete psd-tools test set (309 files) | psd-tools upstream (MIT) | `xtask/psd-tools-corpus.sha256` |
 | `corpus/heif/` | 9 small HEIC/HEIF files (checkerboards, RGB strips, a grid-tiled photo with EXIF/XMP, each with Apple's decode as `.ref.png`; a 10-bit RGBA file with its source PNG), for the `heif` feature | heic-rs (MIT OR Apache-2.0) and pillow-heif (BSD-3-Clause) upstreams | `xtask/heif-corpus.sha256` |
@@ -535,13 +536,13 @@ scripts/fetch-corpus.sh            # the same as cargo xtask corpus --all
   and push there.
 - **Consuming copy:** `corpus/photoshop/` here. It is a plain directory: the pinned snapshot
   (downloaded as the codeload tarball of the pinned commit, then verified).
-- **Local mode:** `cargo xtask corpus --photoshop --local` copies `photoshop/` from
+- **Local mode:** `cargo xtask corpus --photoshop --local` copies `photoshop/` (and `--gimp --local` `gimp/`) from
   `../photocraft-corpus` (or `PHOTOCRAFT_CORPUS_REPO=<path>`) instead of downloading. It warns when
   the clone's HEAD isn't the pin or its files differ from the manifest. Use it to test regenerated
   files before pushing: `cargo xtask test-corpus --local` copies them and runs every corpus test.
 - **Bumping the pin:** commit and push in photocraft-corpus, then in a PR here set
-  `PHOTOCRAFT_CORPUS_COMMIT` in `corpus_pins.rs`, run
-  `cargo xtask corpus --photoshop --update-manifest`, commit the manifest diff, run
+  `PHOTOCRAFT_CORPUS_COMMIT` in `corpus_pins.rs` (`PHOTOCRAFT_CORPUS_GIMP_COMMIT` for `gimp/`), run
+  `cargo xtask corpus --photoshop --update-manifest` (or `--gimp --update-manifest`), commit the manifest diff, run
   `cargo xtask test-corpus`, and raise floors that improved.
 - **Not a submodule or a subtree:** a subtree would put the binaries back into this repository's
   history, and submodules cause init and detached-HEAD friction for every contributor. A pin plus a
