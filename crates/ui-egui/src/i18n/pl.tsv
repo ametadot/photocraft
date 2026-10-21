@@ -3877,3 +3877,76 @@ curves	Smooth	Wygładź
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Karta GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Ocena jeszcze nieodczytana
+	Unrated	Bez oceny
+	Rating: {n} of 5	Ocena: {n} z 5
+	Rejected	Odrzucone
+	Not read yet	Jeszcze nieodczytane
+	No adjustments	Bez korekt
+	Not available yet	Jeszcze niedostępne
+	Open Images	Otwórz obrazy
+	Fit ({zoom})	Dopasuj ({zoom})
+	Sort By:	Sortuj według:
+	Open Order	Kolejność otwarcia
+	Star Rating	Ocena gwiazdkowa
+	Capture Date	Data wykonania
+	Color Label	Etykieta koloru
+	Rated	Ocenione
+	Show All	Pokaż wszystko
+	{n} hidden	Ukryte: {n}
+	{n} hidden, {m} selected	Ukryte: {n}, zaznaczone: {m}
+	Shown; hidden by filter	Wyświetlane; ukryte przez filtr
+	Defaults	Domyślne ustawienia
+	All photos	Wszystkie zdjęcia
+	Any	Dowolne
+	Any colour	Dowolny kolor
+	Back	Wstecz
+	Blue — Review	Niebieski — Do sprawdzenia
+	Blue — Review (9)	Niebieski — Do sprawdzenia (9)
+	Changes not yet saved to XMP	Zmiany jeszcze niezapisane w XMP
+	Clear filters	Wyczyść filtry
+	Colour label	Etykieta kolorystyczna
+	Filename	Nazwa pliku
+	Green — Approved	Zielony — Zatwierdzone
+	Green — Approved (8)	Zielony — Zatwierdzone (8)
+	JPEG quality	Jakość JPEG
+	Mark	Oznacz
+	Marked	Oznaczone
+	Marked and unmarked	Oznaczone i nieoznaczone
+	No Label	Bez etykiety
+	No photos match	Brak pasujących zdjęć
+	Other label	Inna etykieta
+	Photo actions	Działania na zdjęciu
+	Photograph	Fotografia
+	Purple — To Do	Fioletowy — Do zrobienia
+	Purple — To Do (Ctrl+Shift+0)	Fioletowy — Do zrobienia (Ctrl+Shift+0)
+	Rating	Ocena
+	Red — Select	Czerwony — Wybór
+	Red — Select (6)	Czerwony — Wybór (6)
+	Return to photo preview	Wróć do podglądu zdjęcia
+	Show grid	Pokaż siatkę
+	Show hidden photos	Pokaż ukryte zdjęcia
+	Unmark	Usuń oznaczenie
+	Unmarked	Nieoznaczone
+	Unrated (0)	Bez oceny (0)
+	Yellow — Second	Żółty — Drugi wybór
+	Yellow — Second (7)	Żółty — Drugi wybór (7)
+	hidden	ukryte
+	selected photos	zaznaczone zdjęcia
+	Camera Raw session	Sesja Camera Raw
+	Reset selected	Zresetuj zaznaczone
+	Set value	Ustaw wartość
+	Set value…	Ustaw wartość…
+	Synchronise selected	Synchronizuj zaznaczone
+	Undo group edit	Cofnij edycję grupową
+	Disabled	Wyłączone
+	Cache	Pamięć podręczna
+	Opening photographs	Otwieranie zdjęć
+	Preparing Camera Raw previews…	Przygotowywanie podglądów Camera Raw…
+	Session	Sesja
+	Sync Settings	Synchronizuj ustawienia
+	Reset Settings	Zresetuj ustawienia
+	Copy settings from {photo} to the selected photos.	Skopiuj ustawienia ze zdjęcia {photo} do zaznaczonych zdjęć.
+	Select the active photograph to sync its settings.	Zaznacz aktywne zdjęcie, aby zsynchronizować jego ustawienia.

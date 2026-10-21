@@ -3977,3 +3977,71 @@ curves	Smooth	Εξομάλυνση
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Προσαρμογέας GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Η βαθμολογία δεν έχει διαβαστεί ακόμη
+	Unrated	Χωρίς βαθμολογία
+	Rating: {n} of 5	Βαθμολογία: {n} από 5
+	Rejected	Απορρίφθηκε
+	Not read yet	Δεν έχει διαβαστεί ακόμη
+	No adjustments	Χωρίς προσαρμογές
+	Not available yet	Δεν είναι ακόμη διαθέσιμο
+	Open Images	Άνοιγμα εικόνων
+	Fit ({zoom})	Προσαρμογή ({zoom})
+	Sort By:	Ταξινόμηση κατά:
+	Open Order	Σειρά ανοίγματος
+	Star Rating	Βαθμολογία αστεριών
+	Capture Date	Ημερομηνία λήψης
+	Color Label	Χρωματική ετικέτα
+	Rated	Με βαθμολογία
+	{n} hidden	Κρυφά: {n}
+	{n} hidden, {m} selected	Κρυφά: {n}, επιλεγμένα: {m}
+	Shown; hidden by filter	Εμφανίζεται· κρυφό από το φίλτρο
+	All photos	Όλες οι φωτογραφίες
+	Any	Οποιοδήποτε
+	Any colour	Οποιοδήποτε χρώμα
+	Blue — Review	Μπλε — Για έλεγχο
+	Blue — Review (9)	Μπλε — Για έλεγχο (9)
+	Changes not yet saved to XMP	Αλλαγές που δεν έχουν ακόμη αποθηκευτεί σε XMP
+	Clear filters	Εκκαθάριση φίλτρων
+	Colour label	Χρωματική ετικέτα
+	Green — Approved	Πράσινο — Εγκεκριμένο
+	Green — Approved (8)	Πράσινο — Εγκεκριμένο (8)
+	JPEG quality	Ποιότητα JPEG
+	Mark	Επισήμανση
+	Marked	Επισημασμένες
+	Marked and unmarked	Επισημασμένες και μη επισημασμένες
+	No Label	Χωρίς ετικέτα
+	No photos match	Δεν βρέθηκαν αντίστοιχες φωτογραφίες
+	Other label	Άλλη ετικέτα
+	Photo actions	Ενέργειες φωτογραφίας
+	Photograph	Φωτογραφία
+	Purple — To Do	Μοβ — Προς εκτέλεση
+	Purple — To Do (Ctrl+Shift+0)	Μοβ — Προς εκτέλεση (Ctrl+Shift+0)
+	Rating	Βαθμολογία
+	Red — Select	Κόκκινο — Επιλογή
+	Red — Select (6)	Κόκκινο — Επιλογή (6)
+	Return to photo preview	Επιστροφή στην προεπισκόπηση φωτογραφίας
+	Show grid	Εμφάνιση πλέγματος
+	Show hidden photos	Εμφάνιση κρυφών φωτογραφιών
+	Unmark	Κατάργηση επισήμανσης
+	Unmarked	Μη επισημασμένες
+	Unrated (0)	Χωρίς βαθμολογία (0)
+	Yellow — Second	Κίτρινο — Δεύτερη επιλογή
+	Yellow — Second (7)	Κίτρινο — Δεύτερη επιλογή (7)
+	hidden	κρυφές
+	selected photos	επιλεγμένες φωτογραφίες
+	Camera Raw session	Συνεδρία Camera Raw
+	Reset selected	Επαναφορά επιλεγμένων
+	Set value	Ορισμός τιμής
+	Set value…	Ορισμός τιμής…
+	Synchronise selected	Συγχρονισμός επιλεγμένων
+	Undo group edit	Αναίρεση ομαδικής επεξεργασίας
+	Cache	Κρυφή μνήμη
+	Opening photographs	Άνοιγμα φωτογραφιών
+	Preparing Camera Raw previews…	Προετοιμασία προεπισκοπήσεων Camera Raw…
+	Session	Συνεδρία
+	Sync Settings	Συγχρονισμός ρυθμίσεων
+	Reset Settings	Επαναφορά ρυθμίσεων
+	Copy settings from {photo} to the selected photos.	Αντιγραφή των ρυθμίσεων από τη φωτογραφία {photo} στις επιλεγμένες φωτογραφίες.
+	Select the active photograph to sync its settings.	Επιλέξτε την ενεργή φωτογραφία για να συγχρονίσετε τις ρυθμίσεις της.

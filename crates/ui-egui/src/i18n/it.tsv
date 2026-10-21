@@ -4394,3 +4394,70 @@ shape	Appearance	Aspetto
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adattatore GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Valutazione non ancora letta
+	Unrated	Senza valutazione
+	Rating: {n} of 5	Valutazione: {n} su 5
+	Rejected	Rifiutata
+	Not read yet	Non ancora letto
+	No adjustments	Nessuna regolazione
+	Not available yet	Non ancora disponibile
+	Open Images	Apri immagini
+	Fit ({zoom})	Adatta ({zoom})
+	Sort By:	Ordina per:
+	Open Order	Ordine di apertura
+	Star Rating	Valutazione a stelle
+	Capture Date	Data di scatto
+	Color Label	Etichetta colore
+	Rated	Valutate
+	{n} hidden	{n} nascoste
+	{n} hidden, {m} selected	{n} nascoste, {m} selezionate
+	Shown; hidden by filter	Mostrata; nascosta dal filtro
+	All photos	Tutte le foto
+	Any colour	Qualsiasi colore
+	Blue — Review	Blu — Da rivedere
+	Blue — Review (9)	Blu — Da rivedere (9)
+	Changes not yet saved to XMP	Modifiche non ancora salvate in XMP
+	Clear filters	Cancella filtri
+	Colour label	Etichetta colore
+	Green — Approved	Verde — Approvato
+	Green — Approved (8)	Verde — Approvato (8)
+	JPEG quality	Qualità JPEG
+	Mark	Contrassegna
+	Marked	Contrassegnate
+	Marked and unmarked	Contrassegnate e non contrassegnate
+	No Label	Nessuna etichetta
+	No photos match	Nessuna foto corrispondente
+	Other label	Altra etichetta
+	Photo actions	Azioni sulla foto
+	Photograph	Fotografia
+	Purple — To Do	Viola — Da fare
+	Purple — To Do (Ctrl+Shift+0)	Viola — Da fare (Ctrl+Shift+0)
+	Rating	Valutazione
+	Red — Select	Rosso — Selezione
+	Red — Select (6)	Rosso — Selezione (6)
+	Return to photo preview	Torna all’anteprima della foto
+	Show grid	Mostra griglia
+	Show hidden photos	Mostra foto nascoste
+	Unmark	Rimuovi contrassegno
+	Unmarked	Non contrassegnate
+	Unrated (0)	Senza valutazione (0)
+	Yellow — Second	Giallo — Seconda scelta
+	Yellow — Second (7)	Giallo — Seconda scelta (7)
+	hidden	nascoste
+	selected photos	foto selezionate
+	Camera Raw session	Sessione di Camera Raw
+	Reset selected	Ripristina selezionate
+	Set value	Imposta valore
+	Set value…	Imposta valore…
+	Synchronise selected	Sincronizza selezionate
+	Undo group edit	Annulla modifica di gruppo
+	Cache	Memoria cache
+	Opening photographs	Apertura delle fotografie
+	Preparing Camera Raw previews…	Preparazione delle anteprime Camera Raw…
+	Session	Sessione
+	Sync Settings	Sincronizza impostazioni
+	Reset Settings	Ripristina impostazioni
+	Copy settings from {photo} to the selected photos.	Copia le impostazioni di {photo} nelle foto selezionate.
+	Select the active photograph to sync its settings.	Seleziona la foto attiva per sincronizzarne le impostazioni.

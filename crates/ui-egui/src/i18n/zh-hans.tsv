@@ -2908,3 +2908,80 @@ curves	Smooth	平滑
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU 适配器
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	尚未读取评级
+	Unrated	未评级
+	Rating: {n} of 5	评级：{n}/5
+	Rejected	已拒绝
+	Not read yet	尚未读取
+	No adjustments	无调整
+	Not available yet	尚不可用
+	Open Images	打开图像
+	Fit ({zoom})	适合 ({zoom})
+	Sort By:	排序方式：
+	Open Order	打开顺序
+	Star Rating	星级
+	Capture Date	拍摄日期
+	Color Label	颜色标签
+	Rated	已评级
+	Show All	全部显示
+	{n} hidden	已隐藏 {n} 张
+	{n} hidden, {m} selected	已隐藏 {n} 张，已选 {m} 张
+	Shown; hidden by filter	正在显示；已被筛选隐藏
+	Defaults	默认值
+	All photos	所有照片
+	Any	不限
+	Any colour	任意颜色
+	Back	返回
+	Blue — Review	蓝色 — 待审核
+	Blue — Review (9)	蓝色 — 待审核 (9)
+	Changes not yet saved to XMP	更改尚未保存到 XMP
+	Clear filters	清除筛选条件
+	Colour label	颜色标签
+	Filename	文件名
+	Green — Approved	绿色 — 已批准
+	Green — Approved (8)	绿色 — 已批准 (8)
+	JPEG quality	JPEG 品质
+	Mark	添加标记
+	Marked	已标记
+	Marked and unmarked	已标记和未标记
+	No Label	无标签
+	No photos match	没有匹配的照片
+	Other label	其他标签
+	Photo actions	照片操作
+	Photograph	照片
+	Purple — To Do	紫色 — 待办
+	Purple — To Do (Ctrl+Shift+0)	紫色 — 待办 (Ctrl+Shift+0)
+	Rating	评级
+	Red — Select	红色 — 入选
+	Red — Select (6)	红色 — 入选 (6)
+	Return to photo preview	返回照片预览
+	Show grid	显示网格
+	Show hidden photos	显示隐藏的照片
+	Unmark	取消标记
+	Unmarked	未标记
+	Unrated (0)	未评级 (0)
+	Yellow — Second	黄色 — 次选
+	Yellow — Second (7)	黄色 — 次选 (7)
+	hidden	隐藏
+	selected photos	所选照片
+	Camera Raw session	Camera Raw 会话
+	Reset selected	重置所选照片
+	Set value	设置值
+	Set value…	设置值…
+	Synchronise selected	同步所选照片
+	Undo group edit	撤销组编辑
+	Hide	隐藏
+	Label	标签
+	Stars	星级
+	Disabled	已禁用
+	Cache	缓存
+	Opening photographs	正在打开照片
+	Preparing Camera Raw previews…	正在准备 Camera Raw 预览…
+	Settings	设置
+	Session	会话
+	Sync Settings	同步设置
+	Reset Settings	重置设置
+	Copy settings from {photo} to the selected photos.	将 {photo} 的设置复制到所选照片。
+	Select the active photograph to sync its settings.	请选择当前照片以同步其设置。

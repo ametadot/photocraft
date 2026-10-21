@@ -1,5 +1,5 @@
 //! Camera Raw navigation in source-pixel coordinates. No document edits.
-use egui::{Key, Modifiers, PointerButton, Pos2, Rect, Response, Sense, Ui, Vec2, vec2};
+use egui::{Key, Modifiers, PointerButton, Pos2, Rect, Response, Sense, Ui, Vec2, pos2, vec2};
 use serde_json::Value;
 
 use crate::{state::CameraRawPreviewState, widgets};
@@ -98,7 +98,14 @@ struct ZoomCapture {
 
 /// One capture shared with the colour sampler. Space/middle drag always pans; S takes
 /// precedence over the persistent Zoom/Hand tool, so a sampler click never zooms.
-pub(crate) fn interact(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport: Rect, size: Vec2, sampler: &mut bool) -> (Rect, Response, bool, Option<Rect>) {
+pub(crate) fn interact(
+    ui: &mut Ui,
+    state: &mut CameraRawPreviewState,
+    viewport: Rect,
+    size: Vec2,
+    sampler: &mut bool,
+    reset_settings: &mut bool,
+) -> (Rect, Response, bool, Option<Rect>) {
     let sampling = *sampler;
     let response = ui.interact(viewport, ui.id().with("cr-sample-preview"), Sense::click_and_drag());
     let modifiers = ui.input(|i| i.modifiers);
@@ -190,7 +197,19 @@ pub(crate) fn interact(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport:
         }
         ui.ctx().data_mut(|data| data.remove::<ZoomCapture>(capture_id));
     }
+    let reset_target_id = response.id.with("reset-photo");
+    if response.secondary_clicked() {
+        let on_photo = response.interact_pointer_pos().is_some_and(|at| rect.contains(at));
+        ui.ctx().data_mut(|data| data.insert_temp(reset_target_id, on_photo));
+    }
     response.context_menu(|ui| {
+        if ui.ctx().data(|data| data.get_temp::<bool>(reset_target_id)).unwrap_or(false) {
+            if ui.button(tl!("Reset Settings")).clicked() {
+                *reset_settings = true;
+                ui.close();
+            }
+            ui.separator();
+        }
         if ui.button(tl!("Fit in View")).clicked() {
             state.fit();
             ui.close();
@@ -234,8 +253,158 @@ pub(crate) fn interact(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport:
     (state.image_rect(viewport, size), response, panning || temporary_zoom, zoom_box)
 }
 
-pub(crate) fn toolbar(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport: Rect, size: Vec2, sampler: &mut bool) {
-    let zoom_tool = crate::icons::button(ui, "zoom-in", 28.0, !state.hand && !*sampler, tl!("Zoom Tool"));
+/// GRW-1 lab cycle 4 (F3): the preview toolbar in the owner's order of 15 Oct,
+/// `[actual zoom] [100%] [zoom presets ▾] | [Filmstrip] [Grid] [Sort] [Filter]`, then the Zoom and Hand tools (not part
+/// of that order) at the row's right end. Every control has a slot fixed before anything is drawn, so the Filmstrip
+/// control can be hit-tested before the layout it changes and a click reclaims the width in its own frame.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct ToolbarSlots {
+    pub readout: Rect,
+    /// The readout has room for "Fit (x%)"; otherwise it shows the percentage alone (its accessible name and tooltip keep
+    /// the whole text).
+    pub readout_full: bool,
+    pub quick: Rect,
+    pub presets: Rect,
+    /// With a Filmstrip: the divider's x, then the Filmstrip control, Grid, Sort and Filter.
+    pub filmstrip: Option<(f32, [Rect; 4])>,
+    /// Between the groups and the tools: room for the detail spinner or notice (may be empty).
+    pub status: Rect,
+    pub zoom_tool: Rect,
+    pub hand_tool: Rect,
+}
+
+impl ToolbarSlots {
+    /// Everything the toolbar occupies.
+    pub(crate) fn extent(&self) -> Rect {
+        self.readout.union(self.zoom_tool).union(self.hand_tool)
+    }
+}
+
+/// A text button's height, and an icon control's square.
+const SLOT_H: f32 = 28.0;
+pub(crate) const TOOL: f32 = 26.0;
+/// Between two groups, and between two icons of a group.
+const GROUP_GAP: f32 = 4.0;
+const ICON_GAP: f32 = 2.0;
+/// The divider before the Filmstrip group, including its margins.
+const DIVIDER: f32 = 9.0;
+const PRESETS_W: f32 = 22.0;
+/// The zoom presets, after Fit in View (the readout's own click also fits).
+const PRESETS: [(f32, &str); 12] = [
+    (0.0625, "6.25%"),
+    (0.125, "12.5%"),
+    (0.25, "25%"),
+    (1.0 / 3.0, "33.3%"),
+    (0.5, "50%"),
+    (2.0 / 3.0, "66.7%"),
+    (1.0, "100%"),
+    (2.0, "200%"),
+    (3.0, "300%"),
+    (4.0, "400%"),
+    (8.0, "800%"),
+    (16.0, "1600%"),
+];
+
+/// Where each control goes in `row`; `readout` is the readout's (full, short) width and `quick` the 100% button's. The
+/// readout falls back to its short form only when the row cannot hold the full one.
+pub(crate) fn toolbar_slots(row: Rect, readout: (f32, f32), quick: f32, filmstrip: bool) -> ToolbarSlots {
+    let slot = |x: f32, w: f32, h: f32| Rect::from_min_size(pos2(x, row.center().y - h / 2.0), vec2(w, h));
+    let group = if filmstrip { DIVIDER + 4.0 * TOOL + 3.0 * ICON_GAP } else { 0.0 };
+    let tools = 2.0 * TOOL + ICON_GAP;
+    let rest = GROUP_GAP + quick + GROUP_GAP + PRESETS_W + group + 2.0 * GROUP_GAP + tools;
+    let readout_full = readout.0 + rest <= row.width();
+    let readout = slot(row.left(), if readout_full { readout.0 } else { readout.1 }, SLOT_H);
+    let quick = slot(readout.right() + GROUP_GAP, quick, SLOT_H);
+    let presets = slot(quick.right() + GROUP_GAP, PRESETS_W, TOOL);
+    let mut x = presets.right();
+    let filmstrip = filmstrip.then(|| {
+        let divider = x + DIVIDER / 2.0;
+        let rects = [0.0, 1.0, 2.0, 3.0].map(|i| slot(x + DIVIDER + i * (TOOL + ICON_GAP), TOOL, TOOL));
+        x = rects[3].right();
+        (divider, rects)
+    });
+    // The tools keep to the right end, but never overlap the groups in a row too short for both.
+    let zoom_tool = slot((row.right() - tools).max(x + 2.0 * GROUP_GAP), TOOL, TOOL);
+    let hand_tool = slot(zoom_tool.right() + ICON_GAP, TOOL, TOOL);
+    let status = Rect::from_min_max(pos2(x + GROUP_GAP, row.top()), pos2((zoom_tool.left() - GROUP_GAP).max(x + GROUP_GAP), row.bottom()));
+    ToolbarSlots { readout, readout_full, quick, presets, filmstrip, status, zoom_tool, hand_tool }
+}
+
+/// The readout's (full, short) widths and the 100% button's, in the current language and fonts. The readout is sized for
+/// its widest value, so it never jitters as the zoom changes.
+pub(crate) fn toolbar_widths(ui: &Ui) -> ((f32, f32), f32) {
+    let widest = "1888.8%";
+    let full = widgets::button_width(ui, &[&crate::i18n::fmt(tl!("Fit ({zoom})"), &[("zoom", widest)])]);
+    ((full, widgets::button_width(ui, &[widest])), widgets::button_width(ui, &[tl!("100%")]).max(52.0))
+}
+
+/// The actual display scale in words: "Fit (x%)" while fitted (when `full`), else the percentage. A whole percentage has no
+/// decimals, an exact two-decimal one (the 6.25% preset) keeps both, and anything else keeps one, so 66.7% is never 67%.
+pub(crate) fn readout_text(state: &CameraRawPreviewState, scale: f32, full: bool) -> String {
+    let percent = scale * 100.0;
+    let near = |v: f32| (v - v.round()).abs() < 0.01;
+    let text = if (percent - percent.round()).abs() < 0.05 {
+        format!("{percent:.0}%")
+    } else if near(percent * 100.0) && !near(percent * 10.0) {
+        format!("{percent:.2}%")
+    } else {
+        format!("{percent:.1}%")
+    };
+    if state.zoom.is_none() && full { crate::i18n::fmt(tl!("Fit ({zoom})"), &[("zoom", &text)]) } else { text }
+}
+
+/// A child for one slot. Every slot has its own id, so no two controls share widget ids.
+fn in_slot<R>(ui: &mut Ui, rect: Rect, salt: &str, add: impl FnOnce(&mut Ui) -> R) -> R {
+    let mut child = ui.new_child(egui::UiBuilder::new().id_salt(salt).max_rect(rect).layout(egui::Layout::left_to_right(egui::Align::Center)));
+    add(&mut child)
+}
+
+/// The zoom group and the tools in their slots (the Filmstrip group is drawn by the Filmstrip). Nothing here edits the
+/// photo: every control changes the preview's navigation only.
+/// `notice` is a status the row had no room to show (it joins the readout's tooltip).
+pub(crate) fn toolbar(
+    ui: &mut Ui,
+    slots: &ToolbarSlots,
+    state: &mut CameraRawPreviewState,
+    viewport: Rect,
+    size: Vec2,
+    sampler: &mut bool,
+    notice: Option<&str>,
+) {
+    let scale = state.scale(viewport, size);
+    // The actual zoom: always the display scale now, never a stale preset; a click fits the photo.
+    let whole = readout_text(state, scale, true);
+    let name = format!("{}: {whole}", tl!("Zoom"));
+    let shown = readout_text(state, scale, slots.readout_full);
+    let readout = in_slot(ui, slots.readout, "cr-zoom-readout", |ui| widgets::secondary_button(ui, &shown, slots.readout.width()));
+    readout.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), &name));
+    let tip = match notice {
+        Some(notice) => format!("{whole}\n{}\n\n{notice}", tl!("Fit in View")),
+        None => format!("{whole}\n{}", tl!("Fit in View")),
+    };
+    if readout.on_hover_text(tip).clicked() {
+        state.fit();
+    }
+    // One image pixel per physical pixel.
+    if in_slot(ui, slots.quick, "cr-zoom-100", |ui| widgets::secondary_button(ui, tl!("100%"), slots.quick.width())).clicked() {
+        state.zoom_at(1.0, viewport.center(), viewport, size);
+    }
+    let presets =
+        in_slot(ui, slots.presets, "cr-zoom-presets", |ui| crate::icons::button_with_icon_size(ui, "chevron-down", PRESETS_W, 14.0, false, tl!("Zoom")));
+    egui::Popup::menu(&presets).show(|ui| {
+        if ui.add(egui::Button::selectable(state.zoom.is_none(), tl!("Fit in View"))).clicked() {
+            state.fit();
+            ui.close();
+        }
+        for (zoom, label) in PRESETS {
+            let checked = state.zoom.is_some_and(|z| (z - zoom).abs() < 1e-4);
+            if ui.add(egui::Button::selectable(checked, label)).clicked() {
+                state.zoom_at(zoom, viewport.center(), viewport, size);
+                ui.close();
+            }
+        }
+    });
+    let zoom_tool = in_slot(ui, slots.zoom_tool, "cr-zoom-tool", |ui| crate::icons::button(ui, "zoom-in", TOOL, !state.hand && !*sampler, tl!("Zoom Tool")));
     zoom_tool.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), tl!("Zoom Tool")));
     if zoom_tool.double_clicked() {
         state.fit();
@@ -244,7 +413,7 @@ pub(crate) fn toolbar(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport: 
         state.hand = false;
         *sampler = false;
     }
-    let hand_tool = crate::icons::button(ui, "hand", 28.0, state.hand && !*sampler, tl!("Hand Tool"));
+    let hand_tool = in_slot(ui, slots.hand_tool, "cr-hand-tool", |ui| crate::icons::button(ui, "hand", TOOL, state.hand && !*sampler, tl!("Hand Tool")));
     hand_tool.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), tl!("Hand Tool")));
     if hand_tool.double_clicked() {
         state.fit();
@@ -252,28 +421,6 @@ pub(crate) fn toolbar(ui: &mut Ui, state: &mut CameraRawPreviewState, viewport: 
     if hand_tool.clicked() {
         state.hand = true;
         *sampler = false;
-    }
-    if widgets::secondary_button(ui, tl!("Fit in View"), 84.0).clicked() {
-        state.fit();
-    }
-    if widgets::secondary_button(ui, tl!("100%"), 52.0).clicked() {
-        state.zoom_at(1.0, viewport.center(), viewport, size);
-    }
-    let mut zoom = state.zoom;
-    let mut options = vec![(None, tl!("Fit in View"))];
-    let labels = ["25%", "50%", "100%", "200%", "400%", "800%", "1600%"];
-    for (z, label) in [0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0].into_iter().zip(labels) {
-        options.push((Some(z), label));
-    }
-    let current_label = format!("{:.1}%", state.scale(viewport, size) * 100.0);
-    if !options.iter().any(|(z, _)| *z == zoom) {
-        options.push((zoom, &current_label));
-    }
-    if widgets::dropdown(ui, "cr-preview-zoom", &mut zoom, &options, 80.0) {
-        match zoom {
-            Some(z) => state.zoom_at(z, viewport.center(), viewport, size),
-            None => state.fit(),
-        }
     }
 }
 
@@ -378,5 +525,45 @@ mod tests {
         view.zoom_at(f32::INFINITY, viewport.center(), viewport, size);
         view.pan(vec2(f32::NAN, 1.0), viewport, size);
         assert_eq!(view, before);
+    }
+
+    /// F3 (lab cycle 4): the slots keep the owner's order and never overlap, the tools keep to the right end, and only the
+    /// readout compacts, and only when the row cannot hold its full text.
+    #[test]
+    fn toolbar_slots_keep_the_owner_order_and_compact_only_the_readout() {
+        let row = Rect::from_min_size(pos2(10.0, 0.0), vec2(600.0, 36.0));
+        let s = toolbar_slots(row, (110.0, 70.0), 56.0, true);
+        let (divider, [toggle, grid, sort, filter]) = s.filmstrip.unwrap();
+        let order = [s.readout, s.quick, s.presets, toggle, grid, sort, filter, s.zoom_tool, s.hand_tool];
+        assert!(order.windows(2).all(|w| w[0].right() <= w[1].left()), "{order:?}");
+        assert!(order.iter().all(|r| row.contains_rect(*r)), "{order:?}");
+        assert!(s.presets.right() < divider && divider < toggle.left());
+        assert!(s.readout_full && s.readout.width() == 110.0);
+        assert_eq!(s.hand_tool.right(), row.right());
+        assert!(s.status.left() >= filter.right() && s.status.right() <= s.zoom_tool.left());
+        // The narrowest row that holds the full readout keeps it; one point less shows the short form, in order.
+        let need = s.readout.width() + (s.hand_tool.right() - s.quick.left()) - (s.zoom_tool.left() - filter.right()) + 4.0 + 2.0 * 4.0;
+        let tight = |w: f32| toolbar_slots(Rect::from_min_size(row.min, vec2(w, 36.0)), (110.0, 70.0), 56.0, true);
+        assert!(tight(need).readout_full, "{need}");
+        let short = tight(need - 1.0);
+        assert!(!short.readout_full && short.readout.width() == 70.0);
+        let (_, [_, _, _, filter]) = short.filmstrip.unwrap();
+        assert!(filter.right() <= short.zoom_tool.left() && short.hand_tool.right() <= row.left() + need - 1.0);
+        // Without a Filmstrip there is no Filmstrip group.
+        assert!(toolbar_slots(row, (110.0, 70.0), 56.0, false).filmstrip.is_none());
+    }
+
+    /// F3: the readout tells the actual scale; "Fit (x%)" only while fitted; a fraction is never rounded to a whole.
+    #[test]
+    fn the_readout_says_fit_only_while_fitted_and_keeps_fractions() {
+        let mut state = CameraRawPreviewState::default();
+        assert_eq!(readout_text(&state, 0.157, true), "Fit (15.7%)");
+        assert_eq!(readout_text(&state, 0.157, false), "15.7%");
+        assert_eq!(readout_text(&state, 16.0, true), "Fit (1600%)");
+        state.zoom = Some(1.0);
+        assert_eq!(readout_text(&state, 1.0, true), "100%");
+        assert_eq!(readout_text(&state, 2.0 / 3.0, true), "66.7%");
+        assert_eq!(readout_text(&state, 0.0625, true), "6.25%");
+        assert_eq!(readout_text(&state, 0.125, true), "12.5%");
     }
 }

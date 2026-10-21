@@ -208,14 +208,18 @@ impl PhotocraftApp {
 
     /// File › Open: opens every chosen file, reporting each failure (see [`Self::open_paths`]).
     pub fn open_dialog_file(&mut self) -> Result<Value, String> {
+        self.open_dialog_file_mode(false)
+    }
+
+    pub(crate) fn open_dialog_file_mode(&mut self, explicit: bool) -> Result<Value, String> {
         let initial_dir = last_used_dir(&self.ui.recent_files);
-        self.ask_file(FileDialogRequest::Open { multiple: true, initial_dir, extensions: None }, |app, answer| {
+        self.ask_file(FileDialogRequest::Open { multiple: true, initial_dir, extensions: None }, move |app, answer| {
             match answer {
                 FileDialogAnswer::Paths(paths) => {
-                    app.open_paths(&paths);
+                    app.open_paths_mode(&paths, explicit);
                 }
-                FileDialogAnswer::Contents(name, bytes) => app.open_contents(vec![(name, bytes)]),
-                FileDialogAnswer::ContentsMany(files) => app.open_contents(files),
+                FileDialogAnswer::Contents(name, bytes) => app.open_contents(vec![(name, bytes)], explicit),
+                FileDialogAnswer::ContentsMany(files) => app.open_contents(files, explicit),
                 FileDialogAnswer::FolderTo(_) => return Err(UNEXPECTED.into()),
                 FileDialogAnswer::SaveTo(_) | FileDialogAnswer::Unavailable(_) => return Err(UNEXPECTED.into()),
             }
@@ -225,10 +229,10 @@ impl PhotocraftApp {
 
     /// Opens each picked file's contents as its own document, in name order (like
     /// [`Self::open_paths`]), reporting each failure.
-    fn open_contents(&mut self, mut files: Vec<(String, Vec<u8>)>) {
+    fn open_contents(&mut self, mut files: Vec<(String, Vec<u8>)>, explicit: bool) {
         files.sort_by(|a, b| crate::file_open::natural_cmp(&a.0, &b.0));
         for (name, bytes) in files {
-            if let Err(e) = self.open_bytes(&name, &bytes) {
+            if let Err(e) = self.open_bytes_from_mode(&name, &bytes, None, explicit) {
                 self.open_failed(&name, &e);
             }
         }

@@ -10,7 +10,7 @@ use crate::state::DialogKind;
 /// commands also usable through shortcuts. Camera Raw blocks menu commands entirely, and a pending
 /// crop blocks the commands Photoshop greys during one (`crop_ui::blocks`).
 pub(crate) fn modal_allows(app: &PhotocraftApp, id: &str) -> bool {
-    if app.camera_raw.is_some() || crate::crop_ui::blocks(app, id) {
+    if crate::camera_raw_ui::blocks_editor(app) || crate::crop_ui::blocks(app, id) {
         return false;
     }
     (app.ui.dialogs.is_empty() && app.discard.is_none()) || crate::shortcuts::NAV_COMMANDS.contains(&id)

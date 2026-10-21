@@ -4193,3 +4193,71 @@ cameraRaw	Yellow	Sárga
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU-adapter
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Az értékelés még nincs beolvasva
+	Unrated	Nincs értékelés
+	Rating: {n} of 5	Értékelés: {n} / 5
+	Rejected	Elutasítva
+	Not read yet	Még nincs beolvasva
+	No adjustments	Nincs korrekció
+	Not available yet	Még nem érhető el
+	Open Images	Képek megnyitása
+	Fit ({zoom})	Igazítás ({zoom})
+	Sort By:	Rendezés:
+	Open Order	Megnyitási sorrend
+	Star Rating	Csillagos értékelés
+	Capture Date	Készítés dátuma
+	Color Label	Színcímke
+	Rated	Értékelt
+	{n} hidden	Rejtett: {n}
+	{n} hidden, {m} selected	Rejtett: {n}, kijelölt: {m}
+	Shown; hidden by filter	Megjelenítve; a szűrő elrejti
+	All photos	Összes fénykép
+	Any	Bármelyik
+	Any colour	Bármilyen szín
+	Blue — Review	Kék — Ellenőrzésre
+	Blue — Review (9)	Kék — Ellenőrzésre (9)
+	Changes not yet saved to XMP	XMP-be még nem mentett módosítások
+	Clear filters	Szűrők törlése
+	Colour label	Színcímke
+	Green — Approved	Zöld — Jóváhagyva
+	Green — Approved (8)	Zöld — Jóváhagyva (8)
+	JPEG quality	JPEG-minőség
+	Mark	Megjelölés
+	Marked	Megjelöltek
+	Marked and unmarked	Megjelöltek és jelöletlenek
+	No Label	Nincs címke
+	No photos match	Nincs megfelelő fénykép
+	Other label	Másik címke
+	Photo actions	Fényképműveletek
+	Photograph	Fénykép
+	Purple — To Do	Lila — Teendő
+	Purple — To Do (Ctrl+Shift+0)	Lila — Teendő (Ctrl+Shift+0)
+	Rating	Értékelés
+	Red — Select	Piros — Kiválasztás
+	Red — Select (6)	Piros — Kiválasztás (6)
+	Return to photo preview	Vissza a fénykép előnézetéhez
+	Show grid	Rács megjelenítése
+	Show hidden photos	Rejtett fényképek megjelenítése
+	Unmark	Megjelölés törlése
+	Unmarked	Jelöletlenek
+	Unrated (0)	Értékeletlen (0)
+	Yellow — Second	Sárga — Második választás
+	Yellow — Second (7)	Sárga — Második választás (7)
+	hidden	rejtett
+	selected photos	kijelölt fényképek
+	Camera Raw session	Camera Raw-munkamenet
+	Reset selected	Kijelöltek alaphelyzetbe állítása
+	Set value	Érték beállítása
+	Set value…	Érték beállítása…
+	Synchronise selected	Kijelöltek szinkronizálása
+	Undo group edit	Csoportos szerkesztés visszavonása
+	Cache	Gyorsítótár
+	Opening photographs	Fényképek megnyitása
+	Preparing Camera Raw previews…	Camera Raw előnézetek előkészítése…
+	Session	Munkamenet
+	Sync Settings	Beállítások szinkronizálása
+	Reset Settings	Beállítások visszaállítása
+	Copy settings from {photo} to the selected photos.	A(z) {photo} beállításainak másolása a kijelölt fényképekre.
+	Select the active photograph to sync its settings.	Jelölje ki az aktív fényképet a beállításainak szinkronizálásához.

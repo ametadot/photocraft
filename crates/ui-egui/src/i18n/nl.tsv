@@ -4037,3 +4037,71 @@ curves	Smooth	Vloeiend maken
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU-adapter
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Waardering nog niet gelezen
+	Unrated	Geen waardering
+	Rating: {n} of 5	Waardering: {n} van 5
+	Rejected	Afgewezen
+	Not read yet	Nog niet gelezen
+	No adjustments	Geen aanpassingen
+	Not available yet	Nog niet beschikbaar
+	Open Images	Afbeeldingen openen
+	Fit ({zoom})	Passend ({zoom})
+	Sort By:	Sorteren op:
+	Open Order	Openingsvolgorde
+	Star Rating	Sterwaardering
+	Capture Date	Opnamedatum
+	Color Label	Kleurlabel
+	Rated	Gewaardeerd
+	{n} hidden	{n} verborgen
+	{n} hidden, {m} selected	{n} verborgen, {m} geselecteerd
+	Shown; hidden by filter	Getoond; verborgen door filter
+	All photos	Alle foto's
+	Any	Alle
+	Any colour	Elke kleur
+	Blue — Review	Blauw — Beoordelen
+	Blue — Review (9)	Blauw — Beoordelen (9)
+	Changes not yet saved to XMP	Wijzigingen nog niet opgeslagen in XMP
+	Clear filters	Filters wissen
+	Colour label	Kleurlabel
+	Green — Approved	Groen — Goedgekeurd
+	Green — Approved (8)	Groen — Goedgekeurd (8)
+	JPEG quality	JPEG-kwaliteit
+	Mark	Markeren
+	Marked	Gemarkeerd
+	Marked and unmarked	Gemarkeerd en ongemarkeerd
+	No Label	Geen label
+	No photos match	Geen overeenkomende foto's
+	Other label	Ander label
+	Photo actions	Fotoacties
+	Photograph	Foto
+	Purple — To Do	Paars — Te doen
+	Purple — To Do (Ctrl+Shift+0)	Paars — Te doen (Ctrl+Shift+0)
+	Rating	Waardering
+	Red — Select	Rood — Selectie
+	Red — Select (6)	Rood — Selectie (6)
+	Return to photo preview	Terug naar fotovoorbeeld
+	Show grid	Raster tonen
+	Show hidden photos	Verborgen foto's tonen
+	Unmark	Markering verwijderen
+	Unmarked	Ongemarkeerd
+	Unrated (0)	Niet beoordeeld (0)
+	Yellow — Second	Geel — Tweede keuze
+	Yellow — Second (7)	Geel — Tweede keuze (7)
+	hidden	verborgen
+	selected photos	geselecteerde foto's
+	Camera Raw session	Camera Raw-sessie
+	Reset selected	Geselecteerde foto's resetten
+	Set value	Waarde instellen
+	Set value…	Waarde instellen…
+	Synchronise selected	Geselecteerde foto's synchroniseren
+	Undo group edit	Groepsbewerking ongedaan maken
+	Cache	Cachegeheugen
+	Opening photographs	Foto’s openen
+	Preparing Camera Raw previews…	Camera Raw-voorbeelden voorbereiden…
+	Session	Sessie
+	Sync Settings	Instellingen synchroniseren
+	Reset Settings	Instellingen resetten
+	Copy settings from {photo} to the selected photos.	Instellingen van {photo} naar de geselecteerde foto's kopiëren.
+	Select the active photograph to sync its settings.	Selecteer de actieve foto om de instellingen ervan te synchroniseren.

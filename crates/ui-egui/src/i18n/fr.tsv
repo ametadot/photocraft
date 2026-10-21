@@ -3287,3 +3287,78 @@ curves	Smooth	Lisser
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptateur GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Note pas encore lue
+	Unrated	Sans note
+	Rating: {n} of 5	Note : {n} sur 5
+	Rejected	Rejetée
+	Not read yet	Pas encore lu
+	No adjustments	Aucun ajustement
+	Not available yet	Pas encore disponible
+	Open Images	Ouvrir les images
+	Fit ({zoom})	Adapter ({zoom})
+	Sort By:	Trier par :
+	Open Order	Ordre d'ouverture
+	Star Rating	Note par étoiles
+	Capture Date	Date de prise de vue
+	Color Label	Libellé de couleur
+	Rated	Notées
+	Show All	Tout afficher
+	{n} hidden	{n} masquées
+	{n} hidden, {m} selected	{n} masquées, {m} sélectionnées
+	Shown; hidden by filter	Affichée ; masquée par le filtre
+	Defaults	Valeurs par défaut
+	All photos	Toutes les photos
+	Any	Tous
+	Any colour	Toutes les couleurs
+	Back	Retour
+	Blue — Review	Bleu — À vérifier
+	Blue — Review (9)	Bleu — À vérifier (9)
+	Changes not yet saved to XMP	Modifications pas encore enregistrées dans XMP
+	Clear filters	Effacer les filtres
+	Colour label	Libellé de couleur
+	Filename	Nom du fichier
+	Green — Approved	Vert — Approuvé
+	Green — Approved (8)	Vert — Approuvé (8)
+	JPEG quality	Qualité JPEG
+	Mark	Marquer
+	Marked	Marquées
+	Marked and unmarked	Marquées et non marquées
+	No Label	Sans libellé
+	No photos match	Aucune photo ne correspond
+	Other label	Autre libellé
+	Photo actions	Actions sur la photo
+	Photograph	Photographie
+	Purple — To Do	Violet — À faire
+	Purple — To Do (Ctrl+Shift+0)	Violet — À faire (Ctrl+Shift+0)
+	Rating	Note
+	Red — Select	Rouge — Sélection
+	Red — Select (6)	Rouge — Sélection (6)
+	Return to photo preview	Revenir à l’aperçu de la photo
+	Show grid	Afficher la grille
+	Show hidden photos	Afficher les photos masquées
+	Unmark	Retirer la marque
+	Unmarked	Non marquées
+	Unrated (0)	Sans note (0)
+	Yellow — Second	Jaune — Second choix
+	Yellow — Second (7)	Jaune — Second choix (7)
+	hidden	masquées
+	selected photos	photos sélectionnées
+	Camera Raw session	Session Camera Raw
+	Reset selected	Réinitialiser la sélection
+	Set value	Définir la valeur
+	Set value…	Définir la valeur…
+	Synchronise selected	Synchroniser la sélection
+	Undo group edit	Annuler la retouche de groupe
+	Label	Libellé
+	Stars	Étoiles
+	Disabled	Désactivé
+	Cache	Mémoire cache
+	Opening photographs	Ouverture des photos
+	Preparing Camera Raw previews…	Préparation des aperçus Camera Raw…
+	Session	Session
+	Sync Settings	Synchroniser les paramètres
+	Reset Settings	Réinitialiser les paramètres
+	Copy settings from {photo} to the selected photos.	Copier les paramètres de {photo} vers les photos sélectionnées.
+	Select the active photograph to sync its settings.	Sélectionnez la photo active pour synchroniser ses paramètres.

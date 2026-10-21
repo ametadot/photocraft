@@ -31,6 +31,10 @@
 //! - `jobs.list` / `jobs.cancel {job?}`: background jobs (#210) with progress; cancel one (or all).
 //!   `engine.execute`, `ui.menu.invoke` and `ui.dialog.confirm` wait for a command that runs as a
 //!   job unless `wait: false` (then the reply is `{job, pending: true}`)
+//! - While a RAW photograph waits in Camera Raw for Open or Cancel (it is a session document until
+//!   then), requests that could edit, save, close or re-bind it are refused with an error that
+//!   starts `refused:` before anything changes; see the guard below. Editing, saving and closing an
+//!   accepted document, read-only queries and view state keep working.
 
 use std::sync::mpsc::Sender;
 
@@ -373,6 +377,466 @@ fn modifiers_from(p: &Value) -> egui::Modifiers {
 /// The `dialog` id of the shell's own dialog (`workspace_ui`) in `ui.inspect` and `ui.dialog.*`.
 const SHELL_DIALOG: &str = "shell";
 
+// ------------------------------------------------------------ unaccepted-RAW guard
+//
+// A RAW opened through Camera Raw is a real document in the session before Open or Cancel decides
+// it. Menu clicks are stopped by the modal gate; the requests below reach documents without it, so
+// each is checked here, before anything changes, against the stable `DocId`s of those documents
+// (`camera_raw_ui::unaccepted_documents`), never against the active tab or what is visible.
+// Fail closed: a request is allowed only if it provably cannot touch one of them.
+//
+// Method classes (the registry's `journal` flag is not a read-only marker and is not used):
+// - checked: `engine.execute`, `ui.menu.invoke`, `app.save`, `ui.pointer`, `ui.window.open`,
+//   `ui.context.choose`, `ui.dialog.open`/`set`/`confirm`
+// - refused outright: `ui.click`/`move`/`key`/`type`. They go to whatever surface is under them (a
+//   dialog or the command palette opened earlier, a floating panel), and several of those stay
+//   enabled during Camera Raw and act on the active document. Drive Camera Raw with the
+//   `filter.cameraRaw` `ui` requests and its prompts with `ui.dialog.*`.
+// - passed: `ui.set` (view, tool and panel state only), `ui.dialog.cancel`/`apply` (Preferences
+//   only), `ui.window.close`, `ui.inspect`, `ui.screenshot`, `ui.resize`, `ui.focus`,
+//   `ui.gpu.simulateLoss`, `ui.menu.list`, `engine.commands`, `jobs.list`, `jobs.cancel`,
+//   `app.open` (adds a document), `app.quit` (ends the process; nothing is written)
+
+const UNACCEPTED_RAW: &str = "an unaccepted RAW is waiting in Camera Raw; Open or Cancel it first";
+
+fn refused(what: impl std::fmt::Display) -> Result<(), String> {
+    Err(format!("refused: {what} ({UNACCEPTED_RAW})"))
+}
+
+/// Queries that read documents or application state and change none; a test runs each against a
+/// live review and compares every document before and after.
+#[doc(hidden)]
+pub const READ_ONLY_COMMANDS: &[&str] = &[
+    "command.list",
+    "session.inspect",
+    "document.inspect",
+    "document.pixel",
+    "document.sampleColor",
+    "jobs.list",
+    "prefs.get",
+    "channel.list",
+    "path.list",
+    "path.info",
+    "layer.vectorMask.info",
+    "edit.profileInfo",
+    "shape.info",
+    "type.info",
+    "type.fonts",
+    "type.hitTest",
+    "brush.presets.list",
+    "brush.get",
+    "swatches.list",
+    "gradient.fill.get",
+    "gradient.presets.list",
+    "pattern.list",
+    "pattern.presets.list",
+    "style.presets.list",
+    "shape.presets.list",
+    "tool.presets.list",
+    "type.characterStyle.list",
+    "type.paragraphStyle.list",
+    "layerComp.list",
+    "measurementLog.list",
+    "notes.list",
+    "cloneSource.list",
+    "slice.list",
+    "variables.list",
+    "document.presets.list",
+    "document.presets.get",
+    "plugin.list",
+    "actions.list",
+    "actions.get",
+    "timeline.info",
+    "image.analysis.info",
+    "image.adjustments.colorLookup.list",
+];
+
+/// Commands that cannot reach an existing document: they add one, or change only preferences.
+const NO_EXISTING_DOCUMENT: &[&str] = &["file.new", "file.openAs", "file.open", "prefs.set", "prefs.reset"];
+
+/// Session-level commands that edit no document: tool state, the swatch library and tool presets.
+/// Listed by id, not by prefix, so a command added later is refused until someone decides about it
+/// (a test fails on any new id under these prefixes). `swatches.import` and `swatches.export` take
+/// file paths and are left out.
+#[doc(hidden)]
+pub const SESSION_LEVEL_COMMANDS: &[&str] = &[
+    "tools.setColors",
+    "tools.swapColors",
+    "tools.defaultColors",
+    "tools.setBrush",
+    "tools.decreaseBrushSize",
+    "tools.increaseBrushSize",
+    "tools.decreaseBrushHardness",
+    "tools.increaseBrushHardness",
+    "tools.rotateBrush",
+    "swatches.add",
+    "swatches.delete",
+    "swatches.rename",
+    "swatches.move",
+    "swatches.newGroup",
+    "swatches.renameGroup",
+    "swatches.deleteGroup",
+    "swatches.use",
+    "swatches.reset",
+    "tool.presets.new",
+    "tool.presets.select",
+    "tool.presets.edit",
+    "tool.presets.reset",
+];
+
+/// Commands that act on documents the request does not name (every open one, the next in the tab
+/// order, every history, or whatever a recorded step or plug-in decides), so no single `DocId`
+/// bounds them.
+fn all_or_dynamic(id: &str) -> bool {
+    matches!(
+        id,
+        "file.closeAll"
+            | "file.closeOthers"
+            | "channel.merge"
+            | "actions.play"
+            | "plugin.run"
+            | "window.nextDocument"
+            | "window.previousDocument"
+            | "edit.purge.undo"
+            | "edit.purge.histories"
+            | "edit.purge.all"
+    ) || id.starts_with("file.automate.")
+        || id.starts_with("file.scripts.")
+}
+
+/// Shell commands (not engine commands) that change only view, window, panel or help state.
+fn shell_view_state(id: &str) -> bool {
+    if photocraft_engine::commands::find(id).is_some() || all_or_dynamic(id) || id == "window.newWindowForDocument" {
+        return false;
+    }
+    let listed = crate::menus::UI_COMMANDS.iter().any(|(listed, ..)| *listed == id);
+    (listed && (id.starts_with("view.") || id.starts_with("window.") || id.starts_with("help.") || matches!(id, "tool.reset" | "tool.resetAll")))
+        || id.starts_with("window.workspace.")
+        || id.starts_with("window.panel.")
+        || id.starts_with("view.screenMode.")
+}
+
+/// How a request names a document: a tab index (a number), a document name, or something that
+/// cannot be resolved.
+enum Reference {
+    Number(u64),
+    Name(String),
+    Unresolvable,
+}
+
+/// What a parameter key says about its value.
+#[derive(Clone, Copy, PartialEq)]
+enum KeyKind {
+    /// Not about documents.
+    Other,
+    /// Names documents; an array lists them (`documents`, `mapDocument`).
+    Documents,
+    /// Names one document as a number, a name or a nested object (`source`, `destination`, `doc`). An array here
+    /// is coordinates, as in the clone and healing tools' `source`.
+    OneDocument,
+}
+
+fn key_kind(key: &str) -> KeyKind {
+    let key = key.to_ascii_lowercase();
+    if key.contains("document") || key == "docs" {
+        KeyKind::Documents
+    } else if matches!(key.as_str(), "doc" | "source" | "destination") {
+        KeyKind::OneDocument
+    } else {
+        KeyKind::Other
+    }
+}
+
+/// Nesting deeper than this is refused rather than followed.
+const MAX_PARAMETER_DEPTH: usize = 24;
+
+fn document_references(value: &Value, kind: KeyKind, depth: usize, out: &mut Vec<Reference>) {
+    if depth > MAX_PARAMETER_DEPTH {
+        out.push(Reference::Unresolvable);
+        return;
+    }
+    match value {
+        Value::Object(fields) => {
+            for (key, inner) in fields.iter().filter(|(key, _)| !key.starts_with("__")) {
+                document_references(inner, key_kind(key), depth + 1, out);
+            }
+        }
+        Value::Array(items) if kind == KeyKind::Documents => items.iter().for_each(|inner| document_references(inner, kind, depth + 1, out)),
+        // Coordinates: only a nested object could still name a document.
+        Value::Array(items) if kind == KeyKind::OneDocument => {
+            items.iter().filter(|inner| inner.is_object()).for_each(|inner| document_references(inner, KeyKind::Other, depth + 1, out))
+        }
+        Value::Array(items) => items.iter().for_each(|inner| document_references(inner, KeyKind::Other, depth + 1, out)),
+        Value::Number(n) if kind != KeyKind::Other => {
+            // Rounded like the engine's own `int`, which also takes `12.0`.
+            let index = n.as_u64().or_else(|| n.as_f64().filter(|f| f.is_finite() && (0.0..1e15).contains(f)).map(|f| f.round() as u64));
+            out.push(index.map_or(Reference::Unresolvable, Reference::Number));
+        }
+        Value::String(name) if kind != KeyKind::Other && name != "new" => out.push(Reference::Name(name.clone())),
+        _ => {}
+    }
+}
+
+fn active_is_held(app: &PhotocraftApp, held: &[photocraft_doc::DocId]) -> bool {
+    app.session.active().is_some_and(|st| held.contains(&st.doc.id))
+}
+
+fn index_is_held(app: &PhotocraftApp, held: &[photocraft_doc::DocId], index: u64) -> bool {
+    usize::try_from(index).ok().and_then(|i| app.session.documents().get(i)).is_some_and(|st| held.contains(&st.doc.id))
+}
+
+fn name_is_held(app: &PhotocraftApp, held: &[photocraft_doc::DocId], name: &str) -> bool {
+    app.session.documents().iter().any(|st| {
+        held.contains(&st.doc.id)
+            && (st.doc.name == name
+                || st
+                    .path
+                    .as_deref()
+                    .is_some_and(|path| path == name || std::path::Path::new(path).file_name().is_some_and(|file| file.to_string_lossy() == name)))
+    })
+}
+
+/// Allow command `id` with `params` only if it cannot touch an unaccepted RAW: not the active
+/// document (when it is the implicit target) and not any document its parameters name. Also the
+/// decision `PhotocraftApp::run` applies to commands that do not come from a control request.
+pub(crate) fn guard_command(app: &PhotocraftApp, held: &[photocraft_doc::DocId], id: &str, params: &Value) -> Result<(), String> {
+    // Quitting through the menu raises an unsaved-changes prompt that only the screen can answer, and
+    // while it is up the Camera Raw `ui` requests are refused: `app.quit` is the way to end the session.
+    if id == "file.exit" {
+        return refused("`file.exit` would raise an unsaved-changes prompt that only the screen can answer");
+    }
+    if READ_ONLY_COMMANDS.contains(&id) || NO_EXISTING_DOCUMENT.contains(&id) || SESSION_LEVEL_COMMANDS.contains(&id) || shell_view_state(id) {
+        return Ok(());
+    }
+    if all_or_dynamic(id) {
+        return refused(format!("`{id}` acts on documents the request does not name"));
+    }
+    let mut references = Vec::new();
+    document_references(params, KeyKind::Other, 0, &mut references);
+    for reference in &references {
+        let hit = match reference {
+            // A number is a tab index. The few commands that take a `DocId` instead only check it
+            // against the active document (to reject a stale dialog), which is covered below.
+            Reference::Number(n) => index_is_held(app, held, *n),
+            Reference::Name(name) => name_is_held(app, held, name),
+            Reference::Unresolvable => true,
+        };
+        if hit {
+            return refused(format!("`{id}` names an unaccepted RAW"));
+        }
+    }
+    // These name the one document they act on, read the way the engine reads it: a `document` (or
+    // `source`) that is not a tab index in range makes them fall back to the active tab. Every other
+    // command acts on the active one too.
+    let names_a_tab =
+        |key: &str| params.get(key).and_then(Value::as_u64).and_then(|i| usize::try_from(i).ok()).is_some_and(|i| i < app.session.documents().len());
+    let acts_on_active = match id {
+        "document.activate" => false,
+        "file.close" | "file.revealInFinder" | "document.move" => !names_a_tab("document"),
+        "layer.copyToDocument" => !names_a_tab("source"),
+        _ => true,
+    };
+    if acts_on_active && active_is_held(app, held) {
+        return refused(format!("`{id}` would act on the unaccepted RAW that is open"));
+    }
+    Ok(())
+}
+
+/// The confirm action of dialog `id`: its stored command, or the preferences it applies.
+fn guard_dialog_confirm(app: &PhotocraftApp, held: &[photocraft_doc::DocId], id: u64) -> Result<(), String> {
+    let Some(dialog) = app.ui.dialogs.iter().find(|dialog| dialog.id == id) else { return Ok(()) };
+    let fields = &dialog.fields;
+    let acts_on_active = || {
+        if active_is_held(app, held) { refused("this dialog would act on the unaccepted RAW that is open") } else { Ok(()) }
+    };
+    match dialog.kind {
+        DialogKind::NewDocument | DialogKind::About | DialogKind::Error => Ok(()),
+        DialogKind::LayerStyle => acts_on_active(),
+        DialogKind::Command => {
+            // `dialogs::confirm` picks what to run from the first internal marker it finds, so a
+            // dialog is an application-settings or prompt dialog only if every internal field it
+            // carries belongs to those dialogs; one re-marked with `ui.dialog.set`, or opened for a
+            // harmless command, is judged as what it could run.
+            let settings_only = fields.contains_key("__prefsui")
+                && fields.keys().filter(|key| key.starts_with("__")).all(|key| PREFERENCE_DIALOG_FIELDS.contains(&key.as_str()));
+            if settings_only {
+                // Another choice converts or discards the profile of the document the prompt came from.
+                if fields.get("__prefsui").and_then(Value::as_str) == Some("mismatch") && fields.get("action") != fields.get("applied") {
+                    // Ask When Opening (main 0.9.0): the answer applies to a file held back before it opens
+                    // (`open_prompt`), never to a document in the session, so it cannot change a waiting RAW.
+                    if crate::open_prompt::owns(fields) {
+                        return Ok(());
+                    }
+                    let source_held =
+                        fields.get("__sourceDocument").and_then(Value::as_u64).is_some_and(|source| held.contains(&photocraft_doc::DocId(source)));
+                    return if source_held { refused("the profile choice would change the unaccepted RAW it was asked about") } else { acts_on_active() };
+                }
+                return Ok(());
+            }
+            acts_on_active()?;
+            // The Delete Layer prompt stores a `DocId` under `document` and re-checks it on confirm.
+            if crate::delete_layer_prompt::owns(fields) {
+                return Ok(());
+            }
+            match fields.get("__command").and_then(Value::as_str) {
+                Some(command) => guard_command(app, held, command, &Value::Object(fields.clone())),
+                None => Ok(()),
+            }
+        }
+    }
+}
+
+/// The internal fields of Preferences, Keyboard Shortcuts, Presets and the profile prompt.
+const PREFERENCE_DIALOG_FIELDS: &[&str] =
+    &["__prefsui", "__label", "__order", "__gpuInfo", "__note", "__preview", "__search", "__sourceDocument", "__heldOpen"];
+
+/// Would this request bind or enable a Script Event? Preferences, the Script Events Manager and the
+/// Preferences dialog's Apply and OK can.
+fn may_bind_script_events(app: &PhotocraftApp, req: &ControlRequest) -> bool {
+    let p = &req.params;
+    match req.method.as_str() {
+        "engine.execute" | "ui.menu.invoke" => {
+            let id = p.get("command").and_then(Value::as_str).or(p.get("id").and_then(Value::as_str)).unwrap_or_default();
+            matches!(id, "prefs.set" | "prefs.reset") || id.starts_with("file.scripts.")
+        }
+        "ui.dialog.apply" => true,
+        "ui.dialog.confirm" => p
+            .get("dialog")
+            .and_then(Value::as_u64)
+            .and_then(|id| app.ui.dialogs.iter().find(|dialog| dialog.id == id))
+            .is_some_and(|dialog| crate::prefs_ui::is_preferences(&dialog.fields)),
+        _ => false,
+    }
+}
+
+fn guard_unaccepted(app: &PhotocraftApp, req: &ControlRequest) -> Result<(), String> {
+    let method = req.method.as_str();
+    // The other order of the same hazard: a background open is still decoding, no hook is bound yet, and a
+    // request binds one before the RAW lands. The hook would then run on it before Camera Raw decides it.
+    if app.background_jobs && !app.jobs.opens.is_empty() && may_bind_script_events(app, req) {
+        return Err(
+            "refused: a background open is still decoding and this request could bind a Script Event that would run on the opened RAW before Camera Raw has decided it (wait for the open to finish, or use `app.open`)"
+                .to_string(),
+        );
+    }
+    // Requests that read or change no document and cannot reach a dialog's confirm. Every other method,
+    // including one added later, is checked below or refused while a RAW waits.
+    if matches!(
+        method,
+        "engine.commands"
+            | "jobs.list"
+            | "jobs.cancel"
+            | "ui.menu.list"
+            | "ui.inspect"
+            | "ui.set"
+            | "ui.dialog.cancel"
+            | "ui.dialog.apply"
+            | "ui.window.close"
+            | "ui.resize"
+            | "ui.gpu.simulateLoss"
+            | "ui.focus"
+            | "ui.screenshot"
+            | "app.open"
+            | "app.quit"
+    ) {
+        return Ok(());
+    }
+    // A control `file.open` is a background open in the desktop app: it returns, Script Events are back on, and
+    // when the decode lands the shell queues a RAW for Camera Raw and then fires "Open Document" on it. That is
+    // before any RAW waits, so it is judged here, not by the held set. `app.open` opens in the request, with
+    // Script Events suspended, and is not affected.
+    if matches!(method, "engine.execute" | "ui.menu.invoke") && app.background_jobs {
+        let id = req.params.get("command").and_then(Value::as_str).or(req.params.get("id").and_then(Value::as_str)).unwrap_or_default();
+        if (id == "file.open" || id.starts_with("file.openRecent.")) && open_hook_bound(app) {
+            return Err(format!(
+                "refused: `{id}` starts a background open and an Open Document Script Event is bound; the hook would run on the opened RAW before Camera Raw has decided it (use `app.open`, which suspends Script Events)"
+            ));
+        }
+    }
+    let held = crate::camera_raw_ui::unaccepted_documents(app);
+    if held.is_empty() {
+        return Ok(());
+    }
+    let p = &req.params;
+    let s = |key: &str| p.get(key).and_then(Value::as_str);
+    let acts_on_active = |what: &str| if active_is_held(app, &held) { refused(what) } else { Ok(()) };
+    match method {
+        "engine.execute" | "ui.menu.invoke" => {
+            let Some(id) = s("command").or(s("id")) else { return Ok(()) };
+            let params = p.get("params").unwrap_or(&Value::Null);
+            if method == "ui.menu.invoke" {
+                // The continuation is Camera Raw's own control surface, and a menu click that the modal
+                // gate will refuse keeps that gate's message; everything else is checked below.
+                let continuation = camera_raw_continuation(app, id, params);
+                if continuation || !crate::menus::modal_allows(app, id) {
+                    return Ok(());
+                }
+            }
+            guard_command(app, &held, id, params)
+        }
+        "app.save" => acts_on_active("`app.save` would write the unaccepted RAW and bind it to a file"),
+        "ui.pointer" => acts_on_active("`ui.pointer` would drive the active tool on the unaccepted RAW"),
+        "ui.window.open" => match p.get("document").and_then(Value::as_u64) {
+            Some(index) if index_is_held(app, &held, index) => refused("`ui.window.open` names an unaccepted RAW"),
+            Some(_) => Ok(()),
+            None => acts_on_active("`ui.window.open` would open the unaccepted RAW"),
+        },
+        "ui.context.choose" => match (s("id"), app.ui.canvas_tool_menu.as_ref()) {
+            (Some(id), Some(menu)) => {
+                let (command, params) = crate::canvas_tool_menu::engine_call(app, menu, id);
+                guard_command(app, &held, &command, &params)
+            }
+            _ => Ok(()),
+        },
+        "ui.dialog.open" => {
+            let internal = |fields: &serde_json::Map<String, Value>| fields.keys().any(|key| key.starts_with("__"));
+            if p.get("fields").and_then(Value::as_object).is_some_and(internal) {
+                return refused("`ui.dialog.open` with internal dialog fields");
+            }
+            match s("kind").unwrap_or("") {
+                "layerStyle" | "LayerStyle" => acts_on_active("`ui.dialog.open` Layer Style would edit the unaccepted RAW"),
+                "colorPicker" | "ColorPicker" if p.get("parent").is_some() => {
+                    acts_on_active("this color picker belongs to a Layer Style on the unaccepted RAW")
+                }
+                "command" | "Command" => s("command").map_or(Ok(()), |command| guard_command(app, &held, command, &Value::Null)),
+                _ => Ok(()),
+            }
+        }
+        // The internal fields choose what a dialog runs on confirm, so they are not for callers to set.
+        "ui.dialog.set" if s("dialog") != Some(SHELL_DIALOG) && s("field").is_some_and(|field| field.starts_with("__")) => {
+            refused("`ui.dialog.set` of an internal dialog field")
+        }
+        "ui.dialog.confirm" if s("dialog") == Some(SHELL_DIALOG) => {
+            match app.ui.shell.dialog.as_ref().and_then(|(kind, fields)| crate::workspace_ui::dialog_command(kind, fields)) {
+                Some((command, params)) => guard_command(app, &held, command, &params),
+                None => Ok(()),
+            }
+        }
+        "ui.dialog.set" => Ok(()),
+        "ui.dialog.confirm" => p.get("dialog").and_then(Value::as_u64).map_or(Ok(()), |id| guard_dialog_confirm(app, &held, id)),
+        "ui.click" | "ui.move" | "ui.key" | "ui.type" => refused(format!(
+            "`{method}` goes to whichever surface is under it, and dialogs, the palette and panels that stay enabled act on the active document"
+        )),
+        other => refused(format!("`{other}` is not classified as safe while an unaccepted RAW is open")),
+    }
+}
+
+/// Script Events are on and something is bound to Open Document (or to everything).
+fn open_hook_bound(app: &PhotocraftApp) -> bool {
+    let events = &app.session.prefs().script_events;
+    events.enabled && events.bindings.iter().any(|binding| binding.event == "openDocument" || binding.event == "everything")
+}
+
+/// Camera Raw's documented `ui` requests operate its already-open dialog instead of clicking a menu.
+fn camera_raw_continuation(app: &PhotocraftApp, id: &str, params: &Value) -> bool {
+    id == "filter.cameraRaw"
+        && crate::camera_raw_ui::dialog_is_drivable(app)
+        && params.as_object().is_some_and(|fields| fields.len() == 1 && fields.get("ui").is_some_and(Value::is_object))
+        && app.ui.dialogs.is_empty()
+        && app.discard.is_none()
+        && !crate::crop_ui::blocks(app, id)
+}
+
 pub fn handle(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) -> Outcome {
     let saved = app.session.authorize;
     if let Some(gate) = app.services.automation_authorize {
@@ -380,6 +844,8 @@ pub fn handle(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest
     }
     let outcome = dispatch(app, ctx, req);
     app.session.authorize = saved;
+    // A request can start, finish or cancel a review (`filter.cameraRaw` `ui`); the next hook must see the result.
+    crate::camera_raw_ui::sync_provisional(app);
     outcome
 }
 
@@ -400,6 +866,9 @@ fn context_entries(app: &PhotocraftApp, menu: &crate::canvas_tool_menu::CanvasTo
 }
 
 fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) -> Outcome {
+    if let Err(error) = guard_unaccepted(app, req) {
+        return err(error);
+    }
     let p = &req.params;
     let s = |k: &str| p.get(k).and_then(Value::as_str);
     let u = |k: &str| p.get(k).and_then(Value::as_u64);
@@ -427,14 +896,10 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
             // A control-channel menu click must respect the same modal gate as the native menu.
             // Camera Raw's documented `ui` requests operate its already-open dialog rather
             // than click a menu. Only that continuation may pass its own modal gate.
-            // engine.execute is deliberately not subject to the UI's menu-click semantics.
-            let camera_raw_continuation = id == "filter.cameraRaw"
-                && app.camera_raw.is_some()
-                && params.as_object().is_some_and(|fields| fields.len() == 1 && fields.get("ui").is_some_and(Value::is_object))
-                && app.ui.dialogs.is_empty()
-                && app.discard.is_none()
-                && !crate::crop_ui::blocks(app, id);
-            if req.method == "ui.menu.invoke" && !camera_raw_continuation && !crate::menus::modal_allows(app, id) {
+            // engine.execute is deliberately not subject to the UI's menu-click semantics; the
+            // unaccepted-RAW guard at the top of `dispatch` covers both methods.
+            let continuation = camera_raw_continuation(app, id, &params);
+            if req.method == "ui.menu.invoke" && !continuation && !crate::menus::modal_allows(app, id) {
                 return err("menu command is unavailable while a modal dialog is open");
             }
             if let Some(authorize) = app.services.automation_command.as_ref()
@@ -454,17 +919,24 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
         // Background jobs (#210): running ones with progress, then the last few that ended.
         "jobs.list" => wrap(app.session.execute("jobs.list", json!({})).map_err(|e| e.to_string())),
         "jobs.cancel" => {
+            // Camera Raw's own commit (the re-develop and the filter step that follow Open) is not the controller's
+            // to cancel: it would leave the RAW in the session developed with the defaults. Esc and Cancel in the
+            // dialog are the user's way to stop it and are not affected.
+            let protected = crate::camera_raw_ui::commit_jobs(app);
             let all = p.get("job").is_none_or(Value::is_null);
             match p.get("job").and_then(Value::as_u64) {
+                Some(j) if protected.contains(&photocraft_engine::jobs::JobId(j)) => {
+                    err(format!("refused: job {j} is Camera Raw's own commit of a RAW and cannot be cancelled from here ({UNACCEPTED_RAW})"))
+                }
                 Some(j) if app.session.job(photocraft_engine::jobs::JobId(j)).is_some() => {
                     let cancelled = crate::jobs_ui::cancel(app, photocraft_engine::jobs::JobId(j));
                     ok(json!({"cancelled": usize::from(cancelled)}))
                 }
                 Some(j) => err(format!("no running job {j}")),
                 None if all => {
-                    let ids: Vec<_> = app.session.jobs().into_iter().map(|j| j.id).collect();
+                    let ids: Vec<_> = app.session.jobs().into_iter().map(|j| j.id).filter(|id| !protected.contains(id)).collect();
                     let cancelled = ids.into_iter().filter(|j| crate::jobs_ui::cancel(app, *j)).count();
-                    ok(json!({"cancelled": cancelled}))
+                    ok(json!({"cancelled": cancelled, "skipped": protected.len()}))
                 }
                 None => err("`job` must be a job id"),
             }

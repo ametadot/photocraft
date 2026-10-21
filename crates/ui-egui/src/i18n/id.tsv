@@ -3274,3 +3274,78 @@ curves	Smooth	Haluskan
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptor GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Rating belum dibaca
+	Unrated	Tanpa rating
+	Rating: {n} of 5	Rating: {n} dari 5
+	Rejected	Ditolak
+	Not read yet	Belum dibaca
+	No adjustments	Tanpa penyesuaian
+	Not available yet	Belum tersedia
+	Open Images	Buka Gambar
+	Fit ({zoom})	Pas ({zoom})
+	Sort By:	Urutkan Menurut:
+	Open Order	Urutan Pembukaan
+	Star Rating	Rating Bintang
+	Capture Date	Tanggal Pengambilan
+	Color Label	Label Warna
+	Rated	Diberi rating
+	Show All	Tampilkan Semua
+	{n} hidden	{n} tersembunyi
+	{n} hidden, {m} selected	{n} tersembunyi, {m} dipilih
+	Shown; hidden by filter	Ditampilkan; disembunyikan oleh filter
+	Defaults	Bawaan
+	All photos	Semua foto
+	Any	Apa saja
+	Any colour	Semua warna
+	Back	Kembali
+	Blue — Review	Biru — Tinjau
+	Blue — Review (9)	Biru — Tinjau (9)
+	Changes not yet saved to XMP	Perubahan belum disimpan ke XMP
+	Clear filters	Hapus filter
+	Colour label	Label warna
+	Filename	Nama file
+	Green — Approved	Hijau — Disetujui
+	Green — Approved (8)	Hijau — Disetujui (8)
+	JPEG quality	Kualitas JPEG
+	Mark	Tandai
+	Marked	Ditandai
+	Marked and unmarked	Ditandai dan tidak ditandai
+	No Label	Tanpa Label
+	No photos match	Tidak ada foto yang cocok
+	Other label	Label lain
+	Photo actions	Tindakan foto
+	Photograph	Foto
+	Purple — To Do	Ungu — Tugas
+	Purple — To Do (Ctrl+Shift+0)	Ungu — Tugas (Ctrl+Shift+0)
+	Rating	Peringkat
+	Red — Select	Merah — Pilihan
+	Red — Select (6)	Merah — Pilihan (6)
+	Return to photo preview	Kembali ke pratinjau foto
+	Show grid	Tampilkan kisi
+	Show hidden photos	Tampilkan foto tersembunyi
+	Unmark	Hapus tanda
+	Unmarked	Tidak ditandai
+	Unrated (0)	Tanpa peringkat (0)
+	Yellow — Second	Kuning — Pilihan kedua
+	Yellow — Second (7)	Kuning — Pilihan kedua (7)
+	hidden	tersembunyi
+	selected photos	foto terpilih
+	Camera Raw session	Sesi Camera Raw
+	Reset selected	Atur ulang foto terpilih
+	Set value	Tetapkan nilai
+	Set value…	Tetapkan nilai…
+	Synchronise selected	Sinkronkan foto terpilih
+	Undo group edit	Urungkan pengeditan grup
+	Label	Label
+	Stars	Bintang
+	Disabled	Dinonaktifkan
+	Cache	Tembolok
+	Opening photographs	Membuka foto
+	Preparing Camera Raw previews…	Menyiapkan pratinjau Camera Raw…
+	Session	Sesi
+	Sync Settings	Sinkronkan pengaturan
+	Reset Settings	Atur ulang pengaturan
+	Copy settings from {photo} to the selected photos.	Salin pengaturan dari {photo} ke foto yang dipilih.
+	Select the active photograph to sync its settings.	Pilih foto aktif untuk menyinkronkan pengaturannya.

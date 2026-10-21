@@ -28,6 +28,38 @@ impl RgbHistogram {
     /// Each visible pixel counts once, including partially transparent pixels. Non-finite
     /// pixels are rejected as a whole; transparent RGB cannot contribute phantom peaks.
     pub fn from_rgba(pixels: &[[f32; 4]]) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        if pixels.len() >= 64 * 1024 {
+            use rayon::prelude::*;
+            return pixels.par_chunks(16 * 1024).map(Self::from_rgba_serial).reduce(Self::default, Self::merge);
+        }
+        Self::from_rgba_serial(pixels)
+    }
+
+    // Each chunk counts the same samples. Saturating integer addition makes the
+    // reduction independent of scheduling, including counters at their limits.
+    #[cfg(not(target_arch = "wasm32"))]
+    fn merge(mut self, other: Self) -> Self {
+        for (left, right) in self.channels.iter_mut().flatten().zip(other.channels.iter().flatten()) {
+            *left = left.saturating_add(*right);
+        }
+        self.samples = self.samples.saturating_add(other.samples);
+        self.transparent = self.transparent.saturating_add(other.transparent);
+        self.invalid = self.invalid.saturating_add(other.invalid);
+        for (left, right) in [&mut self.underflow, &mut self.overflow, &mut self.shadows, &mut self.highlights].into_iter().zip([
+            other.underflow,
+            other.overflow,
+            other.shadows,
+            other.highlights,
+        ]) {
+            for (left, right) in left.iter_mut().zip(right) {
+                *left = left.saturating_add(right);
+            }
+        }
+        self
+    }
+
+    fn from_rgba_serial(pixels: &[[f32; 4]]) -> Self {
         let mut h = Self::default();
         for pixel in pixels {
             if !pixel[3].is_finite() {
@@ -93,6 +125,42 @@ pub fn clipping(p: [f32; 4]) -> (u8, u8) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parallel_histogram_matches_serial_for_large_mixed_domain_and_chunk_edges() {
+        let patterns = [
+            [0.0, 1.0, 0.5, 1.0],
+            [-3.0, 4.0, 0.9999, 0.5],
+            [0.0001, 0.25, 0.75, 1.0],
+            [0.7, 0.9, 0.4, 0.0],
+            [f32::NAN, 0.0, 0.0, 1.0],
+            [0.0, f32::INFINITY, 0.0, 1.0],
+            [0.0, 0.0, 0.0, f32::NAN],
+            [0.0, 1.0, 0.0, -1.0],
+        ];
+        let pixels: Vec<_> = (0..131_073).map(|i| patterns[i % patterns.len()]).collect();
+        for count in [0, 16_383, 65_535, 65_536, 65_537, pixels.len()] {
+            let input = &pixels[..count];
+            assert_eq!(RgbHistogram::from_rgba(input), RgbHistogram::from_rgba_serial(input));
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn histogram_reduction_saturates_every_counter() {
+        let full = RgbHistogram {
+            channels: [[u64::MAX; BINS]; 3],
+            samples: u64::MAX,
+            transparent: u64::MAX,
+            invalid: u64::MAX,
+            underflow: [u64::MAX; 3],
+            overflow: [u64::MAX; 3],
+            shadows: [u64::MAX; 3],
+            highlights: [u64::MAX; 3],
+        };
+        assert_eq!(full.clone().merge(full.clone()), full);
+        assert_eq!(RgbHistogram::default().merge(full.clone()), full);
+    }
 
     #[test]
     fn exact_bins_and_channel_totals() {

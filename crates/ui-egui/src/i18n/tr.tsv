@@ -4004,3 +4004,71 @@ cameraData	Lens	Lens
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU bağdaştırıcısı
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Derecelendirme henüz okunmadı
+	Unrated	Derecelendirilmemiş
+	Rating: {n} of 5	Derecelendirme: 5 üzerinden {n}
+	Rejected	Reddedildi
+	Not read yet	Henüz okunmadı
+	No adjustments	Ayarlama yok
+	Not available yet	Henüz kullanılamıyor
+	Open Images	Görüntüleri Aç
+	Fit ({zoom})	Uygun ({zoom})
+	Sort By:	Sıralama Ölçütü:
+	Open Order	Açılış Sırası
+	Star Rating	Yıldız Derecelendirmesi
+	Capture Date	Çekim Tarihi
+	Color Label	Renk Etiketi
+	Rated	Derecelendirilmiş
+	{n} hidden	{n} gizli
+	{n} hidden, {m} selected	{n} gizli, {m} seçili
+	Shown; hidden by filter	Gösteriliyor; filtreyle gizlendi
+	All photos	Tüm fotoğraflar
+	Any	Herhangi biri
+	Any colour	Herhangi bir renk
+	Blue — Review	Mavi — İncelenecek
+	Blue — Review (9)	Mavi — İncelenecek (9)
+	Changes not yet saved to XMP	Değişiklikler henüz XMP'ye kaydedilmedi
+	Clear filters	Filtreleri temizle
+	Colour label	Renk etiketi
+	Green — Approved	Yeşil — Onaylandı
+	Green — Approved (8)	Yeşil — Onaylandı (8)
+	JPEG quality	JPEG kalitesi
+	Mark	İşaretle
+	Marked	İşaretli
+	Marked and unmarked	İşaretli ve işaretsiz
+	No Label	Etiket Yok
+	No photos match	Eşleşen fotoğraf yok
+	Other label	Diğer etiket
+	Photo actions	Fotoğraf işlemleri
+	Photograph	Fotoğraf
+	Purple — To Do	Mor — Yapılacak
+	Purple — To Do (Ctrl+Shift+0)	Mor — Yapılacak (Ctrl+Shift+0)
+	Rating	Derecelendirme
+	Red — Select	Kırmızı — Seçilen
+	Red — Select (6)	Kırmızı — Seçilen (6)
+	Return to photo preview	Fotoğraf önizlemesine dön
+	Show grid	Izgarayı göster
+	Show hidden photos	Gizli fotoğrafları göster
+	Unmark	İşareti kaldır
+	Unmarked	İşaretsiz
+	Unrated (0)	Derecelendirilmemiş (0)
+	Yellow — Second	Sarı — İkinci tercih
+	Yellow — Second (7)	Sarı — İkinci tercih (7)
+	hidden	gizli
+	selected photos	seçili fotoğraf
+	Camera Raw session	Camera Raw oturumu
+	Reset selected	Seçilenleri sıfırla
+	Set value	Değer ayarla
+	Set value…	Değer ayarla…
+	Synchronise selected	Seçilenleri eşitle
+	Undo group edit	Grup düzenlemesini geri al
+	Cache	Önbellek
+	Opening photographs	Fotoğraflar açılıyor
+	Preparing Camera Raw previews…	Camera Raw önizlemeleri hazırlanıyor…
+	Session	Oturum
+	Sync Settings	Ayarları eşitle
+	Reset Settings	Ayarları sıfırla
+	Copy settings from {photo} to the selected photos.	{photo} fotoğrafının ayarlarını seçilen fotoğraflara kopyala.
+	Select the active photograph to sync its settings.	Ayarlarını eşitlemek için etkin fotoğrafı seçin.

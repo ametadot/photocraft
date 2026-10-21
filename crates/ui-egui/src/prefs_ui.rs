@@ -7,7 +7,7 @@
 //! change them with `prefs.get` / `prefs.set`); this module only edits a working copy in a dialog
 //! and commits it with those commands on Apply or OK.
 
-use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 
 use egui::{Color32, RichText, Sense, vec2};
 use photocraft_doc::DocId;
@@ -674,6 +674,11 @@ fn link_updates(app: &mut PhotocraftApp, ctx: &egui::Context) {
 
 /// Background autosave of documents with unsaved changes every N minutes (File Handling).
 fn autosave(app: &mut PhotocraftApp) {
+    autosave_at(app, crate::gpu_canvas::now_ms());
+}
+
+// The production clock is supplied by `autosave`; tests drive the same tick at exact deadlines.
+fn autosave_at(app: &mut PhotocraftApp, now: f64) {
     let fh = &app.session.prefs().file_handling;
     let (on, minutes) = (fh.autosave, fh.autosave_minutes.max(1));
     if app.services.autosave.is_none() {
@@ -700,9 +705,10 @@ fn autosave(app: &mut PhotocraftApp) {
             }
         }
     }
-    let now = crate::gpu_canvas::now_ms();
-    // Saved or closed documents drop their recovery data.
-    let live: HashMap<DocId, bool> = app.session.documents().iter().map(|d| (d.doc.id, d.is_dirty())).collect();
+    // Only accepted dirty documents own recovery data. Include job-layer admissions,
+    // which can exist before the shell has queued their Camera Raw review.
+    let held: HashSet<_> = app.session.provisional_documents().into_iter().collect();
+    let live: HashMap<DocId, bool> = app.session.documents().iter().map(|d| (d.doc.id, d.is_dirty() && !held.contains(&d.doc.id))).collect();
     let mut stale: Vec<DocId> = app.prefs_rt.autosaved.keys().filter(|id| live.get(id) != Some(&true)).copied().collect();
     stale.extend(app.prefs_rt.autosave_pending.keys().filter(|id| live.get(*id) != Some(&true) && !app.prefs_rt.autosaved.contains_key(*id)).copied());
     for id in stale {
@@ -728,7 +734,11 @@ fn autosave(app: &mut PhotocraftApp) {
         .session
         .documents()
         .iter()
-        .filter(|d| d.is_dirty() && app.prefs_rt.autosaved.get(&d.doc.id) != Some(&d.revision) && !app.prefs_rt.autosave_pending.contains_key(&d.doc.id))
+        .filter(|d| {
+            live.get(&d.doc.id) == Some(&true)
+                && app.prefs_rt.autosaved.get(&d.doc.id) != Some(&d.revision)
+                && !app.prefs_rt.autosave_pending.contains_key(&d.doc.id)
+        })
         .map(|d| (d.doc.clone(), d.revision, d.path.clone()))
         .collect();
     for (doc, rev, path) in jobs {
@@ -1084,6 +1094,15 @@ pub fn open_mismatch(app: &mut PhotocraftApp, message: &str, action: &str, missi
     }
     fields[marker] = json!(true);
     open_kind(app, "mismatch", tl!("Embedded Profile Mismatch"), fields)
+}
+
+/// Drop only the profile question belonging to an unaccepted Camera Raw document.
+/// Questions from other documents (including other RAWs in a batch) must survive.
+pub(crate) fn dismiss_mismatch_for_document(app: &mut PhotocraftApp, document: DocId) {
+    app.ui.dialogs.retain(|dialog| {
+        dialog.fields.get("__prefsui").and_then(Value::as_str) != Some("mismatch")
+            || dialog.fields.get("__sourceDocument").and_then(Value::as_u64) != Some(document.0)
+    });
 }
 
 // ------------------------------------------------------------------ bodies
@@ -4252,6 +4271,346 @@ mod tests {
         autosave_now(&mut app);
         tick(&mut app, &ctx);
         assert_eq!(saved.lock().unwrap().len(), 2, "autosave off");
+    }
+
+    // Next-gate tests use the production autosave tick and only in-memory services. No
+    // service below can write a photograph, sidecar, recovery manifest, or preferences file.
+    #[derive(Default)]
+    struct NextGateRecorder {
+        saves: Vec<(Arc<photocraft_doc::Document>, u64, Option<String>)>,
+        completions: Vec<(u64, u64, Result<(), String>)>,
+        discarded: Vec<u64>,
+    }
+
+    fn next_gate_autosave_app() -> (PhotocraftApp, Arc<Mutex<NextGateRecorder>>, DocId, Vec<u8>) {
+        use photocraft_raw::testgen::{DngSpec, mosaic, scene};
+        let recorder = Arc::new(Mutex::new(NextGateRecorder::default()));
+        let (saves, completions, discarded) = (recorder.clone(), recorder.clone(), recorder.clone());
+        let services = crate::Services {
+            import: Some(Box::new(|name, bytes, depth| {
+                photocraft_io::import_with_svg_group_depth(name, bytes, depth).map(|r| (r.document, r.warnings)).map_err(|e| e.to_string())
+            })),
+            autosave: Some(Box::new(move |doc, revision, path| {
+                saves.lock().unwrap().saves.push((doc.clone(), revision, path.map(str::to_owned)));
+                Ok(())
+            })),
+            autosave_results: Some(Box::new(move || std::mem::take(&mut completions.lock().unwrap().completions))),
+            discard_autosave: Some(Box::new(move |id| discarded.lock().unwrap().discarded.push(id))),
+            ..Default::default()
+        };
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), services);
+        app.session.execute("prefs.set", json!({"values": {"fileHandling.autosave": true, "fileHandling.autosaveMinutes": 1}})).unwrap();
+        app.session.execute("file.new", json!({"width": 8, "height": 8, "name": "NG accepted control"})).unwrap();
+        app.session.execute("edit.fill", json!({"color": "#d04020"})).unwrap();
+        let control = app.session.active().unwrap().doc.id;
+        assert!(app.session.active().unwrap().is_dirty());
+        let (w, h) = (48, 32);
+        let mut spec = DngSpec::cfa(w, h, mosaic(&scene(w, h), w, [0, 1, 1, 2], 0, 30000));
+        spec.as_shot_neutral = Some([0.5, 1.0, 0.7]);
+        autosave_at(&mut app, 1_000.0);
+        assert!(recorder.lock().unwrap().saves.is_empty());
+        assert_eq!(app.prefs_rt.next_autosave_ms, 61_000.0);
+        (app, recorder, control, spec.build())
+    }
+
+    fn next_gate_select(app: &mut PhotocraftApp, id: DocId) {
+        let index = app.session.documents().iter().position(|st| st.doc.id == id).unwrap();
+        app.session.set_active(index);
+    }
+
+    fn next_gate_open_review(app: &mut PhotocraftApp, bytes: &[u8]) -> (egui::Context, DocId) {
+        app.open_bytes("NG synthetic.dng", bytes).unwrap();
+        let raw = app.session.active().unwrap().doc.id;
+        assert!(!app.session.active().unwrap().is_dirty(), "ordinary imported pending RAW is clean");
+        assert!(app.session.provisional_documents().contains(&raw));
+        let ctx = egui::Context::default();
+        PhotocraftApp::setup_context(&ctx, Default::default());
+        let input = egui::RawInput { screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, vec2(1360.0, 900.0))), ..Default::default() };
+        ctx.run_ui(input, |ui| crate::camera_raw_ui::show(app, ui.ctx())).textures_delta.clear();
+        assert_eq!(app.session.active().unwrap().doc.id, raw);
+        assert_eq!(app.camera_raw.as_ref().unwrap().describe(&app.ui.camera_raw_scope, &app.ui.camera_raw_preview)["openingRaw"]["name"], "NG synthetic.dng");
+        (ctx, raw)
+    }
+
+    fn next_gate_save_ids(recorder: &Arc<Mutex<NextGateRecorder>>) -> Vec<DocId> {
+        recorder.lock().unwrap().saves.iter().map(|(doc, _, _)| doc.id).collect()
+    }
+
+    fn next_gate_assert_latest_payload(app: &PhotocraftApp, recorder: &Arc<Mutex<NextGateRecorder>>, id: DocId) {
+        let state = app.session.documents().iter().find(|st| st.doc.id == id).unwrap();
+        let records = recorder.lock().unwrap();
+        let (snapshot, revision, path) = records.saves.iter().rev().find(|(doc, _, _)| doc.id == id).expect("eligible accepted positive-control request");
+        assert!(Arc::ptr_eq(snapshot, &state.doc), "recorder must receive this identity's exact immutable payload");
+        assert_eq!(*revision, state.revision, "request revision belongs to its payload");
+        assert_eq!(*path, state.path, "source attribution must not borrow another document's path");
+    }
+
+    fn next_gate_trace(app: &PhotocraftApp, recorder: &Arc<Mutex<NextGateRecorder>>, stage: &str) {
+        let records = recorder.lock().unwrap();
+        eprintln!(
+            "NG_AUTOSAVE {}",
+            json!({
+                "stage": stage,
+                "generation": app.session.review_generation(),
+                "provisional": app.session.provisional_documents().iter().map(|id| id.0).collect::<Vec<_>>(),
+                "documents": app.session.documents().iter().map(|st| json!({"id": st.doc.id.0, "name": st.doc.name, "revision": st.revision, "saved": st.saved_revision, "dirty": st.is_dirty()})).collect::<Vec<_>>(),
+                "requests": records.saves.iter().map(|(doc, revision, path)| json!({"id": doc.id.0, "name": doc.name, "revision": revision, "path": path, "width": doc.size.width, "height": doc.size.height})).collect::<Vec<_>>(),
+                "pending": app.prefs_rt.autosave_pending.iter().map(|(id, revision)| (id.0, revision)).collect::<Vec<_>>(),
+                "completed": app.prefs_rt.autosaved.iter().map(|(id, revision)| (id.0, revision)).collect::<Vec<_>>()
+            })
+        );
+    }
+
+    fn next_gate_flush_success(app: &mut PhotocraftApp, recorder: &Arc<Mutex<NextGateRecorder>>, now: f64) {
+        recorder.lock().unwrap().completions.extend(app.prefs_rt.autosave_pending.iter().map(|(id, revision)| (id.0, *revision, Ok(()))));
+        autosave_at(app, now);
+        assert!(app.prefs_rt.autosave_pending.is_empty());
+        assert!(recorder.lock().unwrap().completions.is_empty());
+    }
+
+    fn next_gate_wait_event(app: &mut PhotocraftApp, job: JobId) -> JobEvent {
+        app.session.wait_job(job).unwrap();
+        let mut events = app.session.poll_jobs();
+        assert_eq!(events.len(), 1, "the real completion queue contains only the owned job");
+        let event = events.remove(0);
+        assert_eq!(event.id, job);
+        assert!(!app.session.has_jobs());
+        event
+    }
+
+    fn next_gate_start_redevelop(app: &mut PhotocraftApp, ctx: &egui::Context) -> JobId {
+        crate::camera_raw_ui::menu(app, ctx, "filter.cameraRaw", &json!({"ui": {"set": {"exposure": 1.0, "contrast": 20.0}}})).unwrap().unwrap();
+        app.background_jobs = true;
+        let result = crate::camera_raw_ui::menu(app, ctx, "filter.cameraRaw", &json!({"ui": {"commit": true}})).unwrap().unwrap();
+        assert_eq!(result["pending"], true);
+        JobId(result["job"].as_u64().unwrap())
+    }
+
+    #[test]
+    fn next_gate_autosave_clean_pending_cancel_and_old_callback_keep_control_eligible() {
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let (ctx, raw) = next_gate_open_review(&mut app, &bytes);
+        autosave_at(&mut app, 60_999.0);
+        assert!(next_gate_save_ids(&recorder).is_empty(), "timer has not expired");
+        autosave_at(&mut app, 61_000.0);
+        next_gate_trace(&app, &recorder, "clean pending at exact deadline");
+        assert_eq!(next_gate_save_ids(&recorder), [control]);
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        assert!(app.prefs_rt.autosave_pending.contains_key(&control));
+        assert!(!app.prefs_rt.autosave_pending.contains_key(&raw));
+        next_gate_flush_success(&mut app, &recorder, 61_001.0);
+        let generation = app.session.review_generation();
+        crate::camera_raw_ui::menu(&mut app, &ctx, "filter.cameraRaw", &json!({"ui": {"cancel": true}})).unwrap().unwrap();
+        assert_ne!(app.session.review_generation(), generation);
+        assert_eq!(app.session.documents().len(), 1);
+        assert_eq!(app.session.active().unwrap().doc.id, control);
+        app.session.execute("edit.fill", json!({"color": "#2050d0"})).unwrap();
+        // A callback that was never requested for the cancelled identity must be ignored,
+        // even if it happens to carry the accepted control's current revision.
+        let revision = app.session.active().unwrap().revision;
+        recorder.lock().unwrap().completions.push((raw.0, revision, Ok(())));
+        autosave_at(&mut app, 121_000.0);
+        assert_eq!(next_gate_save_ids(&recorder), [control, control]);
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        assert!(!app.prefs_rt.autosaved.contains_key(&raw));
+        assert_eq!(app.prefs_rt.autosave_pending.get(&control), Some(&revision));
+        next_gate_flush_success(&mut app, &recorder, 121_001.0);
+        next_gate_trace(&app, &recorder, "cancelled identity callback drained");
+    }
+
+    #[test]
+    fn next_gate_autosave_admitted_forced_dirty_is_adversarial_predicate_only() {
+        use photocraft_engine::jobs::{Admission, OpenSource};
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let started = app.session.start_open_with("renamed.bin", OpenSource::Bytes(Arc::new(bytes)), Admission::ReviewIfRaw).unwrap();
+        let job = match started {
+            Started::Job(job) => job,
+            Started::Done(_) => panic!("native test requires the real open job"),
+        };
+        let event = next_gate_wait_event(&mut app, job);
+        let raw = match event.outcome {
+            JobOutcome::Done(value) => DocId(value["docId"].as_u64().unwrap()),
+            outcome => panic!("unexpected {outcome:?}"),
+        };
+        assert!(app.session.provisional_documents().contains(&raw));
+        next_gate_select(&mut app, raw);
+        assert!(!app.session.active().unwrap().is_dirty());
+        // Explicitly adversarial: this is not claimed as a normal user sequence or a
+        // naturally dirty import. It tests the eligibility predicate independently.
+        app.session.active_mut().unwrap().revision += 1;
+        autosave_at(&mut app, 61_000.0);
+        next_gate_trace(&app, &recorder, "FORCED DIRTY admitted predicate, not native reproduction");
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        assert_eq!(next_gate_save_ids(&recorder), [control], "an admitted RAW cannot become an ordinary recovery request");
+    }
+
+    #[test]
+    fn next_gate_autosave_api_reachable_dirty_admission_refuses_request() {
+        use photocraft_engine::jobs::{Admission, OpenSource};
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let started = app.session.start_open_with("renamed.bin", OpenSource::Bytes(Arc::new(bytes)), Admission::ReviewIfRaw).unwrap();
+        let job = match started {
+            Started::Job(job) => job,
+            Started::Done(_) => panic!("native test requires the real open job"),
+        };
+        let event = next_gate_wait_event(&mut app, job);
+        let raw = match event.outcome {
+            JobOutcome::Done(value) => DocId(value["docId"].as_u64().unwrap()),
+            outcome => panic!("unexpected {outcome:?}"),
+        };
+        assert!(app.session.provisional_documents().contains(&raw));
+        next_gate_select(&mut app, raw);
+        let state = app.session.active().unwrap();
+        assert!(!state.is_dirty());
+        let before = (state.doc.clone(), state.revision, state.saved_revision, state.history.past_len(), state.doc.walk().len());
+        // Reachable through the actual public engine API, with no forced revision or
+        // dirty flag. This is not a claim that the native UI permits this command.
+        let edit = app.session.execute("layer.new.layer", json!({"name": "API reachability probe"}));
+        let state = app.session.active().unwrap();
+        if edit.is_ok() {
+            assert_eq!(state.revision, before.1 + 1);
+            assert_eq!(state.saved_revision, before.2);
+            assert_eq!(state.history.past_len(), before.3 + 1);
+            assert_eq!(state.doc.walk().len(), before.4 + 1);
+            assert!(state.is_dirty(), "the real command, not test state mutation, creates the dirty admission");
+        } else {
+            // An authoritative engine correction may close this input path first.
+            // Refusal is valid only before it changes the document or its history.
+            assert!(Arc::ptr_eq(&state.doc, &before.0));
+            assert_eq!((state.revision, state.saved_revision, state.history.past_len(), state.doc.walk().len()), (before.1, before.2, before.3, before.4));
+        }
+        assert!(app.session.provisional_documents().contains(&raw));
+        eprintln!("NG_API_REACHABILITY {}", json!({"docId": raw.0, "mutationSucceeded": edit.is_ok(), "result": format!("{edit:?}")}));
+        autosave_at(&mut app, 61_000.0);
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        next_gate_trace(&app, &recorder, "actual direct API admission mutation then actual autosave tick");
+        let requests = next_gate_save_ids(&recorder);
+        next_gate_flush_success(&mut app, &recorder, 61_001.0);
+        assert_eq!(requests, [control], "an API-reachable pending RAW must not escape as an ordinary autosave request");
+        assert!(!app.prefs_rt.autosaved.contains_key(&raw));
+    }
+
+    #[test]
+    fn next_gate_autosave_real_replacement_then_owned_accept() {
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let (ctx, original) = next_gate_open_review(&mut app, &bytes);
+        let job = next_gate_start_redevelop(&mut app, &ctx);
+        let event = next_gate_wait_event(&mut app, job);
+        let replacement = app.session.active().unwrap().doc.id;
+        assert_ne!(replacement, original);
+        assert!(app.session.provisional_documents().contains(&replacement));
+        assert!(!app.session.active().unwrap().is_dirty(), "redevelop replacement itself is clean");
+        autosave_at(&mut app, 61_000.0);
+        assert_eq!(next_gate_save_ids(&recorder), [control]);
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        next_gate_flush_success(&mut app, &recorder, 61_001.0);
+        let replacement_revision = app.session.active().unwrap().revision;
+        next_gate_select(&mut app, control);
+        app.session.execute("edit.fill", json!({"color": "#2050d0"})).unwrap();
+        // The actual redevelop applied, but its event is deliberately not yet handled.
+        // This replacement is naturally clean; no dirty flag is forced for the oracle.
+        autosave_at(&mut app, 121_000.0);
+        next_gate_trace(&app, &recorder, "real clean replacement held before its shell completion");
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        let boundary_requests = next_gate_save_ids(&recorder);
+        // In this frozen source, lens_cmds::run_filter uses synchronous Session::edit,
+        // even with background_jobs enabled. The event applies contrast then marks
+        // the same replacement clean; there is no separate final-filter job boundary.
+        assert!(crate::camera_raw_ui::on_redevelop_event(&mut app, &event));
+        assert!(app.raw_redevelop.is_none());
+        assert!(!app.session.provisional_documents().contains(&replacement));
+        next_gate_select(&mut app, replacement);
+        assert_eq!(app.session.active().unwrap().revision, replacement_revision + 1, "the real final Camera Raw filter ran");
+        assert!(!app.session.active().unwrap().is_dirty(), "owned acceptance marks its own document clean");
+        next_gate_flush_success(&mut app, &recorder, 121_001.0);
+        app.background_jobs = false;
+        app.session.execute("edit.fill", json!({"color": "#30a060"})).unwrap();
+        let accepted_revision = app.session.active().unwrap().revision;
+        autosave_at(&mut app, 181_000.0);
+        assert_eq!(app.prefs_rt.autosave_pending.get(&replacement), Some(&accepted_revision));
+        next_gate_assert_latest_payload(&app, &recorder, replacement);
+        next_gate_flush_success(&mut app, &recorder, 181_001.0);
+        next_gate_trace(&app, &recorder, "accepted then legitimately edited");
+        assert!(!app.session.has_jobs());
+        assert_eq!(boundary_requests, [control, control], "no provisional replacement request at the actual apply boundary");
+        assert_eq!(next_gate_save_ids(&recorder), [control, control, replacement]);
+    }
+
+    #[test]
+    fn next_gate_autosave_done_then_err_replacement_stays_clean_and_held() {
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let (ctx, original) = next_gate_open_review(&mut app, &bytes);
+        let job = next_gate_start_redevelop(&mut app, &ctx);
+        let event = next_gate_wait_event(&mut app, job);
+        let replacement = app.session.active().unwrap().doc.id;
+        assert_ne!(replacement, original);
+        // Induce the same real failed final-filter setup covered by the existing
+        // Done-then-Err regression, through a missing layer target after replacement.
+        app.session.active_mut().unwrap().active_layer = None;
+        assert!(crate::camera_raw_ui::on_redevelop_event(&mut app, &event));
+        assert!(app.session.provisional_documents().contains(&replacement));
+        assert!(crate::camera_raw_ui::unaccepted_documents(&app).contains(&replacement));
+        assert!(!app.session.active().unwrap().is_dirty());
+        assert!(app.raw_redevelop.is_none());
+        autosave_at(&mut app, 61_000.0);
+        assert_eq!(next_gate_save_ids(&recorder), [control]);
+        next_gate_assert_latest_payload(&app, &recorder, control);
+        next_gate_flush_success(&mut app, &recorder, 61_001.0);
+        next_gate_trace(&app, &recorder, "real replacement retained after injected final-filter setup failure");
+        assert!(!app.session.has_jobs());
+    }
+
+    #[test]
+    fn next_gate_direct_engine_real_replacement_refuses_mutation() {
+        let (mut app, recorder, control, bytes) = next_gate_autosave_app();
+        let (ctx, original) = next_gate_open_review(&mut app, &bytes);
+        let job = next_gate_start_redevelop(&mut app, &ctx);
+        let event = next_gate_wait_event(&mut app, job);
+        let replacement = app.session.active().unwrap().doc.id;
+        assert_ne!(replacement, original);
+        assert!(app.session.provisional_documents().contains(&replacement));
+        next_gate_select(&mut app, control);
+        let control_layers = app.session.active().unwrap().doc.walk().len();
+        let control_history = app.session.active().unwrap().history.past_len();
+        let control_saved = app.session.active().unwrap().saved_revision;
+        app.session.execute("layer.new.layer", json!({"name": "accepted mutation control"})).unwrap();
+        assert_eq!(app.session.active().unwrap().doc.walk().len(), control_layers + 1);
+        assert_eq!(app.session.active().unwrap().history.past_len(), control_history + 1);
+        assert_eq!(app.session.active().unwrap().saved_revision, control_saved);
+        assert!(app.session.active().unwrap().is_dirty());
+        let control_edited = app.session.active().unwrap().doc.clone();
+        app.session.execute("edit.undo", json!({})).unwrap();
+        assert_eq!(app.session.active().unwrap().doc.walk().len(), control_layers);
+        app.session.execute("edit.redo", json!({})).unwrap();
+        assert!(Arc::ptr_eq(&control_edited, &app.session.active().unwrap().doc));
+        next_gate_select(&mut app, replacement);
+        let before = app.session.active().unwrap();
+        let before_doc = before.doc.clone();
+        let before_state = (before.revision, before.saved_revision, before.history.past_len(), before.doc.walk().len());
+        let before_inspect = photocraft_engine::inspect::document(before);
+        let before_journal = app.session.journal.clone();
+        let before_ownership = (app.session.provisional_documents(), app.session.review_generation());
+        let result = app.session.execute("layer.new.layer", json!({"name": "must be refused before mutation"}));
+        let after = app.session.active().unwrap();
+        let after_state = (after.revision, after.saved_revision, after.history.past_len(), after.doc.walk().len());
+        let after_inspect = photocraft_engine::inspect::document(after);
+        let after_journal = app.session.journal.clone();
+        let after_ownership = (app.session.provisional_documents(), app.session.review_generation());
+        let unchanged = Arc::ptr_eq(&before_doc, &after.doc);
+        next_gate_trace(&app, &recorder, "direct engine request at real replacement boundary");
+        // Drain the already prepared owned event before checking the negative oracle.
+        crate::camera_raw_ui::on_redevelop_event(&mut app, &event);
+        if let Some(job) = app.raw_redevelop.as_ref().map(|pending| pending.job) {
+            let event = next_gate_wait_event(&mut app, job);
+            crate::camera_raw_ui::on_redevelop_event(&mut app, &event);
+        }
+        assert!(!app.session.has_jobs());
+        assert!(result.is_err(), "direct engine mutation of the actual replacement escaped: {result:?}");
+        assert_eq!(after_state, before_state);
+        assert_eq!(after_inspect, before_inspect);
+        assert_eq!(after_journal, before_journal);
+        assert_eq!(after_ownership, before_ownership);
+        assert!(unchanged, "refusal must preserve the exact immutable document snapshot");
     }
 
     #[test]

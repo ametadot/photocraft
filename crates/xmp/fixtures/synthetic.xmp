@@ -1,0 +1,30 @@
+<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
+    xmlns:crss="http://ns.adobe.com/camera-raw-saved-settings/1.0/"
+    xmlns:custom="urn:photocraft:synthetic-fixture"
+    crs:Exposure2012="0.7853281"
+    crs:Contrast2012="32"
+    crs:Highlights2012="-84"
+    crs:Blacks2012="-40"
+    custom:OpaqueText="Keep this"
+    crs:ProcessVersion="11.0">
+    <crs:ToneCurvePV2012>
+     <rdf:Bag><rdf:li>0, 0</rdf:li><rdf:li>255, 255</rdf:li></rdf:Bag>
+    </crs:ToneCurvePV2012>
+    <crss:SavedSettings>
+     <rdf:Bag>
+      <rdf:li><rdf:Description crss:Name="Import" crss:Type="Snapshot">
+       <crss:Parameters><rdf:Description crs:Exposure2012="0" /></crss:Parameters>
+      </rdf:Description></rdf:li>
+      <rdf:li><rdf:Description crss:Name="Synthetic profile" crss:Type="Snapshot">
+       <crss:Parameters><rdf:Description crs:Exposure2012="2" /></crss:Parameters>
+      </rdf:Description></rdf:li>
+     </rdf:Bag>
+    </crss:SavedSettings>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>

@@ -3283,3 +3283,77 @@ curves	Smooth	Glätten
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU-Adapter
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Bewertung noch nicht gelesen
+	Unrated	Ohne Bewertung
+	Rating: {n} of 5	Bewertung: {n} von 5
+	Rejected	Abgelehnt
+	Not read yet	Noch nicht gelesen
+	No adjustments	Keine Anpassungen
+	Not available yet	Noch nicht verfügbar
+	Open Images	Bilder öffnen
+	Fit ({zoom})	Einpassen ({zoom})
+	Sort By:	Sortieren nach:
+	Open Order	Öffnungsreihenfolge
+	Star Rating	Sternebewertung
+	Capture Date	Aufnahmedatum
+	Color Label	Farbetikett
+	Rated	Bewertet
+	Show All	Alle anzeigen
+	{n} hidden	{n} ausgeblendet
+	{n} hidden, {m} selected	{n} ausgeblendet, {m} ausgewählt
+	Shown; hidden by filter	Angezeigt; vom Filter ausgeblendet
+	Defaults	Standardwerte
+	All photos	Alle Fotos
+	Any colour	Beliebige Farbe
+	Back	Zurück
+	Blue — Review	Blau — Prüfen
+	Blue — Review (9)	Blau — Prüfen (9)
+	Changes not yet saved to XMP	Noch nicht in XMP gespeicherte Änderungen
+	Clear filters	Filter zurücksetzen
+	Colour label	Farbmarkierung
+	Filename	Dateiname
+	Green — Approved	Grün — Genehmigt
+	Green — Approved (8)	Grün — Genehmigt (8)
+	JPEG quality	JPEG-Qualität
+	Mark	Markieren
+	Marked	Markiert
+	Marked and unmarked	Markiert und unmarkiert
+	No Label	Keine Markierung
+	No photos match	Keine passenden Fotos
+	Other label	Andere Markierung
+	Photo actions	Fotoaktionen
+	Photograph	Foto
+	Purple — To Do	Violett — Zu erledigen
+	Purple — To Do (Ctrl+Shift+0)	Violett — Zu erledigen (Ctrl+Shift+0)
+	Rating	Bewertung
+	Red — Select	Rot — Auswahl
+	Red — Select (6)	Rot — Auswahl (6)
+	Return to photo preview	Zur Fotovorschau zurückkehren
+	Show grid	Raster anzeigen
+	Show hidden photos	Ausgeblendete Fotos anzeigen
+	Unmark	Markierung aufheben
+	Unmarked	Unmarkiert
+	Unrated (0)	Unbewertet (0)
+	Yellow — Second	Gelb — Zweite Wahl
+	Yellow — Second (7)	Gelb — Zweite Wahl (7)
+	hidden	ausgeblendet
+	selected photos	ausgewählte Fotos
+	Camera Raw session	Camera-Raw-Sitzung
+	Reset selected	Ausgewählte zurücksetzen
+	Set value	Wert festlegen
+	Set value…	Wert festlegen…
+	Synchronise selected	Ausgewählte synchronisieren
+	Undo group edit	Gruppenbearbeitung rückgängig machen
+	Hide	Ausblenden
+	Disabled	Deaktiviert
+	Cache	Zwischenspeicher
+	Opening photographs	Fotos werden geöffnet
+	Preparing Camera Raw previews…	Camera Raw-Vorschauen werden vorbereitet…
+	Settings	Einstellungen
+	Session	Sitzung
+	Sync Settings	Einstellungen synchronisieren
+	Reset Settings	Einstellungen zurücksetzen
+	Copy settings from {photo} to the selected photos.	Einstellungen von {photo} auf die ausgewählten Fotos kopieren.
+	Select the active photograph to sync its settings.	Wählen Sie das aktive Foto aus, um seine Einstellungen zu synchronisieren.

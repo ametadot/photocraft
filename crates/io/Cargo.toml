@@ -26,6 +26,8 @@ photocraft-algo = { workspace = true }
 photocraft-psd = { workspace = true }
 photocraft-codecs = { workspace = true }
 photocraft-raw = { workspace = true }
+# The bounded, read-only XMP parser behind the RAW opener's six-field sidecar import (`raw_xmp`).
+photocraft-xmp = { workspace = true }
 photocraft-affinity = { workspace = true }
 photocraft-text = { workspace = true }
 photocraft-paint = { workspace = true }
@@ -33,7 +35,11 @@ photocraft-vector = { workspace = true }
 photocraft-format = { path = "../format" }
 craft-docpath = { workspace = true }
 thiserror = { workspace = true }
-serde_json = { workspace = true }
+# float_roundtrip: Camera Raw checkpoints, XMP journals and the native recipe payload must read back
+# every number bit for bit (a RAW camera profile carries 17-digit values). The default reader can be
+# one unit in the last place off, and Done then refuses a plan that disagrees with its own checkpoint.
+serde_json = { workspace = true, features = ["raw_value", "float_roundtrip"] }
+serde = { workspace = true }
 blake3 = { version = "1.8", default-features = false, features = ["pure"] }
 # svg.rs inflates `.svgz` itself (with a size cap) so the XML can be checked before it is parsed;
 # pdn.rs inflates Paint.NET's gzip pixel chunks.
@@ -43,10 +49,14 @@ roxmltree = "0.20"
 # SVG import (svg.rs): usvg parses, resvg rasterises what the shape model can't hold. Both are
 # already in the tree through the UI's icon loader; text shaping needs the fonts feature set.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+same-file = "1"
 resvg = { version = "0.45", default-features = false, features = ["text", "system-fonts", "raster-images"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 resvg = { version = "0.45", default-features = false, features = ["text", "raster-images"] }
+
+[target.'cfg(windows)'.dependencies]
+winapi-util = "0.1"
 
 [dev-dependencies]
 crc32fast = "1.5"

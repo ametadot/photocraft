@@ -135,6 +135,126 @@ fn script_events_fire_on_new_and_close() {
     assert_eq!(r["events"].as_array().unwrap().len(), EVENTS.len());
 }
 
+/// Two documents, the second one declared provisional (a RAW waiting in Camera Raw): `(session, accepted, provisional)`.
+fn with_a_provisional_document() -> (Session, photocraft_doc::DocId, photocraft_doc::DocId) {
+    let mut s = Session::new();
+    for _ in 0..2 {
+        s.execute("file.new", json!({"width": 8, "height": 8})).unwrap();
+        s.execute("layer.new.layer", json!({})).unwrap();
+    }
+    let (accepted, provisional) = (s.documents()[0].doc.id, s.documents()[1].doc.id);
+    s.set_provisional_documents(vec![provisional]);
+    (s, accepted, provisional)
+}
+
+fn layers_of(s: &Session, id: photocraft_doc::DocId) -> usize {
+    s.documents().iter().find(|st| st.doc.id == id).map(|st| st.doc.layer_count()).unwrap()
+}
+
+#[test]
+fn script_events_are_paused_while_a_provisional_document_is_open_and_resume_after() {
+    let (mut s, accepted, provisional) = with_a_provisional_document();
+    s.execute("file.scripts.scriptEventsManager", json!({"add": {"event": "openDocument", "steps": [["layer.new.layer", {}]]}})).unwrap();
+    let before = (layers_of(&s, accepted), layers_of(&s, provisional));
+    // Whichever document is active, an accepted one included: the hook cannot be trusted while another is held.
+    for active in [0, 1] {
+        assert!(s.set_active(active));
+        assert_eq!(fire_event(&mut s, "openDocument"), 0, "no script runs while a provisional document is open (active tab {active})");
+    }
+    assert_eq!((layers_of(&s, accepted), layers_of(&s, provisional)), before, "no document changed");
+    assert!(s.file_menu.event_log.is_empty(), "nothing ran, so nothing was logged");
+    // Declared empty: the same event runs again, on the active document.
+    s.set_provisional_documents(Vec::new());
+    assert!(s.set_active(0));
+    assert_eq!(fire_event(&mut s, "openDocument"), 1);
+    assert_eq!(layers_of(&s, accepted), before.0 + 1, "the hook ran on the active (accepted) document");
+    assert_eq!(layers_of(&s, provisional), before.1);
+}
+
+#[test]
+fn a_script_stops_before_its_first_step_while_a_provisional_document_is_open() {
+    let (mut s, accepted, provisional) = with_a_provisional_document();
+    let before = (layers_of(&s, accepted), layers_of(&s, provisional));
+    // The script retargets (activates the provisional document, then edits it) and names it explicitly.
+    let steps = json!([["layer.new.layer", {}], ["document.activate", {"document": 1}], ["layer.new.layer", {}], ["file.close", {"document": 1}]]);
+    let r = s.execute("file.scripts.browse", json!({"steps": steps})).unwrap();
+    assert_eq!(r["ok"], false);
+    let results = r["results"].as_array().unwrap();
+    assert_eq!(results.len(), 1, "it stopped at the first step: {r}");
+    assert!(results[0]["error"].as_str().unwrap().contains("stopped"), "{r}");
+    assert_eq!((layers_of(&s, accepted), layers_of(&s, provisional)), before);
+    assert_eq!(s.documents().len(), 2, "the explicit close did not run");
+}
+
+#[test]
+fn a_hook_cannot_close_or_edit_a_provisional_document_it_names() {
+    let (mut s, accepted, provisional) = with_a_provisional_document();
+    // Bound while nothing was provisional; the active document is the accepted one when the event fires.
+    s.set_provisional_documents(Vec::new());
+    s.execute("file.scripts.scriptEventsManager", json!({"add": {"event": "saveDocument", "steps": [["file.close", {"document": 1}]]}})).unwrap();
+    s.set_provisional_documents(vec![provisional]);
+    assert!(s.set_active(0));
+    assert_eq!(fire_event(&mut s, "saveDocument"), 0);
+    assert!(s.documents().iter().any(|st| st.doc.id == provisional), "the provisional document is still open");
+    assert_eq!(layers_of(&s, accepted), 2);
+}
+
+#[test]
+fn a_pending_provisional_document_pauses_scripts_before_it_is_declared() {
+    // A RAW's job has landed (its document exists) but the shell has not declared it yet.
+    let mut s = Session::new();
+    s.execute("file.new", json!({"width": 8, "height": 8})).unwrap();
+    s.execute("layer.new.layer", json!({})).unwrap();
+    s.execute("file.scripts.scriptEventsManager", json!({"add": {"event": "openDocument", "steps": [["layer.new.layer", {}]]}})).unwrap();
+    s.set_provisional_pending(true);
+    assert!(s.has_provisional());
+    assert!(s.provisional_documents().is_empty(), "nothing is declared");
+    assert_eq!(fire_event(&mut s, "openDocument"), 0, "no script runs while one is pending");
+    let r = s.execute("file.scripts.browse", json!({"steps": [["layer.new.layer", {}]]})).unwrap();
+    assert_eq!(r["results"].as_array().unwrap().len(), 1);
+    assert!(r["results"][0]["error"].as_str().unwrap().contains("stopped"), "{r}");
+    assert_eq!(s.active().unwrap().doc.layer_count(), 2, "nothing ran");
+    s.set_provisional_pending(false);
+    assert!(!s.has_provisional());
+    assert_eq!(fire_event(&mut s, "openDocument"), 1, "scripts run again once nothing is pending");
+}
+
+#[test]
+fn a_stale_provisional_entry_never_pauses_scripts_and_the_list_reports_only_open_documents() {
+    let (mut s, accepted, provisional) = with_a_provisional_document();
+    let gone = photocraft_doc::DocId::fresh();
+    s.set_provisional_documents(vec![gone, provisional]);
+    assert_eq!(s.provisional_documents(), vec![provisional], "a document that is not open is not reported");
+    s.set_provisional_documents(vec![gone]);
+    assert!(!s.has_provisional(), "an entry for a closed document does not count");
+    assert!(s.provisional_documents().is_empty());
+    s.execute("file.scripts.scriptEventsManager", json!({"add": {"event": "openDocument", "steps": [["layer.new.layer", {}]]}})).unwrap();
+    assert!(s.set_active(0));
+    assert_eq!(fire_event(&mut s, "openDocument"), 1);
+    assert_eq!(layers_of(&s, accepted), 3);
+    // Closing the provisional document ends the pause by itself.
+    s.set_provisional_documents(vec![provisional]);
+    assert_eq!(fire_event(&mut s, "openDocument"), 0);
+    let index = s.documents().iter().position(|st| st.doc.id == provisional).unwrap();
+    s.close(index);
+    assert!(!s.has_provisional());
+    assert_eq!(fire_event(&mut s, "openDocument"), 1);
+}
+
+#[test]
+fn the_close_document_script_event_does_not_run_on_a_provisional_neighbour() {
+    // Closing the accepted tab leaves the provisional document active: the script that follows would edit it.
+    let (mut s, _accepted, provisional) = with_a_provisional_document();
+    s.set_provisional_documents(Vec::new());
+    s.execute("file.scripts.scriptEventsManager", json!({"add": {"event": "closeDocument", "steps": [["layer.new.layer", {}]]}})).unwrap();
+    s.set_provisional_documents(vec![provisional]);
+    assert!(s.set_active(0));
+    s.execute("file.close", json!({"document": 0})).unwrap();
+    assert_eq!(s.documents().len(), 1);
+    assert_eq!(s.active().unwrap().doc.id, provisional, "the provisional document is now the active tab");
+    assert_eq!(layers_of(&s, provisional), 2, "the closeDocument script did not run on it");
+}
+
 #[test]
 fn droplets_are_written_and_run() {
     let dir = tmp("droplet");

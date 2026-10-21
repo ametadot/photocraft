@@ -3766,3 +3766,76 @@ curves	Smooth	Làm mượt
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Bộ điều hợp GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Chưa đọc xếp hạng
+	Unrated	Chưa xếp hạng
+	Rating: {n} of 5	Xếp hạng: {n}/5
+	Rejected	Đã loại
+	Not read yet	Chưa đọc
+	No adjustments	Không có điều chỉnh
+	Not available yet	Chưa khả dụng
+	Open Images	Mở ảnh
+	Fit ({zoom})	Vừa ({zoom})
+	Sort By:	Sắp xếp theo:
+	Open Order	Thứ tự mở
+	Star Rating	Xếp hạng sao
+	Capture Date	Ngày chụp
+	Color Label	Nhãn màu
+	Rated	Đã xếp hạng
+	Show All	Hiện tất cả
+	{n} hidden	{n} bị ẩn
+	{n} hidden, {m} selected	{n} bị ẩn, {m} đã chọn
+	Shown; hidden by filter	Đang hiện; bị bộ lọc ẩn
+	Defaults	Mặc định
+	All photos	Tất cả ảnh
+	Any	Bất kỳ
+	Any colour	Mọi màu
+	Back	Quay lại
+	Blue — Review	Xanh dương — Cần xem xét
+	Blue — Review (9)	Xanh dương — Cần xem xét (9)
+	Changes not yet saved to XMP	Các thay đổi chưa được lưu vào XMP
+	Clear filters	Xóa bộ lọc
+	Colour label	Nhãn màu
+	Filename	Tên tệp
+	Green — Approved	Xanh lá — Đã duyệt
+	Green — Approved (8)	Xanh lá — Đã duyệt (8)
+	JPEG quality	Chất lượng JPEG
+	Mark	Đánh dấu
+	Marked	Đã đánh dấu
+	Marked and unmarked	Đã đánh dấu và chưa đánh dấu
+	No Label	Không có nhãn
+	No photos match	Không có ảnh phù hợp
+	Other label	Nhãn khác
+	Photo actions	Thao tác với ảnh
+	Photograph	Ảnh
+	Purple — To Do	Tím — Cần làm
+	Purple — To Do (Ctrl+Shift+0)	Tím — Cần làm (Ctrl+Shift+0)
+	Rating	Xếp hạng
+	Red — Select	Đỏ — Được chọn
+	Red — Select (6)	Đỏ — Được chọn (6)
+	Return to photo preview	Quay lại xem trước ảnh
+	Show grid	Hiện lưới
+	Show hidden photos	Hiện ảnh bị ẩn
+	Unmark	Bỏ đánh dấu
+	Unmarked	Chưa đánh dấu
+	Unrated (0)	Chưa xếp hạng (0)
+	Yellow — Second	Vàng — Lựa chọn thứ hai
+	Yellow — Second (7)	Vàng — Lựa chọn thứ hai (7)
+	hidden	bị ẩn
+	selected photos	ảnh đã chọn
+	Camera Raw session	Phiên Camera Raw
+	Reset selected	Đặt lại ảnh đã chọn
+	Set value	Đặt giá trị
+	Set value…	Đặt giá trị…
+	Synchronise selected	Đồng bộ ảnh đã chọn
+	Undo group edit	Hoàn tác chỉnh sửa nhóm
+	Disabled	Đã tắt
+	Cache	Bộ nhớ đệm
+	Opening photographs	Đang mở ảnh
+	Preparing Camera Raw previews…	Đang chuẩn bị bản xem trước Camera Raw…
+	Session	Phiên
+	Sync Settings	Đồng bộ cài đặt
+	Reset Settings	Đặt lại cài đặt
+	Copy settings from {photo} to the selected photos.	Sao chép cài đặt từ {photo} sang các ảnh đã chọn.
+	Select the active photograph to sync its settings.	Chọn ảnh đang hoạt động để đồng bộ cài đặt của ảnh đó.

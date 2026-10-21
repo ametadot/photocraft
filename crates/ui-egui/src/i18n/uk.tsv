@@ -3986,3 +3986,75 @@ curves	Smooth	Згладити
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Адаптер GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Рейтинг ще не прочитано
+	Unrated	Без рейтингу
+	Rating: {n} of 5	Рейтинг: {n} з 5
+	Rejected	Відхилено
+	Not read yet	Ще не прочитано
+	No adjustments	Без корекції
+	Not available yet	Поки недоступно
+	Open Images	Відкрити зображення
+	Fit ({zoom})	Умістити ({zoom})
+	Sort By:	Сортувати за:
+	Open Order	Порядок відкриття
+	Star Rating	Рейтинг (зірки)
+	Capture Date	Дата зйомки
+	Color Label	Кольорова мітка
+	Rated	З рейтингом
+	{n} hidden	Приховано: {n}
+	{n} hidden, {m} selected	Приховано: {n}, вибрано: {m}
+	Shown; hidden by filter	Показано; приховано фільтром
+	Defaults	Типові значення
+	All photos	Усі фотографії
+	Any	Будь-яке
+	Any colour	Будь-який колір
+	Back	Назад
+	Blue — Review	Синій — На перевірку
+	Blue — Review (9)	Синій — На перевірку (9)
+	Changes not yet saved to XMP	Зміни ще не збережено в XMP
+	Clear filters	Скинути фільтри
+	Colour label	Кольорова мітка
+	Filename	Ім’я файлу
+	Green — Approved	Зелений — Схвалено
+	Green — Approved (8)	Зелений — Схвалено (8)
+	JPEG quality	Якість JPEG
+	Mark	Позначити
+	Marked	Позначено
+	Marked and unmarked	Позначені й непозначені
+	No Label	Без мітки
+	No photos match	Немає відповідних фотографій
+	Other label	Інша мітка
+	Photo actions	Дії з фотографією
+	Photograph	Фотографія
+	Purple — To Do	Фіолетовий — До виконання
+	Purple — To Do (Ctrl+Shift+0)	Фіолетовий — До виконання (Ctrl+Shift+0)
+	Rating	Оцінка
+	Red — Select	Червоний — Відібрано
+	Red — Select (6)	Червоний — Відібрано (6)
+	Return to photo preview	Повернутися до перегляду фотографії
+	Show grid	Показати сітку
+	Show hidden photos	Показати приховані фотографії
+	Unmark	Зняти позначку
+	Unmarked	Без позначки
+	Unrated (0)	Без оцінки (0)
+	Yellow — Second	Жовтий — Другий вибір
+	Yellow — Second (7)	Жовтий — Другий вибір (7)
+	hidden	приховано
+	selected photos	вибраних фотографій
+	Camera Raw session	Сеанс Camera Raw
+	Reset selected	Скинути вибрані
+	Set value	Задати значення
+	Set value…	Задати значення…
+	Synchronise selected	Синхронізувати вибрані
+	Undo group edit	Скасувати групову зміну
+	Disabled	Вимкнено
+	Cache	Кеш
+	Opening photographs	Відкриття фотографій
+	Preparing Camera Raw previews…	Підготовка попереднього перегляду Camera Raw…
+	Session	Сеанс
+	Sync Settings	Синхронізувати налаштування
+	Reset Settings	Скинути налаштування
+	Copy settings from {photo} to the selected photos.	Скопіювати налаштування з фотографії {photo} до вибраних фотографій.
+	Select the active photograph to sync its settings.	Виберіть активну фотографію, щоб синхронізувати її налаштування.

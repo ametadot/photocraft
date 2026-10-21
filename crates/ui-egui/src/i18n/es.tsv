@@ -4239,3 +4239,71 @@ navigator	Zoom	Zoom
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptador de GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Valoración aún no leída
+	Unrated	Sin valoración
+	Rating: {n} of 5	Valoración: {n} de 5
+	Rejected	Rechazada
+	Not read yet	Aún no leído
+	No adjustments	Sin ajustes
+	Not available yet	Aún no disponible
+	Open Images	Abrir imágenes
+	Fit ({zoom})	Encajar ({zoom})
+	Sort By:	Ordenar por:
+	Open Order	Orden de apertura
+	Star Rating	Valoración por estrellas
+	Capture Date	Fecha de captura
+	Color Label	Etiqueta de color
+	Rated	Valoradas
+	{n} hidden	{n} ocultas
+	{n} hidden, {m} selected	{n} ocultas, {m} seleccionadas
+	Shown; hidden by filter	Mostrada; oculta por el filtro
+	All photos	Todas las fotos
+	Any	Cualquiera
+	Any colour	Cualquier color
+	Blue — Review	Azul — Revisar
+	Blue — Review (9)	Azul — Revisar (9)
+	Changes not yet saved to XMP	Cambios aún no guardados en XMP
+	Clear filters	Borrar filtros
+	Colour label	Etiqueta de color
+	Green — Approved	Verde — Aprobado
+	Green — Approved (8)	Verde — Aprobado (8)
+	JPEG quality	Calidad JPEG
+	Mark	Marcar
+	Marked	Marcadas
+	Marked and unmarked	Marcadas y sin marcar
+	No Label	Sin etiqueta
+	No photos match	No hay fotos que coincidan
+	Other label	Otra etiqueta
+	Photo actions	Acciones de foto
+	Photograph	Fotografía
+	Purple — To Do	Morado — Pendiente
+	Purple — To Do (Ctrl+Shift+0)	Morado — Pendiente (Ctrl+Shift+0)
+	Rating	Valoración
+	Red — Select	Rojo — Selección
+	Red — Select (6)	Rojo — Selección (6)
+	Return to photo preview	Volver a la vista previa de la foto
+	Show grid	Mostrar cuadrícula
+	Show hidden photos	Mostrar fotos ocultas
+	Unmark	Desmarcar
+	Unmarked	Sin marcar
+	Unrated (0)	Sin valorar (0)
+	Yellow — Second	Amarillo — Segunda opción
+	Yellow — Second (7)	Amarillo — Segunda opción (7)
+	hidden	ocultas
+	selected photos	fotos seleccionadas
+	Camera Raw session	Sesión de Camera Raw
+	Reset selected	Restablecer seleccionadas
+	Set value	Establecer valor
+	Set value…	Establecer valor…
+	Synchronise selected	Sincronizar seleccionadas
+	Undo group edit	Deshacer edición de grupo
+	Cache	Caché
+	Opening photographs	Abriendo fotografías
+	Preparing Camera Raw previews…	Preparando vistas previas de Camera Raw…
+	Session	Sesión
+	Sync Settings	Sincronizar ajustes
+	Reset Settings	Restablecer ajustes
+	Copy settings from {photo} to the selected photos.	Copiar los ajustes de {photo} a las fotos seleccionadas.
+	Select the active photograph to sync its settings.	Selecciona la fotografía activa para sincronizar sus ajustes.

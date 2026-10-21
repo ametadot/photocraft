@@ -3887,3 +3887,71 @@ navigator	Zoom	Zvětšení
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptér GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Hodnocení zatím nenačteno
+	Unrated	Bez hodnocení
+	Rating: {n} of 5	Hodnocení: {n} z 5
+	Rejected	Odmítnuto
+	Not read yet	Zatím nenačteno
+	No adjustments	Bez korekcí
+	Not available yet	Zatím nedostupné
+	Open Images	Otevřít obrazy
+	Fit ({zoom})	Přizpůsobit ({zoom})
+	Sort By:	Seřadit podle:
+	Open Order	Pořadí otevření
+	Star Rating	Hodnocení hvězdičkami
+	Capture Date	Datum pořízení
+	Color Label	Barevný štítek
+	Rated	Hodnocené
+	{n} hidden	Skryto: {n}
+	{n} hidden, {m} selected	Skryto: {n}, vybráno: {m}
+	Shown; hidden by filter	Zobrazeno; skryto filtrem
+	All photos	Všechny fotografie
+	Any	Libovolné
+	Any colour	Libovolná barva
+	Blue — Review	Modrá — Ke kontrole
+	Blue — Review (9)	Modrá — Ke kontrole (9)
+	Changes not yet saved to XMP	Změny dosud neuložené do XMP
+	Clear filters	Vymazat filtry
+	Colour label	Barevný štítek
+	Green — Approved	Zelená — Schváleno
+	Green — Approved (8)	Zelená — Schváleno (8)
+	JPEG quality	Kvalita JPEG
+	Mark	Označit
+	Marked	Označené
+	Marked and unmarked	Označené i neoznačené
+	No Label	Bez štítku
+	No photos match	Žádné fotografie neodpovídají
+	Other label	Jiný štítek
+	Photo actions	Akce s fotografií
+	Photograph	Fotografie
+	Purple — To Do	Fialová — K vyřízení
+	Purple — To Do (Ctrl+Shift+0)	Fialová — K vyřízení (Ctrl+Shift+0)
+	Rating	Hodnocení
+	Red — Select	Červená — Výběr
+	Red — Select (6)	Červená — Výběr (6)
+	Return to photo preview	Zpět na náhled fotografie
+	Show grid	Zobrazit mřížku
+	Show hidden photos	Zobrazit skryté fotografie
+	Unmark	Zrušit označení
+	Unmarked	Neoznačené
+	Unrated (0)	Nehodnocené (0)
+	Yellow — Second	Žlutá — Druhý výběr
+	Yellow — Second (7)	Žlutá — Druhý výběr (7)
+	hidden	skryté
+	selected photos	vybrané fotografie
+	Camera Raw session	Relace Camera Raw
+	Reset selected	Obnovit výchozí nastavení vybraných
+	Set value	Nastavit hodnotu
+	Set value…	Nastavit hodnotu…
+	Synchronise selected	Synchronizovat vybrané
+	Undo group edit	Vrátit skupinovou úpravu
+	Cache	Mezipaměť
+	Opening photographs	Otevírání fotografií
+	Preparing Camera Raw previews…	Příprava náhledů Camera Raw…
+	Session	Relace
+	Sync Settings	Synchronizovat nastavení
+	Reset Settings	Obnovit výchozí nastavení
+	Copy settings from {photo} to the selected photos.	Zkopírovat nastavení z fotografie {photo} do vybraných fotografií.
+	Select the active photograph to sync its settings.	Vyberte aktivní fotografii, chcete-li synchronizovat její nastavení.

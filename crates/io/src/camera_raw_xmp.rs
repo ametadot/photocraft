@@ -110,6 +110,12 @@ const CURVES: &[(&str, Curve)] = &[
     ("ToneCurvePV2012Blue", |p| &mut p.point_curve_blue),
 ];
 
+/// Fields imported for rendered photographs. Persistence uses the same registry
+/// so an external edit cannot be hidden by an older private recipe.
+pub(crate) fn imported_fields() -> impl Iterator<Item = &'static str> {
+    SCALARS.iter().map(|(name, _, _, _)| *name).chain(CURVES.iter().map(|(name, _)| *name)).chain(["PostCropVignetteStyle"])
+}
+
 const STYLES: &[(&str, &str)] = &[("1", "highlightPriority"), ("2", "colorPriority"), ("3", "paintOverlay")];
 
 /// Bookkeeping fields Camera Raw writes that carry no setting.
@@ -213,6 +219,18 @@ fn apply(params: &mut CameraRaw, report: &mut LoadReport, name: &str, value: &st
 /// Apply a Camera Raw settings file over `params`. Fails on input that isn't XMP or holds no
 /// Camera Raw settings; never panics on malformed input.
 pub fn load(params: &mut CameraRaw, bytes: &[u8]) -> Result<LoadReport, String> {
+    load_impl(params, bytes, false)
+}
+
+/// Embedded photograph settings apply only to the current resource. Historical
+/// snapshot descriptions and settings attached to another subject never become
+/// the active photograph's adjustments.
+pub fn load_current(params: &mut CameraRaw, bytes: &[u8]) -> Result<LoadReport, String> {
+    photocraft_xmp::XmpPacket::parse(bytes).map_err(|e| e.to_string())?;
+    load_impl(params, bytes, true)
+}
+
+fn load_impl(params: &mut CameraRaw, bytes: &[u8], current_only: bool) -> Result<LoadReport, String> {
     if bytes.len() > MAX_XMP_BYTES {
         return Err("the settings file is too large".into());
     }
@@ -224,6 +242,14 @@ pub fn load(params: &mut CameraRaw, bytes: &[u8]) -> Result<LoadReport, String> 
     let mut report = LoadReport::default();
     let mut found = false;
     for desc in doc.descendants().filter(|n| n.is_element() && n.tag_name().namespace() == Some(RDF_NS) && n.tag_name().name() == "Description") {
+        if current_only
+            && (!desc.attribute((RDF_NS, "about")).is_none_or(str::is_empty)
+                || !desc
+                    .parent()
+                    .is_some_and(|parent| parent.is_element() && parent.tag_name().namespace() == Some(RDF_NS) && parent.tag_name().name() == "RDF"))
+        {
+            continue;
+        }
         for a in desc.attributes().filter(|a| a.namespace() == Some(CRS_NS)) {
             found = true;
             apply(&mut next, &mut report, a.name(), a.value());
@@ -358,6 +384,21 @@ mod tests {
         assert_eq!(p.dehaze, 12.0);
         // Lens vignetting, calibration and geometry have no counterpart.
         assert_eq!(r.ignored, vec!["VignetteAmount".to_string(), "RedHue".to_string()]);
+    }
+
+    #[test]
+    fn current_settings_accept_implicit_subject_and_ignore_other_subjects() {
+        for about in ["", "r:about='' "] {
+            let packet = format!(
+                "<r:RDF xmlns:r='{RDF_NS}' xmlns:c='{CRS_NS}'>\
+                 <r:Description {about}c:HasSettings='True' c:Exposure2012='0.75'/>\
+                 <r:Description r:about='urn:other' c:Exposure2012='4'/>\
+                 </r:RDF>"
+            );
+            let mut params = CameraRaw::default();
+            load_current(&mut params, packet.as_bytes()).unwrap();
+            assert_eq!(params.exposure, 0.75);
+        }
     }
 
     #[test]

@@ -1,0 +1,7 @@
+<?xpacket begin="" id="fixture-A"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <rdf:RDF><rdf:Description rdf:about="" xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/" xmlns:crss="http://ns.adobe.com/camera-raw-saved-settings/1.0/" xmlns:ext="urn:photocraft:test:unknown"
+ crs:Exposure2012="0.99" crs:Contrast2012="37" crs:Highlights2012="-87" crs:Shadows2012="8" crs:Whites2012="0" crs:Blacks2012="-40" crs:ProcessVersion="11.0" ext:VendorData="do-not-erase">
+  <crss:SavedSettings><rdf:Bag><rdf:li><rdf:Description crss:Name="Before" crss:Type="Snapshot"><crss:Parameters><rdf:Description crs:Exposure2012="-2" crs:Contrast2012="0"/></crss:Parameters></rdf:Description></rdf:li></rdf:Bag></crss:SavedSettings>
+ </rdf:Description></rdf:RDF>
+</x:xmpmeta><?xpacket end="w"?>

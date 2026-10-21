@@ -3254,3 +3254,77 @@ curves	Smooth	Сгладить
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Адаптер GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Рейтинг ещё не прочитан
+	Unrated	Без рейтинга
+	Rating: {n} of 5	Рейтинг: {n} из 5
+	Rejected	Отклонено
+	Not read yet	Ещё не прочитано
+	No adjustments	Без коррекции
+	Not available yet	Пока недоступно
+	Open Images	Открыть изображения
+	Fit ({zoom})	По размеру ({zoom})
+	Sort By:	Сортировать по:
+	Open Order	Порядок открытия
+	Star Rating	Рейтинг (звёзды)
+	Capture Date	Дата съёмки
+	Color Label	Цветовая метка
+	Rated	С рейтингом
+	Show All	Показать все
+	{n} hidden	Скрыто: {n}
+	{n} hidden, {m} selected	Скрыто: {n}, выбрано: {m}
+	Shown; hidden by filter	Показано; скрыто фильтром
+	Defaults	Значения по умолчанию
+	All photos	Все фотографии
+	Any	Любое
+	Any colour	Любой цвет
+	Back	Назад
+	Blue — Review	Синий — На проверку
+	Blue — Review (9)	Синий — На проверку (9)
+	Changes not yet saved to XMP	Изменения ещё не сохранены в XMP
+	Clear filters	Сбросить фильтры
+	Colour label	Цветовая метка
+	Filename	Имя файла
+	Green — Approved	Зелёный — Одобрено
+	Green — Approved (8)	Зелёный — Одобрено (8)
+	JPEG quality	Качество JPEG
+	Mark	Отметить
+	Marked	Отмечено
+	Marked and unmarked	С отметкой и без отметки
+	No Label	Без метки
+	No photos match	Нет подходящих фотографий
+	Other label	Другая метка
+	Photo actions	Действия с фотографией
+	Photograph	Фотография
+	Purple — To Do	Фиолетовый — К выполнению
+	Purple — To Do (Ctrl+Shift+0)	Фиолетовый — К выполнению (Ctrl+Shift+0)
+	Rating	Оценка
+	Red — Select	Красный — Отобрано
+	Red — Select (6)	Красный — Отобрано (6)
+	Return to photo preview	Вернуться к просмотру фотографии
+	Show grid	Показать сетку
+	Show hidden photos	Показать скрытые фотографии
+	Unmark	Снять отметку
+	Unmarked	Без отметки
+	Unrated (0)	Без оценки (0)
+	Yellow — Second	Жёлтый — Второй выбор
+	Yellow — Second (7)	Жёлтый — Второй выбор (7)
+	hidden	скрыто
+	selected photos	выбранных фотографий
+	Camera Raw session	Сеанс Camera Raw
+	Reset selected	Сбросить выбранные
+	Set value	Задать значение
+	Set value…	Задать значение…
+	Synchronise selected	Синхронизировать выбранные
+	Undo group edit	Отменить групповое изменение
+	Stars	Звёзды
+	Disabled	Отключено
+	Cache	Кэш
+	Opening photographs	Открытие фотографий
+	Preparing Camera Raw previews…	Подготовка превью Camera Raw…
+	Session	Сеанс
+	Sync Settings	Синхронизировать настройки
+	Reset Settings	Сбросить настройки
+	Copy settings from {photo} to the selected photos.	Скопировать настройки фотографии {photo} в выбранные фотографии.
+	Select the active photograph to sync its settings.	Выберите активную фотографию, чтобы синхронизировать её настройки.

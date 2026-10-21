@@ -873,6 +873,13 @@ pub struct RawDefaults {
     pub open_in_camera_raw: bool,
 }
 
+impl RawDefaults {
+    /// The workspace routes developed sensor RAWs; JPEG/TIFF preferences arrive with the finish feature.
+    pub fn routes_to_camera_raw(&self, source: &photocraft_io::camera_raw_source::Inspection, explicit: bool) -> bool {
+        source.supported && source.kind == photocraft_io::camera_raw_source::SourceKind::Raw && (explicit || self.open_in_camera_raw)
+    }
+}
+
 impl Default for RawDefaults {
     fn default() -> Self {
         Self {

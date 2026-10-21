@@ -3955,3 +3955,76 @@ curves	Smooth	スムーズ
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU アダプター
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	レーティングは未読み込み
+	Unrated	レーティングなし
+	Rating: {n} of 5	レーティング: {n} / 5
+	Rejected	除外
+	Not read yet	未読み込み
+	No adjustments	補正なし
+	Not available yet	まだ使用できません
+	Open Images	画像を開く
+	Fit ({zoom})	合わせる ({zoom})
+	Sort By:	並べ替え:
+	Open Order	開いた順
+	Star Rating	星のレーティング
+	Capture Date	撮影日
+	Color Label	カラーラベル
+	Rated	レーティングあり
+	Show All	すべて表示
+	{n} hidden	{n} 件非表示
+	{n} hidden, {m} selected	{n} 件非表示、{m} 件選択
+	Shown; hidden by filter	表示中、フィルターで非表示
+	Defaults	初期設定
+	All photos	すべての写真
+	Any	すべて
+	Any colour	すべてのカラー
+	Back	戻る
+	Blue — Review	青 — 要確認
+	Blue — Review (9)	青 — 要確認 (9)
+	Changes not yet saved to XMP	変更はまだXMPに保存されていません
+	Clear filters	フィルターを解除
+	Colour label	カラーラベル
+	Filename	ファイル名
+	Green — Approved	緑 — 承認済み
+	Green — Approved (8)	緑 — 承認済み (8)
+	JPEG quality	JPEG画質
+	Mark	マークを付ける
+	Marked	マークあり
+	Marked and unmarked	マークの有無を問わない
+	No Label	ラベルなし
+	No photos match	一致する写真はありません
+	Other label	その他のラベル
+	Photo actions	写真の操作
+	Photograph	写真
+	Purple — To Do	紫 — 作業予定
+	Purple — To Do (Ctrl+Shift+0)	紫 — 作業予定 (Ctrl+Shift+0)
+	Rating	評価
+	Red — Select	赤 — 選定
+	Red — Select (6)	赤 — 選定 (6)
+	Return to photo preview	写真のプレビューに戻る
+	Show grid	グリッドを表示
+	Show hidden photos	非表示の写真を表示
+	Unmark	マークを外す
+	Unmarked	マークなし
+	Unrated (0)	未評価 (0)
+	Yellow — Second	黄 — 次点
+	Yellow — Second (7)	黄 — 次点 (7)
+	hidden	非表示
+	selected photos	選択した写真
+	Camera Raw session	Camera Rawセッション
+	Reset selected	選択した写真をリセット
+	Set value	値を設定
+	Set value…	値を設定…
+	Synchronise selected	選択した写真を同期
+	Undo group edit	グループ編集を取り消す
+	Disabled	無効
+	Cache	キャッシュ
+	Opening photographs	写真を開いています
+	Preparing Camera Raw previews…	Camera Rawのプレビューを準備中…
+	Session	セッション
+	Sync Settings	設定を同期
+	Reset Settings	設定をリセット
+	Copy settings from {photo} to the selected photos.	{photo} の設定を選択した写真にコピーします。
+	Select the active photograph to sync its settings.	設定を同期するには、アクティブな写真を選択してください。

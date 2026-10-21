@@ -1176,6 +1176,46 @@ fn default_dir(app: &PhotocraftApp) -> String {
     app.session.active().and_then(|d| d.path.as_deref()).and_then(|p| p.rfind(['/', '\\']).map(|i| p[..i].to_string())).unwrap_or_else(|| ".".into())
 }
 
+/// `file.openAs {path}` never admits a RAW as an editable document around Camera Raw. The engine opens the file exactly as
+/// before (the app-level authorization hook judges the call first, inside `run_command`, so a denial happens before any
+/// file is read), and its reply (`document`, `color`, `warnings`) is kept with the stable `docId` added. Within this same
+/// call, before anything else can run, a RAW developed from its sensor data is then either held for Camera Raw (the reply
+/// says `review: "pending"`; the document is provisional, not editable, not accepted) or, when a decoder override
+/// (`as`) was given, refused and closed again. `document` is the tab index at this moment, kept for existing callers; the
+/// safety identity is `docId`. Reached from [`PhotocraftApp::run`], which every desktop route to the command ends in
+/// (`engine.execute`, the menu and the palette); Actions, scripts and droplets step the engine directly and keep their
+/// batch semantics. The review keeps the file's path, as File > Open's background open does, so Camera Raw reads an
+/// adjacent .xmp only where File > Open would: this command is an ambient-path command that automation policies refuse.
+pub(crate) fn open_as_path(app: &mut PhotocraftApp, path: &str, params: &Value) -> Result<Value, String> {
+    let as_ext = params.get("as").or_else(|| params.get("format")).and_then(Value::as_str);
+    let mut reply = app.run_command("file.openAs", params.clone())?;
+    let opened =
+        reply.get("document").and_then(Value::as_u64).and_then(|index| app.session.documents().get(index as usize)).map(|st| (st.doc.id, st.doc.name.clone()));
+    let Some((id, name)) = opened else { return Ok(reply) };
+    let warnings: Vec<String> =
+        reply.get("warnings").and_then(Value::as_array).map(|a| a.iter().filter_map(|w| w.as_str().map(str::to_string)).collect()).unwrap_or_default();
+    let close_new = |app: &mut PhotocraftApp| {
+        if let Some(index) = app.session.documents().iter().position(|st| st.doc.id == id) {
+            app.session.close(index);
+        }
+        app.sync_views();
+    };
+    if crate::camera_raw_ui::wants_open_dialog(app, &warnings) {
+        if as_ext.is_some() {
+            close_new(app);
+            return Err(format!(
+                "refused: {path} is a camera RAW and a format override would open it without Camera Raw; open it without `as` so it is reviewed first"
+            ));
+        }
+        if let Err(error) = crate::camera_raw_ui::queue_open_dialog(app, id, &name, Some(path), None) {
+            close_new(app);
+            return Err(error);
+        }
+        reply["review"] = json!("pending");
+    }
+    reply["docId"] = json!(id.0);
+    Ok(reply)
+}
 fn front(app: &mut PhotocraftApp, ctx: &egui::Context, id: &str, params: &Value) -> Option<Result<Value, String>> {
     if id == "file.closeAll" || id == "file.closeOthers" {
         // Keep the remaining document's view (views are index-aligned with documents).

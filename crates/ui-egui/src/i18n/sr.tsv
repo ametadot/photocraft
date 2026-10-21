@@ -4347,3 +4347,71 @@ shape	Appearance	Izgled
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU adapter
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Ocena još nije pročitana
+	Unrated	Bez ocene
+	Rating: {n} of 5	Ocena: {n} od 5
+	Rejected	Odbijeno
+	Not read yet	Još nije pročitano
+	No adjustments	Bez korekcija
+	Not available yet	Još nije dostupno
+	Open Images	Otvori slike
+	Fit ({zoom})	Uklopi ({zoom})
+	Sort By:	Sortiraj po:
+	Open Order	Redosled otvaranja
+	Star Rating	Ocena zvezdicama
+	Capture Date	Datum snimanja
+	Color Label	Oznaka boje
+	Rated	Ocenjene
+	{n} hidden	Skriveno: {n}
+	{n} hidden, {m} selected	Skriveno: {n}, izabrano: {m}
+	Shown; hidden by filter	Prikazano; skriveno filterom
+	All photos	Sve fotografije
+	Any	Bilo koje
+	Any colour	Bilo koja boja
+	Blue — Review	Plavo — Za pregled
+	Blue — Review (9)	Plavo — Za pregled (9)
+	Changes not yet saved to XMP	Izmene još nisu sačuvane u XMP
+	Clear filters	Poništi filtere
+	Colour label	Oznaka u boji
+	Green — Approved	Zeleno — Odobreno
+	Green — Approved (8)	Zeleno — Odobreno (8)
+	JPEG quality	Kvalitet JPEG-a
+	Mark	Označi
+	Marked	Označeno
+	Marked and unmarked	Označene i neoznačene
+	No Label	Bez oznake
+	No photos match	Nema odgovarajućih fotografija
+	Other label	Druga oznaka
+	Photo actions	Radnje sa fotografijom
+	Photograph	Fotografija
+	Purple — To Do	Ljubičasto — Za uraditi
+	Purple — To Do (Ctrl+Shift+0)	Ljubičasto — Za uraditi (Ctrl+Shift+0)
+	Rating	Ocena
+	Red — Select	Crveno — Izabrano
+	Red — Select (6)	Crveno — Izabrano (6)
+	Return to photo preview	Vrati se na pregled fotografije
+	Show grid	Prikaži mrežu
+	Show hidden photos	Prikaži skrivene fotografije
+	Unmark	Ukloni oznaku
+	Unmarked	Neoznačeno
+	Unrated (0)	Bez ocene (0)
+	Yellow — Second	Žuto — Drugi izbor
+	Yellow — Second (7)	Žuto — Drugi izbor (7)
+	hidden	skriveno
+	selected photos	izabranih fotografija
+	Camera Raw session	Sesija Camera Raw
+	Reset selected	Vrati izabrane na početno
+	Set value	Postavi vrednost
+	Set value…	Postavi vrednost…
+	Synchronise selected	Sinhronizuj izabrane
+	Undo group edit	Poništi grupnu izmenu
+	Cache	Кеш меморија
+	Opening photographs	Отварање фотографија
+	Preparing Camera Raw previews…	Припрема Camera Raw прегледа…
+	Session	Sesija
+	Sync Settings	Sinhronizuj podešavanja
+	Reset Settings	Vrati podrazumevana podešavanja
+	Copy settings from {photo} to the selected photos.	Kopiraj podešavanja sa fotografije {photo} na izabrane fotografije.
+	Select the active photograph to sync its settings.	Izaberite aktivnu fotografiju da biste sinhronizovali njena podešavanja.
