@@ -1,0 +1,3 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:alt="http://ns.adobe.com/camera-raw-settings/1.0/">
+<rdf:Description rdf:about="" alt:Exposure2012="0.85" alt:Contrast2012="33" alt:Highlights2012="-81" alt:Shadows2012="-5" alt:Whites2012="0" alt:Blacks2012="-40" alt:Temperature="6182" alt:Tint="11"/>
+</rdf:RDF>

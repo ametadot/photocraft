@@ -67,6 +67,9 @@ fn discarded(app: &PhotocraftApp, id: &str, params: &Value) -> (Option<DocId>, V
 
 /// Park `id` behind a prompt if it would discard unsaved work. Returns whether it did.
 pub fn intercept(app: &mut PhotocraftApp, id: &str, params: &Value) -> bool {
+    if id == EXIT && crate::camera_raw_ui::intercept_close(app) {
+        return true;
+    }
     let (target, docs) = discarded(app, id, params);
     if docs.is_empty() {
         return false;
@@ -115,6 +118,10 @@ impl PhotocraftApp {
 /// here as a close request.
 pub fn guard_window_close(app: &mut PhotocraftApp, ctx: &egui::Context) {
     if !ctx.input(|i| i.viewport().close_requested()) {
+        return;
+    }
+    if crate::camera_raw_ui::intercept_close(app) {
+        ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
         return;
     }
     if !app.allow_close && intercept(app, EXIT, &Value::Null) {

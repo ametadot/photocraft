@@ -42,6 +42,7 @@ pub mod brushes_tab;
 pub mod caf_ui;
 pub(crate) mod cam_preview;
 mod cam_transform;
+pub(crate) mod camera_raw_admission;
 mod camera_raw_detail_ui;
 mod camera_raw_preview_ui;
 mod camera_raw_scope_ui;
@@ -503,6 +504,13 @@ pub type RightButtonDownFn = Box<dyn Fn() -> bool + Send + Sync>;
 /// I/O dependencies.
 #[derive(Default)]
 pub struct Services {
+    /// Private native Camera Raw recovery root. Tests inject an isolated directory.
+    /// None means persistence is unavailable; never fall back to the user's profile.
+    pub camera_raw_recovery_root: Option<std::path::PathBuf>,
+    /// Optional capability-based sidecar writer. A control-enabled desktop
+    /// constrains every recipe save, including native actions and worker retries.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub camera_raw_sidecar_publisher: Option<photocraft_io::raw_session::SidecarPublisher>,
     /// User-initiated desktop/browser pixel sampling.
     pub screen_pick: Option<screen_picker::Service>,
     /// Decode a file's bytes into a document (PSD, PNG, JPEG, …).
@@ -816,8 +824,17 @@ pub struct PhotocraftApp {
     /// A raw file just opened interactively, waiting for the open-time Camera Raw dialog (shown
     /// on the next frame, which has the egui context).
     pub(crate) pending_raw_open: Option<camera_raw_ui::RawOpen>,
+    /// Other RAWs that finished decoding while Camera Raw was occupied. Never replace a
+    /// pending user's dialog: batch opens must be reviewed one at a time.
+    pub(crate) queued_raw_opens: std::collections::VecDeque<camera_raw_ui::RawOpen>,
+    /// Parked Camera Raw reviews retain each photo's settings when selecting thumbnails.
+    /// Their imported documents stay in the existing session; only the UI state is parked.
+    pub(crate) raw_filmstrip: camera_raw_ui::FilmstripState,
     /// The open-time re-develop (or its Camera Raw step) running in the background.
     pub(crate) raw_redevelop: Option<camera_raw_ui::Redevelop>,
+    /// The one command Camera Raw may run on a RAW it is opening, set only around that call
+    /// (`camera_raw_ui::run_owned`) and taken by the command guard in [`PhotocraftApp::run`].
+    pub(crate) raw_exemption: Option<camera_raw_ui::RawExemption>,
     /// Filter › Adaptive Wide Angle dialog (wide_angle_ui).
     pub(crate) wide_angle: Option<wide_angle_ui::WideAngleDialog>,
     /// ⌘Z history of each open parameter dialog (edit_history).
@@ -1028,7 +1045,10 @@ impl PhotocraftApp {
             gradient: Default::default(),
             camera_raw: None,
             pending_raw_open: None,
+            queued_raw_opens: Default::default(),
+            raw_filmstrip: Default::default(),
             raw_redevelop: None,
+            raw_exemption: None,
             wide_angle: None,
             dialog_edits: Default::default(),
             pending_after_prompt: None,
@@ -1127,6 +1147,9 @@ impl PhotocraftApp {
 
     /// Run an engine command, reporting errors in the status bar.
     pub fn run(&mut self, id: &str, params: Value) -> Result<Value, String> {
+        // Whoever asks and whenever it runs (the palette, a dialog opened earlier, a floating window, a control
+        // request): a command may not act on, or name, a RAW that is still waiting for Open or Cancel.
+        camera_raw_ui::guard_native_command(self, id, &params)?;
         if let Some(result) = delete_layer_prompt::intercept(self, id, &params) {
             return result;
         }
@@ -1138,7 +1161,13 @@ impl PhotocraftApp {
         if gate.is_some() {
             self.session.authorize = gate;
         }
-        let result = self.run_command(id, params);
+        // `file.openAs {path}` is an interactive open: a RAW is reviewed in Camera Raw like File > Open, never admitted
+        // as an editable document (see `view_cmds::open_as_path`).
+        let open_as_path = if id == "file.openAs" { params.get("path").and_then(Value::as_str).map(str::to_string) } else { None };
+        let result = match open_as_path {
+            Some(path) => view_cmds::open_as_path(self, &path, &params),
+            None => self.run_command(id, params),
+        };
         if gate.is_some() {
             self.session.authorize = None;
         }
@@ -1443,32 +1472,58 @@ impl PhotocraftApp {
     /// [`Self::open_bytes`] for a file read from `path` (File › Save writes back there; it goes
     /// to Open Recent), when known.
     pub(crate) fn open_bytes_from(&mut self, name: &str, bytes: &[u8], path: Option<&str>) -> Result<Vec<String>, String> {
+        self.open_bytes_from_mode(name, bytes, path, false)
+    }
+
+    pub(crate) fn open_bytes_from_mode(&mut self, name: &str, bytes: &[u8], path: Option<&str>, explicit: bool) -> Result<Vec<String>, String> {
+        camera_raw_admission::input(self, name, path, |app| app.open_bytes_from_inner(name, bytes, path, explicit))
+    }
+
+    fn open_bytes_from_inner(&mut self, name: &str, bytes: &[u8], path: Option<&str>, explicit: bool) -> Result<Vec<String>, String> {
         if let Some(r) = preset_files_ui::open(self, name, bytes) {
+            if r.is_ok() {
+                camera_raw_admission::outcome(self, camera_raw_admission::Outcome::OutsideRaw);
+            }
             return r.map(|()| Vec::new());
         }
         let name = &self.open_name(name);
         // Decoded on a worker: a tab with progress appears now, the document when it's ready
         // (warnings are shown then).
         if self.background_jobs {
-            jobs_ui::start_open(self, name, path.map(str::to_string), jobs_ui::bytes(bytes))?;
+            jobs_ui::start_open_mode(self, name, path.map(str::to_string), jobs_ui::bytes(bytes), explicit)?;
             return Ok(Vec::new());
         }
         let import = self.services.import.as_ref().ok_or("no importer configured")?;
         let max_svg_group_depth = self.session.prefs().file_handling.rasterize_svg_groups_deeper_than as usize;
-        let (doc, warnings) = import(name, bytes, max_svg_group_depth)?;
+        let (doc, mut warnings) = import(name, bytes, max_svg_group_depth)?;
+        let (inspection, routing_warning) =
+            photocraft_engine::jobs::camera_raw_open_inspection(bytes, path, explicit, &self.session.prefs().raw_defaults).map_err(|e| e.to_string())?;
+        warnings.extend(routing_warning);
+        if inspection.as_ref().is_some_and(|source| photocraft_engine::jobs::routes_imported(&self.session.prefs().raw_defaults, source, explicit, &warnings)) {
+            warnings.push(photocraft_engine::jobs::CAMERA_RAW_REVIEW_NOTE.into());
+        } else if explicit && inspection.as_ref().is_some_and(|i| i.kind == photocraft_io::camera_raw_source::SourceKind::Raw) {
+            warnings.push(photocraft_engine::jobs::RAW_PREVIEW_ONLY_NOTE.into());
+        }
         // Edit › Color Settings policies apply on open; Ask When Opening holds the file back
         // until its prompt is answered, and later files wait behind it (`open_prompt`).
         // Missing fonts are read from the document itself: it may not be open yet (#4559).
         let warnings = file_open::with_missing_fonts_of(&doc, warnings);
         // A developed raw has no embedded profile to ask about.
         let developed = warnings.iter().any(|w| w.contains(photocraft_io::raw::DEVELOPED_NOTE));
-        let question = self.session.color.open_question(&doc).filter(|_| !developed);
         let wants_raw = camera_raw_ui::wants_open_dialog(self, &warnings);
+        let question = self.session.color.open_question(&doc).filter(|_| !developed && !wants_raw);
+        // A RAW for a Camera Raw review is admitted under the current review generation, as a background open's is
+        // (lab port, H-MAIN-1b): if it has to wait behind another file's profile prompt and the review is cancelled
+        // meanwhile, `open_prompt::open` drops it instead of starting a new review.
+        if wants_raw {
+            self.session.admit_for_review(doc.id);
+        }
+        camera_raw_admission::bind_document(self, doc.id);
         open_prompt::arrive(
             self,
             open_prompt::Held {
                 doc,
-                read_only: photocraft_io::affinity::is_affinity(bytes),
+                read_only: wants_raw || photocraft_io::affinity::is_affinity(bytes),
                 name: name.to_string(),
                 path: path.map(str::to_string),
                 warnings: warnings.clone(),
@@ -1503,18 +1558,51 @@ impl PhotocraftApp {
     /// The document half of [`open_automation_bytes`](Self::open_automation_bytes): no script
     /// events and no Color Settings policy (which may read user-configured profile paths).
     fn import_automation_document(&mut self, name: &str, bytes: &[u8]) -> Result<Vec<String>, String> {
+        camera_raw_admission::input(self, name, None, |app| app.import_automation_document_inner(name, bytes))
+    }
+
+    fn import_automation_document_inner(&mut self, name: &str, bytes: &[u8]) -> Result<Vec<String>, String> {
         let import = self.services.import.as_ref().ok_or("no importer configured")?;
         let max_svg_group_depth = self.session.prefs().file_handling.rasterize_svg_groups_deeper_than as usize;
         let (doc, warnings) = import(name, bytes, max_svg_group_depth)?;
         // The caller records the path it read from.
-        self.session.add_document(doc, None);
+        let index = self.session.add_document(doc, None);
+        let document = self.session.documents().get(index).map(|st| st.doc.id);
+        if let Some(document) = document {
+            camera_raw_admission::bind_document(self, document);
+        }
         if let Some(st) = self.session.active_mut() {
             st.source_read_only = photocraft_io::affinity::is_affinity(bytes);
+        }
+        let mut warnings = warnings;
+        if camera_raw_ui::wants_open_dialog(self, &warnings) {
+            // A RAW opens in Camera Raw first, as for File > Open, and is provisional from this very call: nothing
+            // else can see or edit it before Open. The review keeps no path (the bytes re-develop it), so no
+            // adjacent .xmp is read from the file system outside the granted roots: it starts from the defaults.
+            let queued = document
+                .ok_or_else(|| "the opened document is missing".to_string())
+                .and_then(|id| camera_raw_ui::queue_open_dialog(self, id, name, None, Some(bytes)));
+            if let Err(error) = queued {
+                // Never leave an editable RAW behind: close the document just added, and only that one.
+                if let Some(index) = document.and_then(|id| self.session.documents().iter().position(|st| st.doc.id == id)) {
+                    self.session.close(index);
+                }
+                self.sync_views();
+                return Err(error);
+            }
+            self.sync_views();
+            self.ui.status = crate::i18n::fmt(tl!("Opened {name}"), &[("name", name)]);
+            self.ui.status_error = false;
+            notices::io_warnings(self, &crate::i18n::fmt(tl!("Opened {name}"), &[("name", name)]), &camera_raw_ui::without_develop_note(&warnings));
+            camera_raw_admission::outcome(self, camera_raw_admission::Outcome::Ready);
+            warnings.push("Opened in Camera Raw with default settings: no XMP sidecar is read for a file supplied by automation".to_string());
+            return Ok(warnings);
         }
         self.sync_views();
         self.ui.status = crate::i18n::fmt(tl!("Opened {name}"), &[("name", name)]);
         self.ui.status_error = false;
         notices::io_warnings(self, &crate::i18n::fmt(tl!("Opened {name}"), &[("name", name)]), &warnings);
+        camera_raw_admission::outcome(self, camera_raw_admission::Outcome::OutsideRaw);
         Ok(warnings)
     }
 
@@ -1753,6 +1841,7 @@ impl PhotocraftApp {
     /// `None` when the save went to a background job (#2017), which finishes it in
     /// [`jobs_ui::tick`].
     pub(crate) fn write_document(&mut self, path: String, settings: &ExportSettings, copy: bool) -> Result<Option<(String, Vec<String>)>, String> {
+        camera_raw_ui::refuse_to_write_unaccepted(self)?;
         if self.background_jobs
             && let Some(save) = self.services.save_file.clone()
         {
@@ -1872,6 +1961,7 @@ impl PhotocraftApp {
     /// Targa's `None`: 32 with an alpha channel or transparency, else 24; a DDS texture's:
     /// uncompressed without mipmaps). Automation saves never prompt.
     pub fn save_automation_with(&mut self, path: Option<String>, choices: FormatChoices) -> Result<Value, String> {
+        camera_raw_ui::refuse_to_write_unaccepted(self)?;
         let target = {
             let state = self.session.active().ok_or("no document")?;
             // As File › Save: without `path` only a layered file is written back (#416).
@@ -2018,6 +2108,7 @@ impl eframe::App for PhotocraftApp {
         if self.live_tokens.poll(ctx, self.ui.theme) {
             self.checker = None;
         }
+        camera_raw_ui::sync_provisional(self);
         self.drain_control(ctx);
         native_menu::run(self, ctx);
         // Switching tools commits, also between the Type and Type Mask tools.
@@ -2044,6 +2135,7 @@ impl eframe::App for PhotocraftApp {
         // shortcuts see Esc).
         if !screen_picker::tick(self, ctx) {
             jobs_ui::tick(self, ctx);
+            camera_raw_ui::sync_provisional(self);
             #[cfg(not(target_arch = "wasm32"))]
             filter_preview_worker::discard_closed(self);
             shortcuts::handle(self, ctx);
@@ -2067,14 +2159,17 @@ impl eframe::App for PhotocraftApp {
             ctx.request_repaint();
         }
         let dropped = ctx.input(|i| i.raw.dropped_files.clone());
-        if !dropped.is_empty() {
+        if !dropped.is_empty() && !camera_raw_ui::blocks_editor(self) {
             let at = self.services.cursor_pos.as_mut().and_then(|f| f(ctx));
             self.open_dropped(ctx, dropped, at);
             // Files dragged in from another app's window: PhotoCraft comes to the front and takes
             // the keyboard, as Photoshop does, instead of staying behind the source (#5687).
             ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
         }
-        self.place_next_dropped(ctx);
+        // A drop queued before a RAW arrived must not be placed onto it: placing waits until Camera Raw is done.
+        if !camera_raw_ui::blocks_editor(self) {
+            self.place_next_dropped(ctx);
+        }
         // The control transport wakes the UI on arrival (ctx.request_repaint); only poll while a
         // screenshot is pending. (Polling every 50 ms here made idle apps render at 20 fps.)
         if !self.pending_screenshots.is_empty() {
@@ -2155,6 +2250,14 @@ impl eframe::App for PhotocraftApp {
             ui.disable();
             ui.set_opacity(1.0);
         }
+        // The Camera Raw viewport has its own UI. Disable the main editor, even if the
+        // user focuses the main OS window while Camera Raw is open or waiting in a batch.
+        if camera_raw_ui::blocks_editor(self) {
+            ui.disable();
+        }
+        // These documents are not accepted yet. Hide the entire document workspace
+        // (including the layer/properties dock) until the user presses Open.
+        let show_raw_home = camera_raw_ui::hides_unaccepted_raw(self);
         // The OS title bar (and the taskbar / Alt-Tab entry) follows the active file; with the
         // system title bar this is where the document name lives, as the in-app title is hidden.
         panels::sync_window_title(self, &ctx);
@@ -2171,13 +2274,22 @@ impl eframe::App for PhotocraftApp {
         if chrome && self.ui.panels.toolbar {
             panels::toolbar(self, ui);
         }
-        if chrome && self.ui.panels.dock {
+        if chrome && self.ui.panels.dock && !show_raw_home {
             panels::right_dock(self, ui);
         }
         let t = theme::Tokens::get(&ctx);
         let backdrop = if chrome { prefs_ui::pasteboard_color(self).unwrap_or(t.canvas) } else { egui::Color32::BLACK };
         egui::CentralPanel::default().frame(egui::Frame::NONE.fill(backdrop)).show(ui, |ui| {
-            canvas::document_area(self, ui);
+            // The engine currently stages decoded RAWs as session documents. Keep
+            // that implementation detail out of the main editor until Open.
+            // Show PhotoCraft's ordinary start screen, not a stale canvas or RAW tabs.
+            if show_raw_home {
+                self.drop_canvas_rect = None;
+                self.tab_strip = None;
+                canvas::start_screen(self, ui);
+            } else {
+                canvas::document_area(self, ui);
+            }
         });
         panels::properties_window(self, &ctx);
         brush_panel::window(self, &ctx);
@@ -2198,7 +2310,9 @@ impl eframe::App for PhotocraftApp {
         distort_ui::show(self, &ctx);
         camera_raw_ui::show(self, &ctx);
         wide_angle_ui::show(self, &ctx);
-        canvas::extra_windows(self, &ctx);
+        if !show_raw_home {
+            canvas::extra_windows(self, &ctx);
+        }
         notices::show(self, &ctx);
         gpu_status::show_fallback(self, &ctx);
         kys_import::show_offer(self, &ctx);

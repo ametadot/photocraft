@@ -3977,3 +3977,205 @@ curves	Smooth	Εξομάλυνση
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Προσαρμογέας GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Η βαθμολογία δεν έχει διαβαστεί ακόμη
+	Unrated	Χωρίς βαθμολογία
+	Rating: {n} of 5	Βαθμολογία: {n} από 5
+	Rejected	Απορρίφθηκε
+	Not read yet	Δεν έχει διαβαστεί ακόμη
+	No adjustments	Χωρίς προσαρμογές
+	Not available yet	Δεν είναι ακόμη διαθέσιμο
+	Open Images	Άνοιγμα εικόνων
+	Fit ({zoom})	Προσαρμογή ({zoom})
+	Sort By:	Ταξινόμηση κατά:
+	Open Order	Σειρά ανοίγματος
+	Star Rating	Βαθμολογία αστεριών
+	Capture Date	Ημερομηνία λήψης
+	Color Label	Χρωματική ετικέτα
+	Rated	Με βαθμολογία
+	{n} hidden	Κρυφά: {n}
+	{n} hidden, {m} selected	Κρυφά: {n}, επιλεγμένα: {m}
+	Shown; hidden by filter	Εμφανίζεται· κρυφό από το φίλτρο
+	Workflow	Ροή εργασίας
+	Generative AI	Παραγωγική ΤΝ
+	Long-session recovery	Ανάκτηση μακρών συνεδριών
+	Camera Raw Preferences	Προτιμήσεις Camera Raw
+	All photos	Όλες οι φωτογραφίες
+	Any	Οποιοδήποτε
+	Any colour	Οποιοδήποτε χρώμα
+	Blue — Review	Μπλε — Για έλεγχο
+	Blue — Review (9)	Μπλε — Για έλεγχο (9)
+	Cancelling before publication…	Ακύρωση πριν από την εγγραφή…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Αλλάξτε το μέγεθος, τον προσανατολισμό και την προβολή πλέγματος της λωρίδας φωτογραφιών στο Camera Raw. Αυτές οι επιλογές προβολής δεν τροποποιούν τις φωτογραφίες.
+	Changes not yet saved to XMP	Αλλαγές που δεν έχουν ακόμη αποθηκευτεί σε XMP
+	Clear filters	Εκκαθάριση φίλτρων
+	Colour label	Χρωματική ετικέτα
+	Destination folder	Φάκελος προορισμού
+	Green — Approved	Πράσινο — Εγκεκριμένο
+	Green — Approved (8)	Πράσινο — Εγκεκριμένο (8)
+	JPEG quality	Ποιότητα JPEG
+	Live save is planned for a later release.	Η συνεχής αποθήκευση προγραμματίζεται για μεταγενέστερη έκδοση.
+	Live save — Planned	Συνεχής αποθήκευση — Προγραμματισμένη
+	Mark	Επισήμανση
+	Marked	Επισημασμένες
+	Marked and unmarked	Επισημασμένες και μη επισημασμένες
+	No Label	Χωρίς ετικέτα
+	No photos match	Δεν βρέθηκαν αντίστοιχες φωτογραφίες
+	Other label	Άλλη ετικέτα
+	Photo actions	Ενέργειες φωτογραφίας
+	Photograph	Φωτογραφία
+	Purple — To Do	Μοβ — Προς εκτέλεση
+	Purple — To Do (Ctrl+Shift+0)	Μοβ — Προς εκτέλεση (Ctrl+Shift+0)
+	Rating	Βαθμολογία
+	Red — Select	Κόκκινο — Επιλογή
+	Red — Select (6)	Κόκκινο — Επιλογή (6)
+	Remove…	Αφαίρεση…
+	Replace existing JPEG?	Αντικατάσταση του υπάρχοντος JPEG;
+	Return to photo preview	Επιστροφή στην προεπισκόπηση φωτογραφίας
+	Save JPEG	Αποθήκευση JPEG
+	Save JPEG:	Αποθήκευση JPEG:
+	Save this photo as JPEG	Αποθήκευση αυτής της φωτογραφίας ως JPEG
+	Saving JPEG	Αποθήκευση JPEG σε εξέλιξη
+	Saving mode: Cache saving	Τρόπος αποθήκευσης: Αποθήκευση στην προσωρινή μνήμη
+	Show grid	Εμφάνιση πλέγματος
+	Show hidden photos	Εμφάνιση κρυφών φωτογραφιών
+	Unmark	Κατάργηση επισήμανσης
+	Unmarked	Μη επισημασμένες
+	Unrated (0)	Χωρίς βαθμολογία (0)
+	Uses the settings captured when Save was chosen.	Χρησιμοποιεί τις ρυθμίσεις που καταγράφηκαν όταν επιλέχθηκε η Αποθήκευση.
+	Yellow — Second	Κίτρινο — Δεύτερη επιλογή
+	Yellow — Second (7)	Κίτρινο — Δεύτερη επιλογή (7)
+	hidden	κρυφές
+	selected photos	επιλεγμένες φωτογραφίες
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Οι αλλαγές σας στο Camera Raw αποθηκεύονται για ανάκτηση όσο εργάζεστε. Επιλέξτε Ολοκληρώθηκε για να αποθηκεύσετε τις αλλαγές στα συνοδευτικά αρχεία XMP των φωτογραφιών.
+	A recovered photograph has no retained source binding.	Μια ανακτημένη φωτογραφία δεν διαθέτει αποθηκευμένη σύνδεση με το αρχείο προέλευσης.
+	Applies the same value to every selected photograph. Other settings remain independent.	Εφαρμόζει την ίδια τιμή σε κάθε επιλεγμένη φωτογραφία. Οι υπόλοιπες ρυθμίσεις παραμένουν ανεξάρτητες.
+	Back to editing	Επιστροφή στην επεξεργασία
+	Camera Raw recovery details	Λεπτομέρειες ανάκτησης Camera Raw
+	Camera Raw recovery needs attention	Η ανάκτηση Camera Raw χρειάζεται προσοχή
+	Camera Raw session	Συνεδρία Camera Raw
+	Choose how to leave this visit's changes.	Επιλέξτε πώς θα χειριστείτε τις αλλαγές από αυτό το άνοιγμα.
+	Close Camera Raw session	Κλείσιμο συνεδρίας Camera Raw
+	Close details	Κλείσιμο λεπτομερειών
+	Discard this photo's changes and remove	Απόρριψη αλλαγών αυτής της φωτογραφίας και αφαίρεση
+	Discard this visit's changes and close	Απόρριψη αλλαγών από αυτό το άνοιγμα και κλείσιμο
+	Finish Camera Raw session	Ολοκλήρωση συνεδρίας Camera Raw
+	Keep editing	Συνέχιση επεξεργασίας
+	Keep in recovery and close	Διατήρηση για ανάκτηση και κλείσιμο
+	Keep in session	Διατήρηση στη συνεδρία
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Δεν υπάρχουν διαθέσιμες φωτογραφίες για προεπισκόπηση αυτή τη στιγμή. Οι λεπτομέρειες ανάκτησης διατηρούν κάθε εκκρεμή εργασία.
+	Open from files	Άνοιγμα από αρχεία
+	Original NEF files remain unchanged.	Τα αρχικά αρχεία NEF παραμένουν αμετάβλητα.
+	Remove photograph from session	Αφαίρεση φωτογραφίας από τη συνεδρία
+	Reset selected	Επαναφορά επιλεγμένων
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Επαναφέρετε το αρχικό αρχείο στην καταγεγραμμένη διαδρομή και επιλέξτε Επανάληψη αποθήκευσης ανάκτησης. Αρχείο με αλλαγμένο περιεχόμενο ή ταυτότητα δεν μπορεί να γίνει δεκτό ως αρχική πηγή.
+	Resume saved session	Συνέχιση αποθηκευμένης συνεδρίας
+	Retry recovery save	Επανάληψη αποθήκευσης ανάκτησης
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Ελέγξτε τα μη διαθέσιμα αρχεία, τις διακοπείσες εισαγωγές και τα μηνύματα ανάκτησης πριν ολοκληρώσετε.
+	Save XMP and close	Αποθήκευση XMP και κλείσιμο
+	Save XMP and remove	Αποθήκευση XMP και αφαίρεση
+	Saved Camera Raw sessions	Αποθηκευμένες συνεδρίες Camera Raw
+	Set value	Ορισμός τιμής
+	Set value for selected photos	Ορισμός τιμής για επιλεγμένες φωτογραφίες
+	Set value…	Ορισμός τιμής…
+	Show recovery details	Εμφάνιση λεπτομερειών ανάκτησης
+	Skip removes this unfinished import from the current request. You can open the file again later.	Η παράλειψη αφαιρεί αυτή την ημιτελή εισαγωγή από το τρέχον αίτημα. Μπορείτε να ανοίξετε ξανά το αρχείο αργότερα.
+	Skip unfinished import	Παράλειψη ημιτελούς εισαγωγής
+	Synchronise selected	Συγχρονισμός επιλεγμένων
+	This changes session membership. Hide and filters keep photographs in the session.	Αυτό αλλάζει τις φωτογραφίες που ανήκουν στη συνεδρία. Η απόκρυψη και τα φίλτρα διατηρούν τις φωτογραφίες στη συνεδρία.
+	Undo group edit	Αναίρεση ομαδικής επεξεργασίας
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Το Camera Raw αποθηκεύει συνοδευτικά αρχεία XMP για JPEG και TIFF· τα αρχικά αρχεία εικόνας παραμένουν αμετάβλητα.
+	Disable Camera Raw support	Απενεργοποίηση υποστήριξης Camera Raw
+	JPEG and TIFF Handling	Χειρισμός JPEG και TIFF
+	JPEG handling	Χειρισμός JPEG
+	Layered TIFF files open in the editor with their layers preserved.	Τα αρχεία TIFF με επίπεδα ανοίγουν στο πρόγραμμα επεξεργασίας διατηρώντας τα επίπεδά τους.
+	Open all supported files	Άνοιγμα όλων των υποστηριζόμενων αρχείων
+	Open files with Camera Raw settings	Άνοιγμα αρχείων με ρυθμίσεις Camera Raw
+	Original image files remain unchanged.	Τα αρχικά αρχεία εικόνας παραμένουν αμετάβλητα.
+	Recovery details	Λεπτομέρειες ανάκτησης
+	Save XMP and keep editing	Αποθήκευση XMP και συνέχεια επεξεργασίας
+	Save edits	Αποθήκευση αλλαγών
+	Saved edits to XMP; Camera Raw remains open	Οι αλλαγές αποθηκεύτηκαν σε XMP· το Camera Raw παραμένει ανοιχτό
+	TIFF handling	Χειρισμός TIFF
+	Existing settings	Υπάρχουσες ρυθμίσεις
+	Jpeg handling	Χειρισμός JPEG
+	Tiff handling	Χειρισμός TIFF
+	Open in Camera Raw…	Άνοιγμα στο Camera Raw…
+	Discard edits	Απόρριψη αλλαγών
+	Cache	Κρυφή μνήμη
+	Recovery mode	Λειτουργία ανάκτησης
+	Show recovery progress	Εμφάνιση προόδου ανάκτησης
+	PhotoCraft default — recovery off	Προεπιλογή PhotoCraft — ανάκτηση ανενεργή
+	Long-session recovery — cache saving	Ανάκτηση μεγάλων συνεδριών — αποθήκευση στην κρυφή μνήμη
+	Opening photographs	Άνοιγμα φωτογραφιών
+	Preparing Camera Raw previews…	Προετοιμασία προεπισκοπήσεων Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Απόρριψη των αλλαγών αυτής της συνεδρίας. Τα ήδη αποθηκευμένα αρχεία XMP παραμένουν αμετάβλητα.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Η Ολοκλήρωση αποθηκεύει το XMP και κλείνει από προεπιλογή. Οι αρχικές φωτογραφίες παραμένουν αμετάβλητες.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Η ανάκτηση είναι ανενεργή από προεπιλογή. Ενεργοποιήστε την αποθήκευση στην κρυφή μνήμη για προστασία μιας μεγάλης συνεδρίας στο παρασκήνιο.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Η απενεργοποίηση της ανάκτησης αφαιρεί αυτή τη συνεδρία από τα δεδομένα ανάκτησης. Οι ανοιχτές αλλαγές παραμένουν στη μνήμη μέχρι την Ολοκλήρωση ή την απόρριψή τους.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Με ενεργή αποθήκευση στην κρυφή μνήμη, οι αλλαγές Camera Raw αποθηκεύονται στο παρασκήνιο για ανάκτηση. Η Ολοκλήρωση αποθηκεύει τις ρυθμίσεις σε συνοδευτικά αρχεία XMP.
+	Discard edits?	Απόρριψη αλλαγών?
+	Show recovery progress in Camera Raw	Camera Raw — Εμφάνιση προόδου ανάκτησης
+	Long-session recovery…	Ανάκτηση μακρών συνεδριών…
+	Recovery details…	Λεπτομέρειες ανάκτησης…
+	Keep in recovery and close…	Διατήρηση για ανάκτηση και κλείσιμο…
+	Live saving — planned	Συνεχής αποθήκευση — Προγραμματισμένη
+	Discard unsaved edits?	Απόρριψη μη αποθηκευμένων αλλαγών;
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Απόρριψη όλων των αλλαγών αυτής της συνεδρίας Camera Raw που δεν έχουν αποθηκευτεί ακόμη σε XMP και κλείσιμο. Τα αρχεία XMP που αποθηκεύτηκαν νωρίτερα παραμένουν αμετάβλητα.
+	Discard unsaved edits and close	Απόρριψη μη αποθηκευμένων αλλαγών και κλείσιμο
+	Save and open images	Αποθήκευση και άνοιγμα εικόνων
+	Save XMP and open images	Αποθήκευση XMP και άνοιγμα εικόνων
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Μετά την αποθήκευση, όλες οι φωτογραφίες αυτής της συνεδρίας ανοίγουν στο πρόγραμμα επεξεργασίας με τη σειρά που ανοίχτηκαν, ανεξάρτητα από το φίλτρο ή την επιλογή.
+	Recover Camera Raw session	Ανάκτηση συνεδρίας Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Μια προηγούμενη συνεδρία Camera Raw δεν ολοκληρώθηκε κανονικά. Επιλέξτε ποια έκδοση των αλλαγών της θα ανοίξει.
+	Session	Συνεδρία
+	{count} photos · last checkpoint {time}	Φωτογραφίες: {count} · τελευταίο σημείο ελέγχου: {time}
+	{count} photos have edits not saved to XMP	Φωτογραφίες με αλλαγές που δεν αποθηκεύτηκαν σε XMP: {count}
+	The newest checkpoint is unusable; the one from {time} is used instead.	Το νεότερο σημείο ελέγχου δεν είναι αξιοποιήσιμο. Χρησιμοποιείται αντί αυτού το σημείο ελέγχου από {time}.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Μια αποθήκευση XMP σε αυτή τη συνεδρία δεν ολοκληρώθηκε. Τα αρχεία της ελέγχονται ξανά πριν γραφτεί οτιδήποτε άλλο.
+	Show file details	Εμφάνιση λεπτομερειών αρχείων
+	Hide file details	Απόκρυψη λεπτομερειών αρχείων
+	Checking files…	Έλεγχος αρχείων…
+	Recovered edits	Ανακτημένες αλλαγές
+	Cache version	Έκδοση κρυφής μνήμης
+	Saved edits	Αποθηκευμένες αλλαγές
+	XMP sidecar version	Έκδοση συνοδευτικού αρχείου XMP
+	Resume recovered edits	Συνέχιση με τις ανακτημένες αλλαγές
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Επαναφορά των αλλαγών από το πιο πρόσφατο αξιοποιήσιμο σημείο ελέγχου ανάκτησης του PhotoCraft.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Χρησιμοποιήστε αυτή την επιλογή αν το PhotoCraft έκλεισε απρόσμενα ή αν διακόπηκε μια λειτουργία Άνοιγμα εικόνων, Ολοκληρώθηκε ή Ακύρωση. Μπορεί να επαναφέρει εργασία που δεν αποθηκεύτηκε ποτέ σε συνοδευτικό αρχείο XMP. Οι αλλαγές μετά το τελευταίο επιβεβαιωμένο σημείο ελέγχου ενδέχεται να μην είναι διαθέσιμες.
+	Open saved XMP edits	Άνοιγμα αποθηκευμένων αλλαγών XMP
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Εκ νέου άνοιγμα των αρχικών φωτογραφιών με τις υποστηριζόμενες αλλαγές που είναι τώρα αποθηκευμένες στα αρχεία XMP τους.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Επιλέξτε αυτό για να χρησιμοποιήσετε τις αποθηκευμένες εκδόσεις των συνοδευτικών αρχείων αντί για το μη αποθηκευμένο σημείο ελέγχου ανάκτησης. Δεν έχουν απαραίτητα όλες οι φωτογραφίες αρχείο XMP. Όσες δεν έχουν χρησιμοποιούν τις τρέχουσες ρυθμίσεις του αρχείου τους ή τις προεπιλεγμένες ρυθμίσεις. Αυτό δεν επαναφέρει μη αποθηκευμένες αλλαγές της κρυφής μνήμης.
+	Open other files	Άνοιγμα άλλων αρχείων
+	Discard recovered copy…	Απόρριψη ανακτημένου αντιγράφου…
+	Discard recovered copy?	Απόρριψη ανακτημένου αντιγράφου;
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Αυτό αφαιρεί οριστικά το σημείο ελέγχου ανάκτησης αυτής της συνεδρίας. Τα αποθηκευμένα αρχεία XMP και οι αρχικές φωτογραφίες δεν αλλάζουν.
+	Discard recovered copy	Απόρριψη ανακτημένου αντιγράφου
+	Keep recovered copy	Διατήρηση ανακτημένου αντιγράφου
+	{n} of {total} photos are missing or changed	Λείπουν ή άλλαξαν {n} από {total} φωτογραφίες
+	{n} photos have no XMP file	Φωτογραφίες χωρίς αρχείο XMP: {n}
+	{n} XMP files changed after the checkpoint	Αρχεία XMP που άλλαξαν μετά το σημείο ελέγχου: {n}
+	No usable checkpoint can be opened.	Δεν υπάρχει αξιοποιήσιμο σημείο ελέγχου για άνοιγμα.
+	None of the photographs is available.	Καμία φωτογραφία δεν είναι διαθέσιμη.
+	Photo available	Η φωτογραφία είναι διαθέσιμη
+	Photo missing or changed	Η φωτογραφία λείπει ή άλλαξε
+	No XMP file	Χωρίς αρχείο XMP
+	XMP as at the checkpoint	XMP όπως στο σημείο ελέγχου
+	XMP changed after the checkpoint	Το XMP άλλαξε μετά το σημείο ελέγχου
+	XMP unreadable	Μη αναγνώσιμο XMP
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Ορισμένα αρχεία XMP άλλαξαν μετά το σημείο ελέγχου, για παράδειγμα στο Lightroom. Ελέγξτε τα πριν επιλέξετε.
+	Camera Raw Preferences…	Προτιμήσεις Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Η ανάκτηση προσφέρεται μόνο μετά από συνεδρία που δεν ολοκληρώθηκε κανονικά. Τα κουμπιά Ολοκληρώθηκε, Άνοιγμα εικόνων και Ακύρωση δεν αφήνουν τίποτα για ανάκτηση.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Τα κουμπιά Ολοκληρώθηκε και Άνοιγμα εικόνων αποθηκεύουν πρώτα τις υποστηριζόμενες αλλαγές σε συνοδευτικά αρχεία XMP. Οι αρχικές φωτογραφίες παραμένουν αμετάβλητες.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Η απενεργοποίηση της ανάκτησης αφαιρεί αυτή τη συνεδρία από τα δεδομένα ανάκτησης. Οι ανοιχτές αλλαγές παραμένουν στη μνήμη μέχρι να επιλέξετε Ολοκληρώθηκε, Άνοιγμα εικόνων ή Ακύρωση.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Με ενεργή αποθήκευση στην κρυφή μνήμη, οι αλλαγές Camera Raw αποθηκεύονται στο παρασκήνιο για ανάκτηση. Τα κουμπιά Ολοκληρώθηκε και Άνοιγμα εικόνων αποθηκεύουν τις ρυθμίσεις σε συνοδευτικά αρχεία XMP.
+	Saving XMP before opening…	Αποθήκευση XMP πριν από το άνοιγμα…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Απόρριψη των αλλαγών αυτής της επίσκεψης και κλείσιμο. Διατηρούνται τα πρόχειρα που ανακτήθηκαν προηγουμένως και τα αρχεία XMP που αποθηκεύτηκαν κατά την επίσκεψη.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Η απενεργοποίηση της ανάκτησης σταματά τα αυτόματα σημεία ελέγχου. Η εργασία που ανακτήθηκε προηγουμένως διατηρείται μέχρι να την ολοκληρώσετε ή να απορρίψετε το αντίγραφο ανάκτησής της.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Η ανάκτηση προσφέρεται μετά από διακοπή ή όταν επιλέγετε διατήρηση της εργασίας για ανάκτηση. Τα Ολοκληρώθηκε και Άνοιγμα εικόνων αποσύρουν τις ολοκληρωμένες συνεδρίες. Η απόρριψη αλλαγών σε μια συνεδρία που συνεχίστηκε διατηρεί την εργασία που ανακτήθηκε προηγουμένως.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Χρησιμοποιήστε το για εργασία που διατηρήθηκε για ανάκτηση, μετά από απρόσμενο κλείσιμο του PhotoCraft ή διακοπή μιας ενέργειας Άνοιγμα εικόνων, Ολοκληρώθηκε ή Ακύρωση. Μπορεί να επαναφέρει εργασία που δεν αποθηκεύτηκε ποτέ σε συνοδευτικό αρχείο XMP. Οι αλλαγές μετά το τελευταίο επιβεβαιωμένο σημείο ελέγχου ενδέχεται να μην είναι διαθέσιμες.
+	Sync Settings	Συγχρονισμός ρυθμίσεων
+	Reset Settings	Επαναφορά ρυθμίσεων
+	Copy settings from {photo} to the selected photos.	Αντιγραφή των ρυθμίσεων από τη φωτογραφία {photo} στις επιλεγμένες φωτογραφίες.
+	Select the active photograph to sync its settings.	Επιλέξτε την ενεργή φωτογραφία για να συγχρονίσετε τις ρυθμίσεις της.

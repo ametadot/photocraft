@@ -3766,3 +3766,210 @@ curves	Smooth	Làm mượt
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Bộ điều hợp GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Chưa đọc xếp hạng
+	Unrated	Chưa xếp hạng
+	Rating: {n} of 5	Xếp hạng: {n}/5
+	Rejected	Đã loại
+	Not read yet	Chưa đọc
+	No adjustments	Không có điều chỉnh
+	Not available yet	Chưa khả dụng
+	Open Images	Mở ảnh
+	Fit ({zoom})	Vừa ({zoom})
+	Sort By:	Sắp xếp theo:
+	Open Order	Thứ tự mở
+	Star Rating	Xếp hạng sao
+	Capture Date	Ngày chụp
+	Color Label	Nhãn màu
+	Rated	Đã xếp hạng
+	Show All	Hiện tất cả
+	{n} hidden	{n} bị ẩn
+	{n} hidden, {m} selected	{n} bị ẩn, {m} đã chọn
+	Shown; hidden by filter	Đang hiện; bị bộ lọc ẩn
+	Defaults	Mặc định
+	Workflow	Quy trình làm việc
+	Generative AI	AI tạo sinh
+	Long-session recovery	Khôi phục phiên làm việc dài
+	Camera Raw Preferences	Tùy chọn Camera Raw
+	All photos	Tất cả ảnh
+	Any	Bất kỳ
+	Any colour	Mọi màu
+	Back	Quay lại
+	Blue — Review	Xanh dương — Cần xem xét
+	Blue — Review (9)	Xanh dương — Cần xem xét (9)
+	Cancelling before publication…	Đang hủy trước khi ghi tệp…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Thay đổi kích thước, hướng dải phim và chế độ xem lưới trong Camera Raw. Các tùy chọn hiển thị này không chỉnh sửa ảnh.
+	Changes not yet saved to XMP	Các thay đổi chưa được lưu vào XMP
+	Clear filters	Xóa bộ lọc
+	Colour label	Nhãn màu
+	Destination folder	Thư mục đích
+	Filename	Tên tệp
+	Green — Approved	Xanh lá — Đã duyệt
+	Green — Approved (8)	Xanh lá — Đã duyệt (8)
+	JPEG quality	Chất lượng JPEG
+	Live save is planned for a later release.	Lưu trực tiếp dự kiến có trong một phiên bản sau.
+	Live save — Planned	Lưu trực tiếp — Dự kiến
+	Mark	Đánh dấu
+	Marked	Đã đánh dấu
+	Marked and unmarked	Đã đánh dấu và chưa đánh dấu
+	No Label	Không có nhãn
+	No photos match	Không có ảnh phù hợp
+	Other label	Nhãn khác
+	Photo actions	Thao tác với ảnh
+	Photograph	Ảnh
+	Purple — To Do	Tím — Cần làm
+	Purple — To Do (Ctrl+Shift+0)	Tím — Cần làm (Ctrl+Shift+0)
+	Rating	Xếp hạng
+	Red — Select	Đỏ — Được chọn
+	Red — Select (6)	Đỏ — Được chọn (6)
+	Remove…	Loại khỏi phiên…
+	Replace existing JPEG?	Thay thế JPEG hiện có?
+	Return to photo preview	Quay lại xem trước ảnh
+	Save JPEG	Lưu JPEG
+	Save JPEG:	Lưu JPEG:
+	Save this photo as JPEG	Lưu ảnh này dưới dạng JPEG
+	Saving JPEG	Đang lưu JPEG
+	Saving mode: Cache saving	Chế độ lưu: Lưu vào bộ nhớ đệm
+	Show grid	Hiện lưới
+	Show hidden photos	Hiện ảnh bị ẩn
+	Unmark	Bỏ đánh dấu
+	Unmarked	Chưa đánh dấu
+	Unrated (0)	Chưa xếp hạng (0)
+	Uses the settings captured when Save was chosen.	Dùng các thiết lập được ghi lại khi chọn Lưu.
+	Yellow — Second	Vàng — Lựa chọn thứ hai
+	Yellow — Second (7)	Vàng — Lựa chọn thứ hai (7)
+	hidden	bị ẩn
+	selected photos	ảnh đã chọn
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Các thay đổi trong Camera Raw được lưu để khôi phục trong khi bạn làm việc. Chọn Hoàn tất để lưu các thay đổi vào tệp XMP đi kèm của ảnh.
+	A recovered photograph has no retained source binding.	Ảnh được khôi phục không có liên kết nguồn đã lưu.
+	Applies the same value to every selected photograph. Other settings remain independent.	Áp dụng cùng một giá trị cho mọi ảnh đã chọn. Các thiết lập khác giữ nguyên giá trị riêng của từng ảnh.
+	Back to editing	Quay lại chỉnh sửa
+	Camera Raw recovery details	Chi tiết khôi phục Camera Raw
+	Camera Raw recovery needs attention	Khôi phục Camera Raw cần được xử lý
+	Camera Raw session	Phiên Camera Raw
+	Choose how to leave this visit's changes.	Chọn cách xử lý các thay đổi từ lần mở này.
+	Close Camera Raw session	Đóng phiên Camera Raw
+	Close details	Đóng chi tiết
+	Discard this photo's changes and remove	Bỏ các thay đổi của ảnh này và loại khỏi phiên
+	Discard this visit's changes and close	Bỏ các thay đổi từ lần mở này và đóng
+	Finish Camera Raw session	Hoàn tất phiên Camera Raw
+	Keep editing	Tiếp tục chỉnh sửa
+	Keep in recovery and close	Giữ để khôi phục và đóng
+	Keep in session	Giữ trong phiên
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Hiện không có ảnh nào để xem trước. Chi tiết khôi phục giữ lại các công việc chưa được giải quyết.
+	Open from files	Mở từ tệp
+	Original NEF files remain unchanged.	Các tệp NEF gốc được giữ nguyên.
+	Remove photograph from session	Loại ảnh khỏi phiên
+	Reset selected	Đặt lại ảnh đã chọn
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Khôi phục tệp gốc tại đường dẫn đã ghi, rồi chọn Thử lưu khôi phục lại. Tệp có nội dung hoặc danh tính đã thay đổi không thể được chấp nhận là nguồn gốc.
+	Resume saved session	Tiếp tục phiên đã lưu
+	Retry recovery save	Thử lưu khôi phục lại
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Kiểm tra các tệp không khả dụng, lần nhập bị gián đoạn và thông báo khôi phục trước khi hoàn tất.
+	Save XMP and close	Lưu XMP và đóng
+	Save XMP and remove	Lưu XMP và loại khỏi phiên
+	Saved Camera Raw sessions	Các phiên Camera Raw đã lưu
+	Set value	Đặt giá trị
+	Set value for selected photos	Đặt giá trị cho ảnh đã chọn
+	Set value…	Đặt giá trị…
+	Show recovery details	Hiện chi tiết khôi phục
+	Skip removes this unfinished import from the current request. You can open the file again later.	Bỏ qua sẽ loại lần nhập chưa hoàn tất này khỏi yêu cầu hiện tại. Bạn có thể mở lại tệp sau.
+	Skip unfinished import	Bỏ qua lần nhập chưa hoàn tất
+	Synchronise selected	Đồng bộ ảnh đã chọn
+	This changes session membership. Hide and filters keep photographs in the session.	Thao tác này thay đổi các ảnh có trong phiên. Ẩn và lọc vẫn giữ ảnh trong phiên.
+	Undo group edit	Hoàn tác chỉnh sửa nhóm
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw lưu các tệp XMP đi kèm cho JPEG và TIFF; các tệp ảnh gốc không bị thay đổi.
+	Disable Camera Raw support	Tắt hỗ trợ Camera Raw
+	JPEG and TIFF Handling	Xử lý JPEG và TIFF
+	JPEG handling	Xử lý JPEG
+	Layered TIFF files open in the editor with their layers preserved.	Các tệp TIFF có lớp được mở trong trình chỉnh sửa và giữ nguyên các lớp.
+	Open all supported files	Mở tất cả tệp được hỗ trợ
+	Open files with Camera Raw settings	Mở các tệp có thiết lập Camera Raw
+	Original image files remain unchanged.	Các tệp ảnh gốc không bị thay đổi.
+	Recovery details	Chi tiết khôi phục
+	Save XMP and keep editing	Lưu XMP và tiếp tục chỉnh sửa
+	Save edits	Lưu chỉnh sửa
+	Saved edits to XMP; Camera Raw remains open	Đã lưu chỉnh sửa vào XMP; Camera Raw vẫn mở
+	TIFF handling	Xử lý TIFF
+	Disabled	Đã tắt
+	Existing settings	Thiết lập hiện có
+	Jpeg handling	Xử lý JPEG
+	Tiff handling	Xử lý TIFF
+	Open in Camera Raw…	Mở trong camera raw…
+	Discard edits	Hủy các chỉnh sửa
+	Cache	Bộ nhớ đệm
+	Recovery mode	Chế độ khôi phục
+	Show recovery progress	Hiện tiến trình khôi phục
+	PhotoCraft default — recovery off	Mặc định PhotoCraft — tắt khôi phục
+	Long-session recovery — cache saving	Khôi phục phiên dài — lưu vào bộ nhớ đệm
+	Opening photographs	Đang mở ảnh
+	Preparing Camera Raw previews…	Đang chuẩn bị bản xem trước Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Hủy các chỉnh sửa trong phiên này. Các tệp XMP đã lưu trước đó không thay đổi.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Xong mặc định lưu XMP và đóng. Ảnh gốc không thay đổi.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Khôi phục mặc định bị tắt. Bật lưu vào bộ nhớ đệm để bảo vệ phiên chỉnh sửa dài trong nền.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Tắt khôi phục sẽ xóa phiên này khỏi dữ liệu khôi phục đã lưu. Các chỉnh sửa đang mở vẫn ở trong bộ nhớ cho đến khi bạn chọn Xong hoặc hủy chúng.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Khi bật lưu vào bộ nhớ đệm, các thay đổi Camera Raw được lưu trong nền để khôi phục. Xong lưu các điều chỉnh vào tệp XMP đi kèm.
+	Discard edits?	Hủy các chỉnh sửa?
+	Show recovery progress in Camera Raw	Camera Raw — Hiện tiến trình khôi phục
+	Long-session recovery…	Khôi phục phiên làm việc dài…
+	Recovery details…	Chi tiết khôi phục…
+	Keep in recovery and close…	Giữ để khôi phục và đóng…
+	Live saving — planned	Lưu trực tiếp — Dự kiến
+	Discard unsaved edits?	Hủy các chỉnh sửa chưa lưu?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Hủy mọi chỉnh sửa chưa được lưu vào XMP trong phiên Camera Raw này, rồi đóng. Các tệp XMP đã lưu trước đó không thay đổi.
+	Discard unsaved edits and close	Hủy các chỉnh sửa chưa lưu và đóng
+	Save and open images	Lưu và mở ảnh
+	Save XMP and open images	Lưu XMP và mở ảnh
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Sau khi lưu, mọi ảnh trong phiên này sẽ mở trong trình chỉnh sửa theo thứ tự đã mở, bất kể bộ lọc hay ảnh đang chọn.
+	Recover Camera Raw session	Khôi phục phiên Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Một phiên Camera Raw trước đó đã không kết thúc bình thường. Hãy chọn phiên bản chỉnh sửa cần mở.
+	Session	Phiên
+	{count} photos · last checkpoint {time}	{count} ảnh · điểm khôi phục gần nhất {time}
+	{count} photos have edits not saved to XMP	{count} ảnh có chỉnh sửa chưa được lưu vào XMP
+	The newest checkpoint is unusable; the one from {time} is used instead.	Điểm khôi phục mới nhất không dùng được; dùng điểm khôi phục lúc {time} thay thế.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Một lần lưu XMP trong phiên này chưa hoàn tất. Các tệp liên quan sẽ được kiểm tra lại trước khi ghi bất kỳ dữ liệu nào khác.
+	Show file details	Hiện chi tiết tệp
+	Hide file details	Ẩn chi tiết tệp
+	Checking files…	Đang kiểm tra tệp…
+	Recovered edits	Chỉnh sửa đã khôi phục
+	Cache version	Phiên bản bộ nhớ đệm
+	Saved edits	Chỉnh sửa đã lưu
+	XMP sidecar version	Phiên bản tệp XMP đi kèm
+	Resume recovered edits	Tiếp tục với chỉnh sửa đã khôi phục
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Khôi phục chỉnh sửa từ điểm khôi phục PhotoCraft dùng được gần nhất.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Dùng tùy chọn này sau khi PhotoCraft đóng đột ngột hoặc thao tác Mở ảnh, Hoàn tất hay Hủy bị gián đoạn. Tùy chọn này có thể khôi phục công việc chưa từng được lưu vào tệp XMP đi kèm. Các thay đổi sau điểm khôi phục được xác nhận gần nhất có thể không còn.
+	Open saved XMP edits	Mở chỉnh sửa XMP đã lưu
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Mở lại ảnh gốc với các chỉnh sửa được hỗ trợ hiện đang lưu trong tệp XMP của chúng.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Chọn mục này để dùng các phiên bản tệp đi kèm đã lưu thay cho điểm khôi phục chứa chỉnh sửa chưa lưu. Không phải ảnh nào cũng có tệp XMP; ảnh không có tệp XMP sẽ dùng cài đặt hiện tại của tệp hoặc cài đặt mặc định. Thao tác này không khôi phục các thay đổi chưa lưu trong bộ nhớ đệm.
+	Open other files	Mở tệp khác
+	Discard recovered copy…	Bỏ bản sao đã khôi phục…
+	Discard recovered copy?	Bỏ bản sao đã khôi phục?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Thao tác này xóa vĩnh viễn điểm khôi phục của phiên này. Các tệp XMP đã lưu và ảnh gốc không bị thay đổi.
+	Discard recovered copy	Bỏ bản sao đã khôi phục
+	Keep recovered copy	Giữ bản sao đã khôi phục
+	{n} of {total} photos are missing or changed	{n} trên {total} ảnh bị thiếu hoặc đã thay đổi
+	{n} photos have no XMP file	{n} ảnh không có tệp XMP
+	{n} XMP files changed after the checkpoint	{n} tệp XMP đã thay đổi sau điểm khôi phục
+	No usable checkpoint can be opened.	Không có điểm khôi phục nào dùng được để mở.
+	None of the photographs is available.	Không có ảnh nào khả dụng.
+	Photo available	Ảnh khả dụng
+	Photo missing or changed	Ảnh bị thiếu hoặc đã thay đổi
+	No XMP file	Không có tệp XMP
+	XMP as at the checkpoint	XMP như tại điểm khôi phục
+	XMP changed after the checkpoint	XMP đã thay đổi sau điểm khôi phục
+	XMP unreadable	Không đọc được XMP
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Một số tệp XMP đã thay đổi sau điểm khôi phục, ví dụ trong Lightroom. Hãy xem lại trước khi chọn.
+	Camera Raw Preferences…	Tùy chọn Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Khôi phục chỉ được đề xuất sau một phiên không kết thúc bình thường. Hoàn tất, Mở ảnh và Hủy không để lại gì cần khôi phục.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Hoàn tất và Mở ảnh lưu các chỉnh sửa được hỗ trợ vào tệp XMP đi kèm trước. Ảnh gốc không bị thay đổi.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Tắt khôi phục sẽ xóa phiên này khỏi dữ liệu khôi phục đã lưu. Các chỉnh sửa đang mở vẫn ở trong bộ nhớ cho đến khi bạn chọn Hoàn tất, Mở ảnh hoặc Hủy.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Khi bật lưu vào bộ nhớ đệm, các thay đổi Camera Raw được lưu trong nền để khôi phục. Hoàn tất và Mở ảnh lưu các điều chỉnh vào tệp XMP đi kèm.
+	Saving XMP before opening…	Đang lưu XMP trước khi mở…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Hủy các thay đổi trong lần làm việc này và đóng. Các bản nháp đã khôi phục trước đó và tệp XMP đã lưu trong lần làm việc này vẫn được giữ lại.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Tắt khôi phục sẽ dừng các điểm kiểm tra tự động. Công việc đã khôi phục trước đó vẫn được giữ lại cho đến khi bạn hoàn tất hoặc loại bỏ bản sao khôi phục.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Khôi phục được cung cấp sau khi bị gián đoạn hoặc khi bạn chọn giữ công việc để khôi phục. Hoàn tất và Mở ảnh loại bỏ các phiên đã hoàn tất. Hủy thay đổi trong phiên được tiếp tục vẫn giữ lại công việc đã khôi phục trước đó.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Dùng tùy chọn này cho công việc được giữ để khôi phục, sau khi PhotoCraft đóng đột ngột hoặc khi thao tác Mở ảnh, Hoàn tất hay Hủy bị gián đoạn. Tùy chọn này có thể khôi phục công việc chưa từng được lưu vào tệp XMP đi kèm. Các thay đổi kể từ điểm kiểm tra được xác nhận gần nhất có thể không còn.
+	Sync Settings	Đồng bộ cài đặt
+	Reset Settings	Đặt lại cài đặt
+	Copy settings from {photo} to the selected photos.	Sao chép cài đặt từ {photo} sang các ảnh đã chọn.
+	Select the active photograph to sync its settings.	Chọn ảnh đang hoạt động để đồng bộ cài đặt của ảnh đó.

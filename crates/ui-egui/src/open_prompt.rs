@@ -39,6 +39,11 @@ pub fn waiting(app: &PhotocraftApp) -> bool {
     !app.held_opens.is_empty()
 }
 
+/// Whether document `id` is waiting here to open.
+pub(crate) fn holds(app: &PhotocraftApp, id: photocraft_doc::DocId) -> bool {
+    app.held_opens.iter().any(|held| held.doc.id == id)
+}
+
 /// Opens `held` now, or queues it behind the file whose prompt is up.
 pub fn arrive(app: &mut PhotocraftApp, held: Held) {
     app.held_opens.push_back(held);
@@ -115,7 +120,11 @@ pub fn answer(app: &mut PhotocraftApp, action: Option<&str>) -> Result<Value, St
     let Some(action) = action else {
         let dropped = app.held_opens.len();
         let name = app.held_opens.front().map(|h| h.name.clone()).unwrap_or_default();
-        app.held_opens.clear();
+        // A RAW that waited here for a Camera Raw review leaves the job layer's admission record with it.
+        for held in std::mem::take(&mut app.held_opens) {
+            crate::camera_raw_admission::cancel_document(app, held.doc.id);
+            app.session.release_admission(held.doc.id);
+        }
         for job in app.jobs.opens.iter().map(|o| o.job).collect::<Vec<_>>() {
             app.session.cancel_job(job);
         }
@@ -157,7 +166,22 @@ pub fn answer_remembering(app: &mut PhotocraftApp, action: &str) -> Result<Value
 /// Opens a queued file, applying `action` (the prompt's answer) or else the Color Settings
 /// policy, then does what any open does afterwards.
 fn open(app: &mut PhotocraftApp, held: Held, action: Option<&str>) -> Result<Value, String> {
+    let request = crate::camera_raw_admission::for_document(app, held.doc.id);
+    crate::camera_raw_admission::scoped(app, request, |app| open_inner(app, held, action))
+}
+
+fn open_inner(app: &mut PhotocraftApp, held: Held, action: Option<&str>) -> Result<Value, String> {
     let Held { mut doc, read_only, name, path, warnings, bytes, slot, question, policy_applied } = held;
+    // A RAW decoded for a Camera Raw review that was cancelled while it waited here never opens: the review
+    // generation it was admitted under is checked now, when it would join the session (not only when its job was applied).
+    let admitted = doc.id;
+    if app.session.admission_stale(admitted) {
+        crate::camera_raw_admission::outcome(app, crate::camera_raw_admission::Outcome::Cancelled);
+        app.session.release_admission(admitted);
+        app.ui.status = crate::i18n::fmt(tl!("Cancelled opening {name}"), &[("name", &name)]);
+        app.ui.status_error = false;
+        return Ok(json!({"cancelled": true}));
+    }
     let index = if question.is_some() || policy_applied {
         if let Some(action) = action
             && let Err(e) = app.session.color.resolve_open(&mut doc, action)
@@ -181,6 +205,16 @@ fn open(app: &mut PhotocraftApp, held: Held, action: Option<&str>) -> Result<Val
         None => index,
     };
     app.session.set_active(index);
-    crate::jobs_ui::after_open(app, &name, path.as_deref(), &warnings, bytes.as_deref().map(Vec::as_slice));
-    Ok(json!({"document": index, "action": action}))
+    let document = app.session.documents().get(index).map(|st| st.doc.id);
+    let opened = match document {
+        Some(document) => crate::jobs_ui::after_open(app, document, &name, path.as_deref(), &warnings, bytes.as_deref().map(Vec::as_slice)),
+        None => Err("the opened document is missing".to_string()),
+    };
+    // Camera Raw (or nobody) owns it now: the job layer's admission record ends here.
+    app.session.release_admission(admitted);
+    if let Err(e) = opened {
+        app.open_failed(&name, &e);
+        return Err(e);
+    }
+    Ok(json!({"document": index, "docId": document.map(|id| id.0), "action": action}))
 }

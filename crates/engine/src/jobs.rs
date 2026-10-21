@@ -66,6 +66,63 @@ pub(crate) fn authorize_render_command(id: &str, params: &Value) -> Result<()> {
     }
 }
 
+/// Lifetime of one trusted Camera Raw commit. Not serializable, clonable or a command parameter.
+/// Dropping this scope expires an unused grant; the first dispatch consumes it even on failure.
+pub struct CameraRawCommandScope {
+    _live: Arc<()>,
+}
+
+pub(crate) struct ReviewCommandPermit {
+    document: DocId,
+    generation: u64,
+    live: Weak<()>,
+}
+
+// Exact engine queries and session-only operations. Keep new commands fail-closed for a held
+// active document; journal=false alone does not establish that a command cannot mutate it.
+fn review_independent_command(id: &str) -> bool {
+    matches!(
+        id,
+        "command.list" | "session.inspect" | "document.inspect" | "document.pixel" | "document.sampleColor"
+            | "jobs.list" | "prefs.get" | "channel.list" | "path.list" | "path.info" | "layer.vectorMask.info"
+            | "edit.profileInfo" | "shape.info" | "type.info" | "type.fonts" | "type.hitTest" | "brush.presets.list"
+            | "brush.get" | "swatches.list" | "gradient.fill.get" | "gradient.presets.list" | "pattern.list"
+            | "pattern.presets.list" | "style.presets.list" | "shape.presets.list" | "tool.presets.list"
+            | "type.characterStyle.list" | "type.paragraphStyle.list" | "layerComp.list" | "measurementLog.list"
+            | "notes.list" | "cloneSource.list" | "slice.list" | "variables.list" | "document.presets.list"
+            | "document.presets.get" | "plugin.list" | "actions.list" | "actions.get" | "timeline.info"
+            | "image.analysis.info" | "image.adjustments.colorLookup.list"
+            | "file.new" | "file.openAs" | "file.open"
+            | "tools.setColors" | "tools.swapColors" | "tools.defaultColors" | "tools.setBrush"
+            | "tools.decreaseBrushSize" | "tools.increaseBrushSize" | "tools.decreaseBrushHardness"
+            | "tools.increaseBrushHardness" | "tools.rotateBrush" | "swatches.add" | "swatches.delete"
+            | "swatches.rename" | "swatches.move" | "swatches.newGroup" | "swatches.renameGroup"
+            | "swatches.deleteGroup" | "swatches.use" | "swatches.reset" | "tool.presets.new"
+            | "tool.presets.select" | "tool.presets.edit" | "tool.presets.reset"
+            // Import ordering moves tabs while preserving each DocId, its state and active identity.
+            // Native UI policy remains in its shell guard; this is not admission or activation.
+            | "document.move"
+    )
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum ReviewReference {
+    Other,
+    Documents,
+    OneDocument,
+}
+
+fn review_reference(key: &str) -> ReviewReference {
+    let key = key.to_ascii_lowercase();
+    if key.contains("document") || key == "docs" {
+        ReviewReference::Documents
+    } else if matches!(key.as_str(), "doc" | "source" | "destination") {
+        ReviewReference::OneDocument
+    } else {
+        ReviewReference::Other
+    }
+}
+
 /// Identifies one background job for the session's lifetime.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, serde::Deserialize)]
 pub struct JobId(pub u64);
@@ -284,6 +341,99 @@ pub struct Jobs {
     draining: Vec<std::thread::JoinHandle<()>>,
     /// The context inline job work runs under (see [`Session::set_inline_job_ctx`]).
     inline: Option<JobCtx>,
+    /// The review generation (see [`Session::next_review_generation`]).
+    review_generation: u64,
+    /// Documents an open job admitted as provisional (a RAW the shell will show in Camera Raw), with the review
+    /// generation they were admitted under. Declared inside the job's apply, before any event can be handled, and
+    /// released by the shell once it owns them.
+    pub(crate) admitted: Vec<(DocId, u64)>,
+}
+
+/// What an open job may do with the document it decodes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Admission {
+    /// An ordinary open: the document joins the session as an editable tab.
+    Normal,
+    /// An interactive open that the shell shows in Camera Raw when the file turns out to be a RAW developed from its
+    /// sensor data (the importer's own verdict, not the file name): such a document is declared provisional inside
+    /// the job's apply, in the same step that adds it. A result of a superseded review generation is not applied.
+    ReviewIfRaw,
+    /// Explicit Camera Raw opening of supported RAW, JPEG and flattened TIFF photographs.
+    ReviewInCameraRaw,
+}
+
+/// Internal import routing receipt, removed by the shell before showing warnings.
+pub const CAMERA_RAW_REVIEW_NOTE: &str = "PhotoCraft Camera Raw review requested";
+
+/// Read-only routing inspection for an interactive native opening. A supplied
+/// path authorizes the same adjacent-packet lookup as the native review; byte-only
+/// automation must pass `None`. Binding ambiguity fails before any document is
+/// admitted. Unsupported embedded metadata leaves an automatic open in the editor.
+/// A rendered photo whose File Handling mode is Disabled is never routed
+/// automatically, so its sidecar is not read at all: an unusual sidecar cannot stop
+/// that ordinary editor open.
+/// Camera Raw routing once the import is known. A sensor RAW qualifies only when the
+/// importer developed its sensor data: a preview fallback (CR3, compressed ORF, X-Trans,
+/// sRAW, ...) could never be admitted (decode refuses it), so it stays an editor document,
+/// labelled as a preview, exactly as before Camera Raw routing existed.
+pub fn routes_imported(
+    defaults: &crate::prefs::RawDefaults,
+    source: &photocraft_io::camera_raw_source::Inspection,
+    explicit: bool,
+    warnings: &[String],
+) -> bool {
+    (source.kind != photocraft_io::camera_raw_source::SourceKind::Raw || warnings.iter().any(|w| w.contains(photocraft_io::raw::DEVELOPED_NOTE)))
+        && defaults.routes_to_camera_raw(source, explicit)
+}
+
+/// Said when an explicit Camera Raw open of a RAW falls back to its embedded preview.
+pub const RAW_PREVIEW_ONLY_NOTE: &str = "Camera Raw cannot develop this RAW's sensor data yet; its embedded preview opened in the editor";
+
+pub fn camera_raw_open_inspection(
+    bytes: &[u8],
+    native_path: Option<&str>,
+    explicit: bool,
+    defaults: &crate::prefs::RawDefaults,
+) -> Result<(Option<photocraft_io::camera_raw_source::Inspection>, Option<String>)> {
+    let inspection = match photocraft_io::camera_raw_source::inspect(bytes) {
+        Ok(inspection) => inspection,
+        Err(error) if !explicit && !photocraft_io::raw::is_raw(bytes) => {
+            return Ok((None, Some(format!("Camera Raw opening unavailable; opened in the editor: {error}"))));
+        }
+        Err(error) => return Err(EngineError::Other(error.to_string())),
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let inspection = {
+        use photocraft_io::camera_raw_source::{SourceKind, has_settings};
+        let mut inspection = inspection;
+        let mode = match inspection.kind {
+            SourceKind::Jpeg => defaults.jpeg_handling,
+            SourceKind::Tiff => defaults.tiff_handling,
+            _ => crate::prefs::RenderedRawHandling::Disabled,
+        };
+        if inspection.supported
+            && matches!(inspection.kind, SourceKind::Jpeg | SourceKind::Tiff)
+            && (explicit || mode != crate::prefs::RenderedRawHandling::Disabled)
+            && let Some(path) = native_path
+        {
+            // An ordinary open never fails on an unusable sidecar (ambiguous, over budget or
+            // unparseable): it opens in the editor, as an embedded-XMP problem does. An explicit
+            // Camera Raw open still refuses before admitting anything.
+            let checked = photocraft_io::raw_session::commit::bind(std::path::Path::new(path))
+                .map_err(|e| e.to_string())
+                .and_then(|binding| binding.original.as_deref().map(|packet| has_settings(packet).map_err(|e| e.to_string())).transpose());
+            match checked {
+                Ok(Some(settings)) => inspection.has_settings = settings,
+                Ok(None) => {}
+                Err(error) if !explicit => return Ok((None, Some(format!("Camera Raw opening unavailable; opened in the editor: {error}")))),
+                Err(error) => return Err(EngineError::Other(error)),
+            }
+        }
+        inspection
+    };
+    #[cfg(target_arch = "wasm32")]
+    let _ = (native_path, defaults);
+    Ok((Some(inspection), None))
 }
 
 const RECENT: usize = 16;
@@ -507,6 +657,57 @@ impl Session {
     /// result is `{held, name, warnings, color}` (`color` the question): take it with
     /// [`Session::take_held_open`] once answered.
     pub fn start_open(&mut self, name: &str, source: OpenSource) -> Result<Started> {
+        self.start_open_with(name, source, Admission::Normal)
+    }
+
+    /// The review generation: the shell bumps it when a Camera Raw review is cancelled, so that an open that was
+    /// started under an earlier one cannot be applied (or kept) afterwards.
+    pub fn review_generation(&self) -> u64 {
+        self.jobs.review_generation
+    }
+
+    /// Supersede every review started so far (see [`Session::review_generation`]).
+    pub fn next_review_generation(&mut self) {
+        self.jobs.review_generation = self.jobs.review_generation.wrapping_add(1);
+    }
+
+    /// Was `id` admitted under a review generation that has since been superseded?
+    pub fn admission_stale(&self, id: DocId) -> bool {
+        self.jobs.admitted.iter().any(|(admitted, generation)| *admitted == id && *generation != self.jobs.review_generation)
+    }
+
+    /// The shell owns `id` now (queued for review, or closed): it is no longer held by the job layer.
+    pub fn release_admission(&mut self, id: DocId) {
+        self.jobs.admitted.retain(|(admitted, _)| *admitted != id);
+    }
+
+    /// Admit `id`, decoded without a job (the inline open path: the web build, or background jobs off), for a Camera Raw
+    /// review under the current review generation, exactly as an open job's apply does for a RAW it decoded. A Cancel
+    /// while the photograph still waits behind a profile prompt (the shell's held opens) then supersedes it too.
+    pub fn admit_for_review(&mut self, id: DocId) {
+        let generation = self.jobs.review_generation;
+        self.jobs.admitted.retain(|(admitted, _)| *admitted != id);
+        self.jobs.admitted.push((id, generation));
+    }
+
+    /// [`Session::start_open`] with an explicit [`Admission`].
+    pub fn start_open_with(&mut self, name: &str, source: OpenSource, admission: Admission) -> Result<Started> {
+        let native_path = match &source {
+            OpenSource::Path(path) if admission != Admission::Normal => Some(path.clone()),
+            _ => None,
+        };
+        self.start_open_with_sidecar_path(name, source, admission, native_path)
+    }
+
+    /// Interactive opening of bytes already read from a native path. The caller
+    /// supplies that path only with native adjacent-sidecar read authority.
+    /// Automation bytes use [`Session::start_open_with`] and cannot infer a path
+    /// from a display name.
+    pub fn start_open_with_sidecar_path(&mut self, name: &str, source: OpenSource, admission: Admission, native_path: Option<String>) -> Result<Started> {
+        let review = admission != Admission::Normal;
+        let explicit = admission == Admission::ReviewInCameraRaw;
+        let initial_raw_defaults = self.prefs().raw_defaults.clone();
+        let generation = self.jobs.review_generation;
         let label = format!("Opening {name}");
         let name_w = name.to_string();
         let name_a = name.to_string();
@@ -524,7 +725,10 @@ impl Session {
                 };
                 ctx.check()?;
                 ctx.progress(0.02, "Decoding");
-                let imported = ctx
+                let (inspection, routing_warning) =
+                    if review { camera_raw_open_inspection(&bytes, native_path.as_deref(), explicit, &initial_raw_defaults)? } else { (None, None) };
+                let intended_review = inspection.as_ref().is_some_and(|source| initial_raw_defaults.routes_to_camera_raw(source, explicit));
+                let mut imported = ctx
                     .stage(0.02, 0.95, "Decoding", |ctl| photocraft_io::import_with_svg_group_depth_and_interrupt(&name_w, &bytes, max_svg_group_depth, ctl))
                     .map_err(|e| match e {
                         photocraft_io::IoError::Cancelled => EngineError::Cancelled,
@@ -532,23 +736,44 @@ impl Session {
                     })?;
                 ctx.progress(0.95, "Preparing layers");
                 warm_layer_bounds(&imported.document, || ctx.check())?;
-                Ok(imported)
+                imported.warnings.extend(routing_warning);
+                Ok((imported, inspection, intended_review))
             },
-            move |s, mut r: photocraft_io::ImportResult| {
-                // File Handling's ACEScg option, before the colour prompt looks at the profile.
+            move |s, (mut r, inspection, intended_review): (photocraft_io::ImportResult, Option<photocraft_io::camera_raw_source::Inspection>, bool)| {
+                let developed = r.warnings.iter().any(|w| w.contains(photocraft_io::raw::DEVELOPED_NOTE));
+                let raw_review = inspection.as_ref().is_some_and(|source| routes_imported(&s.prefs().raw_defaults, source, explicit, &r.warnings));
+                if explicit && !raw_review && inspection.as_ref().is_some_and(|i| i.kind == photocraft_io::camera_raw_source::SourceKind::Raw) {
+                    r.warnings.push(RAW_PREVIEW_ONLY_NOTE.into());
+                }
+                if raw_review {
+                    r.warnings.push(CAMERA_RAW_REVIEW_NOTE.into());
+                    r.source_read_only = true;
+                }
+                // Checked before anything is admitted, for any RAW started for a review: a review that was cancelled
+                // meanwhile gets no RAW, even when review-on-open was switched off since (the preference is read at apply
+                // time). Any other open (a PSD, a JPEG) is unrelated and proceeds.
+                if review && (developed || intended_review || raw_review) && s.jobs.review_generation != generation {
+                    return Err(EngineError::Cancelled);
+                }
+                // Retain upstream File Handling ACEScg tagging before profile prompts.
                 crate::file_cmds::tag_exr_colorspace(s, &name_a, &mut r.document);
                 // Ask When Opening: held back until the prompt is answered (`take_held_open`). A
                 // developed raw has no embedded profile to ask about.
-                let raw = r.warnings.iter().any(|w| w.contains(photocraft_io::raw::DEVELOPED_NOTE));
-                if let Some(question) = s.color.open_question(&r.document).filter(|_| !raw) {
+                if let Some(question) = s.color.open_question(&r.document).filter(|_| !developed && !raw_review) {
                     let held = s.hold_open(r.document, r.source_read_only);
                     return Ok(json!({"held": held, "name": name_a, "warnings": r.warnings, "color": question}));
                 }
+                let imported = r.document.id;
                 let (index, color) = s.open_document(r.document, None);
+                // The id the session actually gave it (an incoming id is remapped when another document owns it).
+                let id = s.documents().get(index).map_or(imported, |st| st.doc.id);
+                if raw_review {
+                    s.jobs.admitted.push((id, generation));
+                }
                 if let Some(st) = s.active_mut() {
                     st.source_read_only = r.source_read_only;
                 }
-                Ok(json!({"document": index, "name": name_a, "warnings": r.warnings, "color": color}))
+                Ok(json!({"document": index, "docId": id.0, "name": name_a, "warnings": r.warnings, "color": color}))
             },
         )
     }
@@ -712,8 +937,159 @@ impl Session {
         }
     }
 
+    /// Grant the next dispatch of `filter.cameraRaw` to its trusted Rust review owner. The owner
+    /// must keep the returned scope alive through that call. This is not exposed as an engine
+    /// command or JSON flag, and does not authorize nested dispatch or a background operation.
+    pub fn begin_camera_raw_command(&mut self, document: DocId) -> Result<CameraRawCommandScope> {
+        self.review_command = None;
+        if self.active().is_none_or(|st| st.doc.id != document) || !self.is_review_held(document) || self.admission_stale(document) {
+            return Err(EngineError::Other("Camera Raw no longer owns this active review document".into()));
+        }
+        let live = Arc::new(());
+        self.review_command = Some(ReviewCommandPermit { document, generation: self.review_generation(), live: Arc::downgrade(&live) });
+        Ok(CameraRawCommandScope { _live: live })
+    }
+
+    fn review_reference_is_held(&self, value: &Value, kind: ReviewReference, depth: usize, active_id_field: bool) -> bool {
+        if depth > 24 {
+            return true;
+        }
+        match value {
+            Value::Object(fields) => fields.iter().any(|(key, value)| {
+                // Selected root fields are active DocId assertions or a command-specific "new"
+                // destination. Neither is a tab selector; nested document references still count.
+                !(depth == 0 && active_id_field && key == "document") && self.review_reference_is_held(value, review_reference(key), depth + 1, false)
+            }),
+            Value::Array(items) if kind == ReviewReference::Documents => items.iter().any(|value| self.review_reference_is_held(value, kind, depth + 1, false)),
+            Value::Array(items) if kind == ReviewReference::OneDocument => {
+                items.iter().filter(|value| value.is_object()).any(|value| self.review_reference_is_held(value, ReviewReference::Other, depth + 1, false))
+            }
+            Value::Array(items) => items.iter().any(|value| self.review_reference_is_held(value, ReviewReference::Other, depth + 1, false)),
+            Value::Number(number) if kind != ReviewReference::Other => {
+                // Channel commands accept rounded numeric indices as well as integer JSON.
+                let index = number.as_u64().or_else(|| number.as_f64().filter(|n| n.is_finite() && (0.0..1e15).contains(n)).map(|n| n.round() as u64));
+                index.is_none_or(|index| usize::try_from(index).ok().and_then(|i| self.docs.get(i)).is_some_and(|st| self.is_review_held(st.doc.id)))
+            }
+            Value::String(name) if kind != ReviewReference::Other => self.docs.iter().any(|st| {
+                self.is_review_held(st.doc.id)
+                    && (st.doc.name == *name
+                        || st.path.as_deref().is_some_and(|path| {
+                            path == name || std::path::Path::new(path).file_name().is_some_and(|file| file.to_string_lossy() == name.as_str())
+                        }))
+            }),
+            _ => false,
+        }
+    }
+
+    /// Dispatch policy is independent of the frontend and uses both apply-time admission and
+    /// the shell's replacement/parked ownership. An unrelated held RAW does not block accepted edits.
+    fn guard_review_command(&self, id: &str, params: &Value, active: Option<DocId>) -> Result<()> {
+        if !self.docs.iter().any(|st| self.is_review_held(st.doc.id)) {
+            return Ok(());
+        }
+        let refused = || EngineError::Other(format!("`{id}` cannot act on an unaccepted RAW; Open or Cancel it in Camera Raw first"));
+        // Browse already checks has_provisional before each script step and returns its
+        // established structured stopped result. Retain that response before target scanning.
+        // Dispatch still skips held-document preprocessing and housekeeping.
+        if id == "file.scripts.browse" {
+            return Ok(());
+        }
+        // Camera Raw preferences affect future imports and the owning RAW
+        // worker only. This narrow path deliberately skips apply_prefs, which
+        // otherwise trims histories globally, including held documents.
+        if id == "prefs.set" && crate::prefs::raw_preferences_only(params) {
+            return Ok(());
+        }
+        // The manager stores bindings; it never runs them. Its edit_prefs call reapplies history
+        // limits globally, so permit it only when every held document keeps its limits/records.
+        if id == "file.scripts.scriptEventsManager" {
+            let limits = &self.prefs().performance;
+            let states = limits.history_states.max(1) as usize;
+            let bytes = limits.history_budget_bytes();
+            let unchanged = self.docs.iter().filter(|st| self.is_review_held(st.doc.id)).all(|st| {
+                st.history.max_states == states
+                    && st.history.max_bytes == bytes
+                    && (st.history.past_len() <= 1 || bytes == 0 || st.history.pixel_bytes(&st.doc) <= bytes)
+            });
+            return if unchanged { Ok(()) } else { Err(refused()) };
+        }
+        if id == "jobs.cancel" {
+            let named = params.get("job").and_then(Value::as_u64);
+            return if self.jobs.running.iter().any(|job| named.is_none_or(|named| job.id.0 == named) && job.doc.is_some_and(|doc| self.is_review_held(doc))) {
+                Err(refused())
+            } else {
+                Ok(())
+            };
+        }
+        if review_independent_command(id) {
+            return Ok(());
+        }
+        if matches!(
+            id,
+            "file.closeAll"
+                | "file.closeOthers"
+                | "channel.merge"
+                | "actions.play"
+                | "plugin.run"
+                | "window.nextDocument"
+                | "window.previousDocument"
+                | "edit.purge.undo"
+                | "edit.purge.histories"
+                | "edit.purge.all"
+                // apply_prefs changes history limits and may trim byte pressure in every
+                // document, including a held one that is not active. These indirect callers
+                // have the same global effect as prefs.set/reset.
+                | "prefs.set"
+                | "prefs.reset"
+                | "actions.rename"
+                | "actions.load"
+                | "edit.keyboardShortcuts"
+                | "edit.menus"
+                | "edit.toolbar"
+        ) || id.starts_with("file.automate.")
+            || id.starts_with("file.scripts.")
+            || (id == "edit.checkSpelling" && matches!(params.get("action").and_then(Value::as_str), Some("add" | "addToDictionary" | "removeFromDictionary")))
+        {
+            return Err(refused());
+        }
+        let skip_root_document = matches!(id, "layer.fill.solidColor.set" | "layer.fill.pattern.set" | "layer.layerMask.edit")
+            || (matches!(id, "channel.duplicate" | "layer.duplicate") && params.get("document").and_then(Value::as_str) == Some("new"));
+        if self.review_reference_is_held(params, ReviewReference::Other, 0, skip_root_document) {
+            return Err(refused());
+        }
+        let named_tab =
+            |key: &str| params.get(key).and_then(Value::as_u64).and_then(|i| usize::try_from(i).ok()).and_then(|i| self.docs.get(i)).map(|st| st.doc.id);
+        let target = match id {
+            "document.activate" => named_tab("document"),
+            "file.close" | "file.revealInFinder" => named_tab("document").or(active),
+            "layer.copyToDocument" => named_tab("source").or(active),
+            _ => active,
+        };
+        if target.is_some_and(|doc| self.is_review_held(doc)) {
+            return Err(refused());
+        }
+        // Closing/saving a smart child may commit into an implicit parent not present in JSON.
+        if matches!(id, "file.close" | "layer.smartObjects.saveContents")
+            && self.smart_links.iter().any(|link| Some(link.child) == target && self.is_review_held(link.parent))
+        {
+            return Err(refused());
+        }
+        Ok(())
+    }
+
     /// Run the command `id`: inline, or (with `background`) as a job when it is one.
     pub(crate) fn dispatch(&mut self, id: &str, params: Value, background: bool) -> Result<Started> {
+        // Take before lookup, validation or authorization: even a failed/unknown dispatch must
+        // not leave authority available to a later call. Only this stack frame can use it.
+        let permit = self.review_command.take();
+        let review_owned = permit.is_some_and(|permit| {
+            id == "filter.cameraRaw"
+                && permit.live.upgrade().is_some()
+                && permit.generation == self.review_generation()
+                && self.active().is_some_and(|st| st.doc.id == permit.document)
+                && self.is_review_held(permit.document)
+                && !self.admission_stale(permit.document)
+        });
         let spec = crate::commands::find(id).ok_or_else(|| EngineError::UnknownCommand(id.to_string()))?;
         // Params are named fields: anything but an object (or null, meaning none) is a caller
         // mistake, not "use every default".
@@ -728,6 +1104,9 @@ impl Session {
         }
         let _authorization = AuthorizationScope::enter(self.authorize);
         let _document = crate::doc_path::scope(self.active().and_then(|d| d.path.as_deref()).map(std::path::Path::new));
+        if !review_owned {
+            self.guard_review_command(id, &params, self.active().map(|st| st.doc.id))?;
+        }
         // Last Filter runs as the filter it repeats: journaled, recorded in an action, faded and
         // run as a job like that filter, so a recorded step replays the same filter anywhere
         // (#3089), as Transform Again records its transform (#1440). With no filter yet it falls
@@ -743,7 +1122,9 @@ impl Session {
         crate::param_check::check(spec, &params)?;
         crate::filters::validate_params(id, &params)?;
         // A floating selection drops before any other command (Undo puts it back instead).
-        if let Some(v) = crate::float_cmds::before_command(self, id)? {
+        if (review_owned || !self.active().is_some_and(|st| self.is_review_held(st.doc.id)))
+            && let Some(v) = crate::float_cmds::before_command(self, id)?
+        {
             return Ok(Started::Done(v));
         }
         // Pixel commands follow the Channels panel target unless the caller names one.
@@ -788,7 +1169,7 @@ impl Session {
                 if let Some(before) = before {
                     self.add_relayout_damage(&before);
                 }
-                self.after_command(id, params, spec.journal, Some(nested_from));
+                self.after_command(id, params, spec.journal, Some(nested_from), review_owned);
                 Ok(Started::Done(v))
             }
         }
@@ -826,13 +1207,16 @@ impl Session {
     /// dropped, so a recorded action replays the command once, not its steps as well (#3067).
     /// Edit › Transform › Again (and Again on a Copy) is not replayable and keeps the concrete
     /// steps it ran instead.
-    fn after_command(&mut self, id: &str, params: Value, journal: bool, nested_from: Option<usize>) {
+    fn after_command(&mut self, id: &str, params: Value, journal: bool, nested_from: Option<usize>, review_owned: bool) {
         // A layer-mask view ends when another layer becomes active (#196).
-        if let Some(st) = self.active_mut() {
-            crate::mask_view_cmds::fix(st);
+        // Queries and session-only commands must not repair or drop held document state.
+        if review_owned || !self.active().is_some_and(|st| self.is_review_held(st.doc.id)) {
+            if let Some(st) = self.active_mut() {
+                crate::mask_view_cmds::fix(st);
+            }
+            crate::edit_menu_cmds::after_command(self, id);
+            crate::automate_cmds::after_command(self, id);
         }
-        crate::edit_menu_cmds::after_command(self, id);
-        crate::automate_cmds::after_command(self, id);
         self.sync_preset_store();
         if !journal {
             return;
@@ -869,6 +1253,12 @@ impl Session {
 
     fn apply_job(&mut self, job: &Running, apply: Option<Apply>, payload: Payload) -> Result<Value> {
         let Running { label, doc, snapshot, coalesce, color_restrict, layers, command, params, journal, .. } = job;
+        // A registered engine edit can become held while its worker runs. Check before active
+        // assignment or apply hooks. Shell-owned RAW redevelop/open closures keep their own
+        // generation checks; the synchronous Camera Raw command never transfers its grant here.
+        if crate::commands::find(command).is_some() {
+            self.guard_review_command(command, params, *doc)?;
+        }
         let prev_active = self.active;
         let target = match doc {
             Some(d) => {
@@ -916,7 +1306,7 @@ impl Session {
         // Restoring the viewed document first would attribute Fade and slice updates
         // to that document instead, when the user switched tabs mid-job.
         if r.is_ok() {
-            self.after_command(command, params.clone(), *journal, Some(nested_from));
+            self.after_command(command, params.clone(), *journal, Some(nested_from), false);
         }
         // Give the user back the layers they selected while the job ran, unless the job chose a
         // selection itself (a new layer, say) or one of their layers is gone.
@@ -1003,3 +1393,927 @@ pub fn specs() -> Vec<crate::commands::CommandSpec> {
 #[cfg(test)]
 #[path = "jobs_tests.rs"]
 mod tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "jobs_camera_raw_tests.rs"]
+mod camera_raw_opening_tests;
+
+/// Ownership of a document an open job admits (S2 P0): decided inside the job's apply, before any event is handled.
+#[cfg(test)]
+mod ownership_tests {
+    use super::*;
+
+    fn dng() -> Vec<u8> {
+        use photocraft_raw::testgen::{DngSpec, mosaic, scene};
+        let (w, h) = (48, 32);
+        let mut spec = DngSpec::cfa(w, h, mosaic(&scene(w, h), w, [0, 1, 1, 2], 0, 30000));
+        spec.as_shot_neutral = Some([0.5, 1.0, 0.7]);
+        spec.build()
+    }
+
+    fn psd() -> Vec<u8> {
+        let mut src = Session::new();
+        src.execute("file.new", json!({"width": 8, "height": 8})).unwrap();
+        let doc = (*src.active().unwrap().doc).clone();
+        photocraft_io::export(&doc, "x.psd", &Default::default()).unwrap().bytes
+    }
+
+    fn open(s: &mut Session, name: &str, bytes: Vec<u8>, admission: Admission) -> JobId {
+        match s.start_open_with(name, OpenSource::Bytes(Arc::new(bytes)), admission).unwrap() {
+            Started::Job(id) => id,
+            Started::Done(_) => panic!("the open ran inline"),
+        }
+    }
+
+    #[test]
+    fn a_raw_open_is_declared_provisional_by_its_own_apply_before_any_event() {
+        let mut s = Session::new();
+        let id = open(&mut s, "shot.dng", dng(), Admission::ReviewIfRaw);
+        s.wait_job(id).unwrap();
+        assert_eq!(s.documents().len(), 1);
+        let doc = s.documents()[0].doc.id;
+        assert!(s.has_provisional(), "scripts are already paused: the shell has not seen the result yet");
+        assert_eq!(s.provisional_documents(), vec![doc]);
+        // The shell declaring and clearing its own list does not touch the admission.
+        s.set_provisional_documents(Vec::new());
+        s.set_provisional_pending(false);
+        assert!(s.has_provisional());
+        s.release_admission(doc);
+        assert!(!s.has_provisional() && s.provisional_documents().is_empty());
+    }
+
+    #[test]
+    fn the_decision_is_the_importers_not_the_file_name() {
+        let mut s = Session::new();
+        let id = open(&mut s, "scan.dat", dng(), Admission::ReviewIfRaw);
+        s.wait_job(id).unwrap();
+        assert!(s.has_provisional(), "a RAW under a name that does not look like one is still admitted");
+    }
+
+    #[test]
+    fn ordinary_opens_and_non_raw_files_are_never_admitted() {
+        let mut s = Session::new();
+        let id = open(&mut s, "shot.dng", dng(), Admission::Normal);
+        s.wait_job(id).unwrap();
+        assert!(!s.has_provisional(), "a Normal open (CLI, MCP, scripts) is an editable document");
+        let id = open(&mut s, "plain.psd", psd(), Admission::ReviewIfRaw);
+        s.wait_job(id).unwrap();
+        assert_eq!(s.documents().len(), 2);
+        assert!(!s.has_provisional(), "a file that is not a developed RAW is not held");
+    }
+
+    #[test]
+    fn a_result_of_a_superseded_review_admits_nothing() {
+        let mut s = Session::new();
+        let id = open(&mut s, "shot.dng", dng(), Admission::ReviewIfRaw);
+        s.next_review_generation();
+        assert!(matches!(s.wait_job(id), Err(EngineError::Cancelled)));
+        assert!(s.documents().is_empty(), "no document was admitted");
+        assert!(!s.has_provisional());
+        // An ordinary open started before the bump is not a review and is unaffected.
+        let id = open(&mut s, "other.dng", dng(), Admission::Normal);
+        s.next_review_generation();
+        s.wait_job(id).unwrap();
+        assert_eq!(s.documents().len(), 1);
+    }
+
+    /// P0C F-01: a review cancel supersedes RAW opens only; a PSD started for review that is still decoding opens.
+    #[test]
+    fn a_non_raw_review_open_survives_a_review_cancel() {
+        let mut s = Session::new();
+        let id = open(&mut s, "plain.psd", psd(), Admission::ReviewIfRaw);
+        s.next_review_generation();
+        let result = s.wait_job(id).unwrap();
+        assert_eq!(s.documents().len(), 1);
+        assert!(!s.has_provisional());
+        assert_eq!(result["docId"], s.documents()[0].doc.id.0, "the result names the document by its id, next to the tab index");
+        assert_eq!(result["document"], 0);
+    }
+
+    /// P0D (coverage): a JPEG started for review survives a review cancel, like a PSD.
+    #[test]
+    fn a_jpeg_review_open_survives_a_review_cancel() {
+        let mut src = Session::new();
+        src.execute("file.new", json!({"width": 8, "height": 8})).unwrap();
+        let doc = (*src.active().unwrap().doc).clone();
+        let jpeg = photocraft_io::export(&doc, "x.jpg", &Default::default()).unwrap().bytes;
+        let mut s = Session::new();
+        let id = open(&mut s, "plain.jpg", jpeg, Admission::ReviewIfRaw);
+        s.next_review_generation();
+        let result = s.wait_job(id).unwrap();
+        assert_eq!(s.documents().len(), 1);
+        assert!(!s.has_provisional());
+        assert_eq!(result["docId"], s.documents()[0].doc.id.0);
+    }
+    #[test]
+    fn an_admission_goes_stale_when_its_review_is_superseded() {
+        let mut s = Session::new();
+        let id = open(&mut s, "shot.dng", dng(), Admission::ReviewIfRaw);
+        s.wait_job(id).unwrap();
+        let doc = s.documents()[0].doc.id;
+        assert!(!s.admission_stale(doc));
+        s.next_review_generation();
+        assert!(s.admission_stale(doc));
+        s.release_admission(doc);
+        assert!(!s.admission_stale(doc), "released: no longer held by the job layer");
+    }
+
+    #[test]
+    fn a_cancelled_open_admits_nothing() {
+        let mut s = Session::new();
+        let id = open(&mut s, "shot.dng", dng(), Admission::ReviewIfRaw);
+        assert!(s.cancel_job(id));
+        s.join_cancelled_jobs();
+        assert!(s.documents().is_empty() && !s.has_provisional());
+    }
+    /// Stage 2A (Q2 A-3). A RAW under a non-RAW name (`scan.dat`) started for a review that is then
+    /// cancelled must not be admitted, even when `rawDefaults.openInCameraRaw` is switched off before its result is
+    /// applied.
+    #[test]
+    fn stage2a_a3_a_renamed_raw_of_a_cancelled_review_is_not_admitted_after_review_on_open_is_switched_off() {
+        let mut s = Session::new();
+        let id = open(&mut s, "scan.dat", dng(), Admission::ReviewIfRaw);
+        s.next_review_generation();
+        assert!(matches!(s.wait_job(id), Err(EngineError::Cancelled)), "CONTROL: superseded while the preference is on");
+        assert!(s.documents().is_empty(), "CONTROL: nothing admitted");
+        let mut s = Session::new();
+        let id = open(&mut s, "scan.dat", dng(), Admission::ReviewIfRaw);
+        s.next_review_generation();
+        s.edit_prefs(|p| p.raw_defaults.open_in_camera_raw = false);
+        let applied = s.wait_job(id).is_ok();
+        assert!(
+            !applied && s.documents().is_empty(),
+            "Q2-A3: a RAW of the cancelled review generation was applied (ok={applied}) and left {} editable document(s)",
+            s.documents().len()
+        );
+    }
+}
+
+/// Next-gate probes use production decode/admission and direct engine dispatch. They are intentionally
+/// not shell/control tests. Native channels give an explicit prepared-result barrier without a sleep.
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+mod next_gate_direct_engine_tests {
+    use super::*;
+    use std::sync::mpsc::{Sender, channel};
+    use std::time::Duration;
+
+    fn dng() -> Vec<u8> {
+        use photocraft_raw::testgen::{DngSpec, mosaic, scene};
+        let (w, h) = (48, 32);
+        let mut spec = DngSpec::cfa(w, h, mosaic(&scene(w, h), w, [0, 1, 1, 2], 0, 30000));
+        spec.as_shot_neutral = Some([0.5, 1.0, 0.7]);
+        spec.build()
+    }
+
+    fn start_raw(s: &mut Session, name: &str) -> JobId {
+        match s.start_open_with(name, OpenSource::Bytes(Arc::new(dng())), Admission::ReviewIfRaw).unwrap() {
+            Started::Job(id) => id,
+            Started::Done(_) => panic!("native probe requires a real background open"),
+        }
+    }
+
+    fn open_raw(s: &mut Session, name: &str) -> DocId {
+        let job = start_raw(s, name);
+        let (tx, prepared) = prepared_result(s, job);
+        assert!(tx.send(prepared).is_ok());
+        drop(tx);
+        let result = s.wait_job(job).unwrap();
+        let id = DocId(result["docId"].as_u64().unwrap());
+        let index = result["document"].as_u64().unwrap() as usize;
+        assert_eq!(s.documents()[index].doc.id, id, "use the actual admitted id, not the decoded id or a presumed tab");
+        assert!(s.provisional_documents().contains(&id));
+        assert!(s.poll_jobs().iter().any(|event| event.id == job && matches!(event.outcome, JobOutcome::Done(_))));
+        assert!(!s.has_jobs());
+        id
+    }
+
+    fn activate_id(s: &mut Session, id: DocId) {
+        let index = s.documents().iter().position(|st| st.doc.id == id).expect("probe target must still exist");
+        assert!(s.set_active(index));
+        assert_eq!(s.active().unwrap().doc.id, id);
+    }
+
+    fn accepted_control() -> (Session, DocId) {
+        let mut s = Session::new();
+        s.execute("file.new", json!({"width": 8, "height": 8, "name": "NG accepted control"})).unwrap();
+        s.execute("layer.new.layer", json!({"name": "NG recognizable control"})).unwrap();
+        s.execute("edit.fill", json!({"color": "#763A19"})).unwrap();
+        let id = s.active().unwrap().doc.id;
+        assert!(s.active().unwrap().is_dirty());
+        assert!(!s.has_provisional());
+        (s, id)
+    }
+
+    fn document_state(st: &crate::DocState) -> Value {
+        let mut pixels = blake3::Hasher::new();
+        for (_, _, layer) in st.doc.walk() {
+            pixels.update(&layer.id.0.to_le_bytes());
+            if let Some(surface) = layer.surface() {
+                for sample in surface.read_region(st.doc.bounds()) {
+                    pixels.update(&sample.to_bits().to_le_bytes());
+                }
+            }
+        }
+        json!({
+            "docId": st.doc.id.0, "path": st.path, "readOnlySource": st.source_read_only,
+            "savedRevision": st.saved_revision, "dirty": st.is_dirty(),
+            "pixelAndLayerFingerprint": pixels.finalize().to_hex().to_string(),
+            "inspect": crate::inspect::document(st),
+        })
+    }
+
+    fn state(s: &Session) -> Value {
+        json!({
+            "documents": s.documents().iter().map(document_state).collect::<Vec<_>>(),
+            "activeId": s.active().map(|st| st.doc.id.0),
+            "provisional": s.provisional_documents().iter().map(|id| id.0).collect::<Vec<_>>(),
+            "admitted": s.jobs.admitted.iter().map(|(id, generation)| (id.0, generation)).collect::<Vec<_>>(),
+            "generation": s.review_generation(), "pending": s.provisional_pending,
+            "journal": s.journal, "runningJobs": s.jobs.running.len(),
+            "pendingJob": s.jobs.pending.is_some(), "queuedEvents": s.jobs.events.len(),
+        })
+    }
+
+    fn positive_edit(s: &mut Session, control: DocId, command: &str, params: Value) {
+        activate_id(s, control);
+        let before = document_state(s.active().unwrap());
+        let doc = s.active().unwrap().doc.clone();
+        let (revision, saved, steps) = {
+            let st = s.active().unwrap();
+            (st.revision, st.saved_revision, st.history.past_len())
+        };
+        let result = s.execute(command, params).expect("accepted positive control must execute the same command");
+        let st = s.active().unwrap();
+        assert_eq!(st.doc.id, control);
+        assert_eq!(st.revision, revision + 1);
+        assert_eq!(st.saved_revision, saved);
+        assert_eq!(st.history.past_len(), steps + 1);
+        assert!(st.is_dirty());
+        assert!(!Arc::ptr_eq(&st.doc, &doc));
+        let after = document_state(st);
+        assert_ne!(after, before);
+        assert_ne!(
+            after["pixelAndLayerFingerprint"], before["pixelAndLayerFingerprint"],
+            "the accepted positive control must change layer/content bytes, not only revision/history bookkeeping"
+        );
+        let edited_doc = st.doc.clone();
+        assert!(s.undo(), "accepted edit can be undone");
+        assert_eq!(s.active().unwrap().history.past_len(), steps);
+        assert_eq!(document_state(s.active().unwrap())["pixelAndLayerFingerprint"], before["pixelAndLayerFingerprint"]);
+        assert!(s.redo(), "accepted edit can be redone");
+        assert!(Arc::ptr_eq(&s.active().unwrap().doc, &edited_doc));
+        assert_eq!(s.active().unwrap().saved_revision, saved);
+        assert!(s.active().unwrap().is_dirty());
+        eprintln!("NG_POSITIVE {}", json!({"command": command, "result": result, "before": before, "after": after}));
+    }
+
+    fn assert_pending_refusal(command: &str, params: Value) {
+        let (mut s, control) = accepted_control();
+        let raw = open_raw(&mut s, "ng-pending.dng");
+        positive_edit(&mut s, control, command, params.clone());
+        let control_before = document_state(s.active().unwrap());
+        activate_id(&mut s, raw);
+        let before = state(&s);
+        let snapshot = s.active().unwrap().doc.clone();
+        let result = s.execute(command, params);
+        let after = state(&s);
+        eprintln!("NG_DIRECT {}", json!({"command": command, "result": format!("{result:?}"), "before": before, "after": after}));
+        let control_after = s.documents().iter().find(|st| st.doc.id == control).unwrap();
+        assert_eq!(document_state(control_after), control_before, "unrelated dirty control must be preserved");
+        assert!(
+            result.is_err() && before == after && Arc::ptr_eq(&s.active().unwrap().doc, &snapshot),
+            "NG direct-engine invariant: {command} must refuse a production-admitted pending RAW before mutation; result={result:?}"
+        );
+    }
+
+    #[test]
+    fn ng_engine_01_direct_layer_edit_cannot_mutate_pending_raw() {
+        assert_pending_refusal("layer.new.layer", json!({"name": "NG unauthorized pending layer"}));
+    }
+
+    #[test]
+    fn ng_engine_02_direct_camera_raw_command_cannot_bypass_pending_ownership() {
+        // A command-name exemption is insufficient: review-owned commit and arbitrary direct calls
+        // reach the engine with the same id. The positive control proves these settings edit pixels.
+        assert_pending_refusal("filter.cameraRaw", json!({"exposure": 0.25}));
+    }
+
+    /// Take the real worker's successfully decoded payload before production can apply it. Joining
+    /// proves the worker is quiescent. Requeue the identical payload only after the test's cancel
+    /// transition; poll_jobs/wait_job still invoke the original production apply closure.
+    fn prepared_result(s: &mut Session, id: JobId) -> (Sender<Result<Payload>>, Result<Payload>) {
+        let running = s.jobs.running.iter_mut().find(|job| job.id == id).unwrap();
+        let payload = running.rx.recv_timeout(Duration::from_secs(30)).expect("watchdog: production decode did not prepare a result");
+        assert!(payload.is_ok(), "real synthetic RAW decode must succeed before the cancellation barrier");
+        if let Some(handle) = running.handle.take() {
+            handle.join().expect("production decoder worker must exit normally");
+        }
+        let (tx, rx) = channel();
+        running.rx = rx;
+        (tx, payload)
+    }
+
+    fn superseded_before_apply(poll: bool) {
+        let (mut s, control) = accepted_control();
+        let before = document_state(s.active().unwrap());
+        let journal = s.journal.clone();
+        let job = start_raw(&mut s, "ng-stale.dng");
+        let (tx, prepared) = prepared_result(&mut s, job);
+        assert_eq!(s.documents().len(), 1, "the barrier is before real admission");
+        assert!(!s.has_provisional());
+        let old_generation = s.review_generation();
+        s.next_review_generation();
+        assert_ne!(s.review_generation(), old_generation);
+        assert!(tx.send(prepared).is_ok(), "prepared result receiver must still exist before apply");
+        drop(tx);
+        if poll {
+            let events = s.poll_jobs();
+            assert_eq!(events.len(), 1);
+            assert_eq!(events[0].id, job);
+            assert_eq!(events[0].outcome, JobOutcome::Cancelled);
+        } else {
+            assert!(matches!(s.wait_job(job), Err(EngineError::Cancelled)));
+            let events = s.poll_jobs();
+            assert_eq!(events.len(), 1);
+            assert_eq!(events[0].id, job);
+            assert_eq!(events[0].outcome, JobOutcome::Cancelled);
+        }
+        assert_eq!(s.documents().len(), 1);
+        assert_eq!(document_state(s.active().unwrap()), before);
+        assert_eq!(s.active().unwrap().doc.id, control);
+        assert_eq!(s.journal, journal);
+        assert!(!s.has_jobs() && !s.has_provisional());
+        assert!(s.jobs.admitted.is_empty() && s.jobs.pending.is_none());
+        s.join_cancelled_jobs();
+        assert!(s.jobs.draining.is_empty());
+        assert!(s.poll_jobs().is_empty(), "completion queue was drained; no delayed event remains");
+        eprintln!("NG_PREAPPLY {}", json!({"poll": poll, "discardedJob": job.0, "oldGeneration": old_generation, "state": state(&s)}));
+
+        let fresh = open_raw(&mut s, "ng-fresh-generation.dng");
+        assert_ne!(fresh, control);
+        assert!(!s.admission_stale(fresh));
+        assert_eq!(s.provisional_documents(), vec![fresh]);
+        assert_eq!(s.documents().iter().find(|st| st.doc.id == control).map(document_state).unwrap(), before);
+        s.release_admission(fresh);
+        assert!(!s.has_provisional());
+        positive_edit(&mut s, fresh, "layer.new.layer", json!({"name": "NG accepted RAW edit"}));
+    }
+
+    #[test]
+    fn ng_engine_03_prepared_stale_raw_is_discarded_through_poll_jobs() {
+        superseded_before_apply(true);
+    }
+
+    #[test]
+    fn ng_engine_04_prepared_stale_raw_is_discarded_through_wait_job() {
+        superseded_before_apply(false);
+    }
+
+    #[test]
+    fn ng_engine_05_cancel_prepared_raw_drops_late_completion_and_preserves_control() {
+        let (mut s, control) = accepted_control();
+        let before = state(&s);
+        let job = start_raw(&mut s, "ng-cancelled.dng");
+        let (tx, prepared) = prepared_result(&mut s, job);
+        assert!(s.cancel_job(job));
+        // Cancellation owns the receiver. Even an already-computed payload cannot be queued later.
+        assert!(tx.send(prepared).is_err());
+        drop(tx);
+        s.join_cancelled_jobs();
+        let events = s.poll_jobs();
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].id, job);
+        assert_eq!(events[0].outcome, JobOutcome::Cancelled);
+        assert!(matches!(s.wait_job(job), Err(EngineError::Cancelled)));
+        assert_eq!(state(&s), before);
+        assert_eq!(s.active().unwrap().doc.id, control);
+        assert!(s.jobs.draining.is_empty());
+        assert!(s.poll_jobs().is_empty());
+        eprintln!("NG_CANCEL_PREPARED {}", state(&s));
+    }
+
+    #[test]
+    fn ng_engine_06_stale_layer_target_does_not_retarget_after_review_cancel() {
+        // Session::execute has no generic DocId parameter; use the command's real layer-id
+        // contract. This covers a stale layer reference, not a claimed DocId dispatch API.
+        let (mut s, control) = accepted_control();
+        let raw = open_raw(&mut s, "ng-old-review.dng");
+        let layer = s.active().unwrap().active_layer.unwrap();
+        let old_index = s.documents().iter().position(|st| st.doc.id == raw).unwrap();
+        s.next_review_generation();
+        s.close(old_index).unwrap();
+        s.release_admission(raw);
+        let fresh = open_raw(&mut s, "ng-new-review.dng");
+        assert_ne!(fresh, raw);
+        assert_eq!(s.active_index(), Some(old_index), "the old tab index was reused by a different photograph");
+        assert!(s.documents().iter().all(|st| st.doc.id != raw));
+        let before = state(&s);
+        let result = s.execute("layer.renameLayer", json!({"layer": layer.0, "name": "NG stale must not rename"}));
+        assert!(result.is_err(), "stale layer identity must not fall back to the new active photograph");
+        assert_eq!(state(&s), before);
+        activate_id(&mut s, control);
+        let before = state(&s);
+        assert!(s.execute("document.activate", json!({"document": u64::MAX})).is_err());
+        assert_eq!(state(&s), before, "invalid explicit tab target cannot select another document");
+        eprintln!("NG_STALE_TARGET {}", json!({"oldDocId": raw.0, "freshDocId": fresh.0, "oldLayerId": layer.0, "state": state(&s)}));
+    }
+
+    #[test]
+    fn ng_engine_07_owned_filter_is_synchronous_and_one_dispatch_only() {
+        let (mut s, control) = accepted_control();
+        let raw = open_raw(&mut s, "ng-owned.dng");
+        let before = document_state(s.active().unwrap());
+        let scope = s.begin_camera_raw_command(raw).unwrap();
+        let revision = s.active().unwrap().revision;
+        s.execute("filter.cameraRaw", json!({"exposure": 0.5})).unwrap();
+        assert_eq!(s.active().unwrap().revision, revision + 1);
+        assert_ne!(document_state(s.active().unwrap())["pixelAndLayerFingerprint"], before["pixelAndLayerFingerprint"]);
+        let once = state(&s);
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+        assert_eq!(state(&s), once, "keeping the scope alive cannot reuse consumed authority");
+        drop(scope);
+        let _scope = s.begin_camera_raw_command(raw).unwrap();
+        assert!(matches!(s.start("filter.cameraRaw", json!({"exposure": -0.25})).unwrap(), Started::Done(_)));
+        assert!(!s.has_jobs(), "Camera Raw's registered filter is synchronous even via start");
+        assert_eq!(s.provisional_documents(), vec![raw], "owned adjustment does not accept the document");
+        activate_id(&mut s, control);
+        assert!(s.begin_camera_raw_command(raw).is_err(), "grant requires the actual active owner");
+    }
+
+    #[test]
+    fn ng_engine_08_expired_stale_and_failed_scopes_do_not_leak_authority() {
+        let (mut s, control) = accepted_control();
+        let raw = open_raw(&mut s, "ng-scope.dng");
+        for (command, params) in [
+            ("layer.new.layer", json!({})),
+            ("unknown.nextGate", json!({})),
+            ("filter.cameraRaw", json!([])),
+            ("filter.cameraRaw", json!({"exposure": "invalid"})),
+        ] {
+            let _scope = s.begin_camera_raw_command(raw).unwrap();
+            let before = state(&s);
+            assert!(s.execute(command, params).is_err());
+            assert_eq!(state(&s), before);
+            assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+            assert_eq!(state(&s), before);
+        }
+        drop(s.begin_camera_raw_command(raw).unwrap());
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+        let unwind = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _scope = s.begin_camera_raw_command(raw).unwrap();
+            panic!("NG test-only unwind before dispatch");
+        }));
+        assert!(unwind.is_err());
+        let after_unwind = state(&s);
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err(), "unwinding drops an unused scope");
+        assert_eq!(state(&s), after_unwind);
+        let _scope = s.begin_camera_raw_command(raw).unwrap();
+        activate_id(&mut s, control);
+        s.execute("document.inspect", json!({})).unwrap();
+        activate_id(&mut s, raw);
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err(), "different document consumes the grant");
+        let _scope = s.begin_camera_raw_command(raw).unwrap();
+        s.authorize = Some(|_, _| Err(EngineError::Other("NG authorization refusal".into())));
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+        s.authorize = None;
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+        let _scope = s.begin_camera_raw_command(raw).unwrap();
+        s.next_review_generation();
+        let before = state(&s);
+        assert!(s.execute("filter.cameraRaw", json!({"exposure": 0.5})).is_err());
+        assert_eq!(state(&s), before);
+        assert!(s.begin_camera_raw_command(raw).is_err(), "stale admission cannot receive a fresh grant");
+    }
+
+    #[test]
+    fn ng_engine_09_named_held_sources_destinations_and_dynamic_commands_are_refused() {
+        let (mut s, control) = accepted_control();
+        let raw = open_raw(&mut s, "ng-named.dng");
+        let index = s.documents().iter().position(|st| st.doc.id == raw).unwrap();
+        let name = s.active().unwrap().doc.name.clone();
+        let layer = s.active().unwrap().active_layer.unwrap();
+        activate_id(&mut s, control);
+        for (command, params) in [
+            ("layer.copyToDocument", json!({"source": index, "document": 0, "layers": [layer.0]})),
+            ("layer.copyToDocument", json!({"source": 0, "document": index})),
+            ("select.saveSelection", json!({"document": index as f64, "channel": "new"})),
+            ("channel.duplicate", json!({"document": index, "channel": "red"})),
+            ("image.adjustments.matchColor", json!({"source": index})),
+            ("filter.distort.displace", json!({"mapDocument": name})),
+            ("file.close", json!({"document": index})),
+            ("document.activate", json!({"document": index})),
+            ("file.closeAll", json!({})),
+            ("actions.play", json!({})),
+            ("edit.purge.all", json!({})),
+        ] {
+            assert!(crate::commands::find(command).is_some(), "real registered command: {command}");
+            let before = state(&s);
+            let error = s.execute(command, params).unwrap_err().to_string();
+            assert!(error.contains("unaccepted RAW"), "{command}: reached ownership guard, not invalid-param failure: {error}");
+            assert_eq!(state(&s), before, "{command}");
+        }
+        positive_edit(&mut s, control, "layer.new.layer", json!({"name": "NG accepted during held review"}));
+    }
+
+    #[test]
+    fn ng_engine_10_read_session_new_and_reorder_preserve_adversarial_held_state() {
+        let (mut s, held) = accepted_control();
+        s.execute("select.all", json!({})).unwrap();
+        s.execute("select.float", json!({"dx": 2, "dy": 1})).unwrap();
+        assert!(s.active().unwrap().floating.is_some());
+        let stale_layer = LayerId::fresh();
+        let st = s.active_mut().unwrap();
+        st.channel_view.layer_mask = Some(crate::mask_view_cmds::LayerMaskView { layer: stale_layer, mode: crate::mask_view_cmds::MaskViewMode::Gray });
+        Arc::make_mut(&mut st.doc).slices.list.push(photocraft_doc::slices::Slice {
+            id: 1,
+            origin: photocraft_doc::slices::SliceOrigin::Layer,
+            layer: Some(stale_layer),
+            rect: photocraft_geom::Rect::new(0, 0, 3, 3),
+            ..Default::default()
+        });
+        s.set_provisional_documents(vec![held]);
+        let before = document_state(s.active().unwrap());
+        let doc = s.active().unwrap().doc.clone();
+        let mask = s.active().unwrap().channel_view.layer_mask;
+        for (command, params) in [
+            ("document.inspect", json!({})),
+            ("jobs.list", json!({})),
+            ("tools.setColors", json!({"foreground": "#ff0000"})),
+            ("file.new", json!({"width": 4, "height": 4})),
+        ] {
+            activate_id(&mut s, held);
+            s.execute(command, params).unwrap();
+            let st = s.documents().iter().find(|st| st.doc.id == held).unwrap();
+            assert!(Arc::ptr_eq(&st.doc, &doc), "{command} cannot trigger slice refresh or floating drop");
+            assert_eq!(document_state(st), before, "{command}");
+            assert_eq!(st.channel_view.layer_mask, mask);
+            assert!(st.floating.is_some());
+        }
+        activate_id(&mut s, held);
+        let mut before_docs: Vec<_> = s.documents().iter().map(|st| (st.doc.id.0, document_state(st))).collect();
+        before_docs.sort_by_key(|(id, _)| *id);
+        let admitted = s.jobs.admitted.clone();
+        let generation = s.review_generation();
+        let journal = s.journal.clone();
+        s.execute("document.move", json!({"document": 0, "to": 1})).unwrap();
+        let mut after_docs: Vec<_> = s.documents().iter().map(|st| (st.doc.id.0, document_state(st))).collect();
+        after_docs.sort_by_key(|(id, _)| *id);
+        assert_eq!(after_docs, before_docs);
+        assert_eq!(s.active().unwrap().doc.id, held);
+        assert_eq!(s.active_index(), Some(1));
+        assert_eq!(s.provisional_documents(), vec![held]);
+        assert_eq!(s.jobs.admitted, admitted);
+        assert_eq!(s.review_generation(), generation);
+        assert_eq!(s.journal, journal);
+        assert!(s.active().unwrap().floating.is_some());
+        assert_eq!(s.active().unwrap().channel_view.layer_mask, mask);
+        assert!(s.execute("document.move", json!({"document": 1.0, "to": 0})).is_err(), "strict tab syntax remains unchanged");
+        // Positive: the existing hooks still run normally once this same document is accepted.
+        s.set_provisional_documents(Vec::new());
+        s.execute("document.inspect", json!({})).unwrap();
+        assert!(s.active().unwrap().floating.is_none());
+        assert!(s.active().unwrap().channel_view.layer_mask.is_none());
+        assert!(s.active().unwrap().doc.slices.list.is_empty());
+    }
+
+    #[test]
+    fn ng_engine_11_prepared_engine_edit_rechecks_target_without_global_generation_block() {
+        for held_target in [true, false] {
+            let (mut s, _) = accepted_control();
+            s.edit("NG textured pixels", |doc, active| {
+                let surface = doc.layer_mut(active.unwrap()).unwrap().surface_mut().unwrap();
+                let mut pixels = Vec::new();
+                for y in 0..8 {
+                    for x in 0..8 {
+                        let v = ((x * 7 + y * 13) % 31) as f32 / 30.0;
+                        pixels.extend_from_slice(&[v, 1.0 - v, 0.3, 1.0]);
+                    }
+                }
+                surface.write_region(photocraft_geom::Rect::new(0, 0, 8, 8), &pixels);
+                Ok(())
+            })
+            .unwrap();
+            let target = s.active().unwrap().doc.id;
+            let before = document_state(s.active().unwrap());
+            let raw = open_raw(&mut s, "ng-other-review.dng");
+            activate_id(&mut s, target);
+            let job = match s.start("filter.blur.gaussianBlur", json!({"radius": 2})).unwrap() {
+                Started::Job(job) => job,
+                Started::Done(_) => panic!("real registered worker required"),
+            };
+            let (tx, prepared) = prepared_result(&mut s, job);
+            if held_target {
+                s.set_provisional_documents(vec![target]);
+            }
+            s.next_review_generation();
+            activate_id(&mut s, raw);
+            let active = s.active().unwrap().doc.id;
+            let journal = s.journal.clone();
+            assert!(tx.send(prepared).is_ok());
+            drop(tx);
+            let result = s.wait_job(job);
+            assert_eq!(s.active().unwrap().doc.id, active, "apply rejection/success restores the actual active photograph");
+            let after = document_state(s.documents().iter().find(|st| st.doc.id == target).unwrap());
+            if held_target {
+                assert!(result.unwrap_err().to_string().contains("unaccepted RAW"));
+                assert_eq!(after, before);
+                assert_eq!(s.journal, journal);
+            } else {
+                result.unwrap();
+                assert_ne!(after["pixelAndLayerFingerprint"], before["pixelAndLayerFingerprint"]);
+                assert_eq!(s.journal.len(), journal.len() + 1, "accepted job survives unrelated review generation change");
+            }
+            assert!(s.provisional_documents().contains(&raw));
+            assert!(!s.has_jobs());
+            s.poll_jobs();
+            s.join_cancelled_jobs();
+        }
+    }
+
+    #[test]
+    fn ng_engine_12_cancel_command_cannot_take_held_job_but_can_cancel_accepted_job() {
+        for held_target in [true, false] {
+            let (mut s, control) = accepted_control();
+            let raw = open_raw(&mut s, "ng-cancel-owner.dng");
+            activate_id(&mut s, control);
+            let job = match s.start("filter.blur.gaussianBlur", json!({"radius": 2})).unwrap() {
+                Started::Job(job) => job,
+                Started::Done(_) => panic!("real registered worker required"),
+            };
+            let (tx, prepared) = prepared_result(&mut s, job);
+            if held_target {
+                s.set_provisional_documents(vec![control]);
+                for params in [json!({"job": job.0}), json!({})] {
+                    let before = state(&s);
+                    assert!(s.execute("jobs.cancel", params).unwrap_err().to_string().contains("unaccepted RAW"));
+                    assert_eq!(state(&s), before);
+                }
+                assert!(s.cancel_job(job), "trusted review owner can still cancel its own work");
+            } else {
+                activate_id(&mut s, raw);
+                assert_eq!(s.execute("jobs.cancel", json!({"job": job.0})).unwrap()["cancelled"], 1);
+            }
+            assert!(tx.send(prepared).is_err());
+            s.join_cancelled_jobs();
+            assert!(!s.has_jobs());
+            assert!(s.poll_jobs().iter().any(|event| event.id == job && matches!(event.outcome, JobOutcome::Cancelled)));
+        }
+    }
+
+    #[test]
+    fn ng_engine_13_named_new_is_not_a_global_sentinel_and_active_docid_is_not_an_index() {
+        let (mut s, _) = accepted_control();
+        // Adversarial IDs deliberately distinguish a stale-dialog DocId from tab index 1.
+        Arc::make_mut(&mut s.active_mut().unwrap().doc).id = DocId(1);
+        let accepted = DocId(1);
+        s.execute("layer.newFillLayer.solidColor", json!({"color": "#123456"})).unwrap();
+        let fill = s.active().unwrap().active_layer.unwrap();
+        let raw = open_raw(&mut s, "ng-name.dng");
+        Arc::make_mut(&mut s.active_mut().unwrap().doc).name = "new".into();
+        let held_index = s.active_index().unwrap();
+        assert_eq!(held_index, 1);
+        activate_id(&mut s, accepted);
+        let before = state(&s);
+        let error = s.execute("filter.distort.displace", json!({"mapDocument": "new"})).unwrap_err().to_string();
+        assert!(error.contains("unaccepted RAW"), "a real held document called new is still protected: {error}");
+        assert_eq!(state(&s), before);
+        let held_before = document_state(s.documents().get(held_index).unwrap());
+        let revision = s.active().unwrap().revision;
+        let color_before = format!("{:?}", s.active().unwrap().doc.layer(fill).unwrap().content);
+        s.execute("layer.fill.solidColor.set", json!({"document": accepted.0, "layer": fill.0, "color": "#abcdef"})).unwrap();
+        assert_eq!(s.active().unwrap().revision, revision + 1);
+        assert_ne!(format!("{:?}", s.active().unwrap().doc.layer(fill).unwrap().content), color_before, "the accepted fill content really changed");
+        assert_eq!(document_state(s.documents().get(held_index).unwrap()), held_before);
+        assert_eq!(s.active().unwrap().doc.id, accepted);
+        assert!(s.provisional_documents().contains(&raw));
+    }
+
+    #[test]
+    fn ng_engine_14_preferences_cannot_change_held_history_limits_from_an_accepted_active_document() {
+        let setup = || {
+            let (mut s, accepted) = accepted_control();
+            let raw = open_raw(&mut s, "ng-history-owner.dng");
+            for exposure in [0.1, 0.2, 0.3, 0.4] {
+                let _scope = s.begin_camera_raw_command(raw).unwrap();
+                s.execute("filter.cameraRaw", json!({"exposure": exposure})).unwrap();
+            }
+            let raw_index = s.active_index().unwrap();
+            assert!(s.documents()[raw_index].history.past_len() > 1, "real owned adjustments produced history");
+            activate_id(&mut s, accepted);
+            (s, accepted, raw, raw_index)
+        };
+        let params = json!({"path": "performance.historyStates", "value": 1});
+        // Run the positive first in an equivalent session. apply_prefs changes max_states now;
+        // History::record enforces the count on a subsequent edit, while History::trim only
+        // trims byte pressure. This small fixture is not under byte pressure.
+        let (mut positive, accepted_positive, raw_positive, positive_index) = setup();
+        let positive_past = positive.documents()[positive_index].history.past_len();
+        positive.release_admission(raw_positive);
+        positive.execute("prefs.set", params.clone()).unwrap();
+        assert_eq!(positive.documents()[positive_index].history.max_states, 1);
+        assert_eq!(positive.documents()[positive_index].history.past_len(), positive_past);
+        assert_eq!(positive.active().unwrap().doc.id, accepted_positive);
+        activate_id(&mut positive, raw_positive);
+        positive.execute("filter.cameraRaw", json!({"exposure": 0.1})).unwrap();
+        assert_eq!(positive.active().unwrap().history.past_len(), 1, "a subsequent accepted edit enforces the changed history count");
+        eprintln!(
+            "NG_PREFS_HISTORY_POSITIVE {}",
+            json!({"acceptedRawDocId": raw_positive.0, "pastAtPreferenceApply": positive_past, "maxStatesAfter": 1, "pastAfterNextEdit": 1})
+        );
+
+        let (mut s, accepted, held, held_index) = setup();
+        let held_before = document_state(&s.documents()[held_index]);
+        let past_before = s.documents()[held_index].history.past_len();
+        let caps_before = (s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes);
+        let prefs_before = s.prefs_value();
+        s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"cache"})).unwrap();
+        assert_eq!(s.prefs().raw_defaults.recovery_mode, crate::prefs::RawRecoveryMode::Cache);
+        assert_eq!(document_state(&s.documents()[held_index]), held_before);
+        assert_eq!((s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes), caps_before);
+        assert!(s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"off","values":{"performance.historyStates":1}})).is_err());
+        s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"off"})).unwrap();
+        let result = s.execute("prefs.set", params.clone());
+        eprintln!(
+            "NG_PREFS_HISTORY {}",
+            json!({
+                "result": format!("{result:?}"), "heldDocId": held.0, "activeDocId": accepted.0,
+                "pastBefore": past_before, "pastAfter": s.documents()[held_index].history.past_len(),
+                "capsBefore": caps_before, "capsAfter": [s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes],
+            })
+        );
+        assert!(result.is_err(), "prefs.set applies history limits to every document, including a held non-active RAW");
+        assert_eq!(document_state(&s.documents()[held_index]), held_before);
+        assert_eq!(s.documents()[held_index].history.past_len(), past_before);
+        assert_eq!((s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes), caps_before);
+        assert_eq!(s.prefs_value(), prefs_before);
+        assert_eq!(s.active().unwrap().doc.id, accepted);
+        // Query remains useful during review, and the identical mutation works normally after release.
+        s.execute("prefs.get", json!({})).unwrap();
+        s.release_admission(held);
+        s.execute("prefs.set", params).unwrap();
+        assert_eq!(s.documents()[held_index].history.max_states, 1);
+        assert_eq!(s.documents()[held_index].history.past_len(), past_before);
+        assert!(past_before > 1);
+        assert_eq!(s.active().unwrap().doc.id, accepted);
+    }
+
+    // Compare user document state and retained history, not the session journal: successful
+    // script manager/browse commands retain their original journaled command behavior.
+    fn documents_with_history(s: &Session) -> Value {
+        json!(
+            s.documents()
+                .iter()
+                .map(|st| json!({
+                    "document": document_state(st),
+                    "pointer": Arc::as_ptr(&st.doc) as usize,
+                    "revision": st.revision,
+                    "historyStates": st.history.max_states,
+                    "historyBytes": st.history.max_bytes,
+                    "pastEntries": st.history.entries(),
+                    "pastPointers": (0..st.history.past_len()).map(|i| Arc::as_ptr(&st.history.state(i).unwrap()) as usize).collect::<Vec<_>>(),
+                    "redoLabels": st.history.redo_labels().collect::<Vec<_>>(),
+                    "pixelBytes": st.history.pixel_bytes(&st.doc),
+                }))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    fn owned_history(s: &mut Session, raw: DocId) {
+        activate_id(s, raw);
+        for exposure in [0.1, 0.2, 0.3, 0.4] {
+            let _scope = s.begin_camera_raw_command(raw).unwrap();
+            s.execute("filter.cameraRaw", json!({"exposure": exposure})).unwrap();
+        }
+        assert_eq!(s.active().unwrap().history.past_len(), 4);
+    }
+
+    fn script_binding() -> Value {
+        json!({"add": {"event": "openDocument", "steps": [["layer.new.layer", {"name": "NG explicit event positive"}]]}})
+    }
+
+    #[test]
+    fn ng_engine_15_script_compatibility_preserves_held_raw_and_structured_stop() {
+        let (mut s, accepted) = accepted_control();
+        let raw = open_raw(&mut s, "ng-script-compatibility.dng");
+        owned_history(&mut s, raw);
+        let before = documents_with_history(&s);
+        let event_log = s.file_menu.event_log.clone();
+        let manager = s.execute("file.scripts.scriptEventsManager", script_binding()).unwrap();
+        assert_eq!(manager["enabled"], true);
+        assert_eq!(manager["bindings"].as_array().unwrap().len(), 1);
+        assert_eq!(s.prefs().script_events.bindings.len(), 1);
+        assert_eq!(documents_with_history(&s), before);
+        let held_index = s.documents().iter().position(|st| st.doc.id == raw).unwrap();
+        for active in [accepted, raw] {
+            activate_id(&mut s, active);
+            let before = documents_with_history(&s);
+            assert_eq!(crate::automate_cmds::fire_event(&mut s, "openDocument"), 0);
+            let browse = s
+                .execute(
+                    "file.scripts.browse",
+                    json!({"steps": [
+                        ["layer.new.layer", {"name": "NG must never run"}],
+                        ["document.activate", {"document": held_index}],
+                        ["layer.new.layer", {}],
+                        ["file.close", {"document": held_index}]
+                    ]}),
+                )
+                .unwrap();
+            assert_eq!(browse["ok"], false);
+            assert_eq!(browse["steps"], 4);
+            let results = browse["results"].as_array().unwrap();
+            assert_eq!(results.len(), 1);
+            assert_eq!(results[0]["command"], "layer.new.layer");
+            assert!(results[0]["error"].as_str().unwrap().contains("stopped"));
+            assert_eq!(documents_with_history(&s), before);
+            assert_eq!(s.active().unwrap().doc.id, active);
+            assert_eq!(s.file_menu.event_log, event_log);
+            assert!(s.provisional_documents().contains(&raw));
+        }
+        let held_before = document_state(&s.documents()[held_index]);
+        s.release_admission(raw);
+        activate_id(&mut s, accepted);
+        let layers = s.active().unwrap().doc.layer_count();
+        assert_eq!(crate::automate_cmds::fire_event(&mut s, "openDocument"), 1, "explicit positive after release, not automatic replay");
+        assert_eq!(s.active().unwrap().doc.layer_count(), layers + 1);
+        assert_eq!(document_state(&s.documents()[held_index]), held_before);
+        assert_eq!(s.file_menu.event_log.len(), event_log.len() + 1);
+    }
+
+    #[test]
+    fn ng_engine_16_script_manager_refuses_any_held_history_cap_mismatch() {
+        for mismatch_states in [true, false] {
+            let (mut s, accepted) = accepted_control();
+            let first = open_raw(&mut s, "ng-script-first.dng");
+            let second = open_raw(&mut s, "ng-script-second.dng");
+            // Trusted test-only adversarial state: ordinary admitted histories use matching
+            // preference limits. Ensure the predicate covers every held document, not active only.
+            if mismatch_states {
+                s.active_mut().unwrap().history.max_states += 1;
+            } else {
+                s.active_mut().unwrap().history.max_bytes -= 1;
+            }
+            for active in [accepted, first, second] {
+                activate_id(&mut s, active);
+                let before = documents_with_history(&s);
+                let prefs = s.prefs_value();
+                let session = state(&s);
+                let error = s.execute("file.scripts.scriptEventsManager", script_binding()).unwrap_err().to_string();
+                assert!(error.contains("unaccepted RAW"));
+                assert_eq!(documents_with_history(&s), before);
+                assert_eq!(s.prefs_value(), prefs);
+                assert_eq!(state(&s), session);
+            }
+            s.release_admission(first);
+            s.release_admission(second);
+            s.execute("file.scripts.scriptEventsManager", script_binding()).unwrap();
+            let limits = &s.prefs().performance;
+            assert!(
+                s.documents()
+                    .iter()
+                    .all(|st| { st.history.max_states == limits.history_states.max(1) as usize && st.history.max_bytes == limits.history_budget_bytes() }),
+                "the existing manager reapplies limits normally after release"
+            );
+        }
+    }
+
+    #[test]
+    fn ng_engine_17_script_manager_refuses_held_history_byte_pressure_with_matching_caps() {
+        let (mut s, accepted) = accepted_control();
+        let pressured = open_raw(&mut s, "ng-script-pressure.dng");
+        owned_history(&mut s, pressured);
+        let other = open_raw(&mut s, "ng-script-other.dng");
+        // Trusted test-only setup bypasses normal apply_prefs/trim to probe its preflight. This
+        // is not a claim that normal preference commands can create this admitted state.
+        s.prefs.edit(|prefs| prefs.performance.memory_usage_mb = 1);
+        let bytes = s.prefs().performance.history_budget_bytes();
+        for st in &mut s.docs {
+            st.history.max_bytes = bytes;
+        }
+        let pressured_index = s.documents().iter().position(|st| st.doc.id == pressured).unwrap();
+        let pressured_state = &s.documents()[pressured_index];
+        assert!(pressured_state.history.pixel_bytes(&pressured_state.doc) > bytes);
+        let mut would_trim = pressured_state.history.clone();
+        let dropped = would_trim.trim(&pressured_state.doc);
+        assert!(dropped > 0, "positive oracle: unchanged caps alone would still trim real history records");
+        let past_before = pressured_state.history.past_len();
+        for active in [accepted, other, pressured] {
+            activate_id(&mut s, active);
+            let before = documents_with_history(&s);
+            let prefs = s.prefs_value();
+            let session = state(&s);
+            let error = s.execute("file.scripts.scriptEventsManager", script_binding()).unwrap_err().to_string();
+            assert!(error.contains("unaccepted RAW"));
+            assert_eq!(documents_with_history(&s), before);
+            assert_eq!(s.prefs_value(), prefs);
+            assert_eq!(state(&s), session);
+        }
+        s.release_admission(pressured);
+        s.release_admission(other);
+        s.execute("file.scripts.scriptEventsManager", script_binding()).unwrap();
+        assert_eq!(s.documents()[pressured_index].history.past_len(), past_before - dropped);
+        assert_eq!(s.prefs().script_events.bindings.len(), 1);
+        eprintln!("NG_SCRIPT_PRESSURE {}", json!({"budgetBytes": bytes, "pastBefore": past_before, "droppedAfterRelease": dropped}));
+    }
+}

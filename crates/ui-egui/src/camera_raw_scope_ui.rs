@@ -20,6 +20,56 @@ pub(crate) enum ClippingMode {
     HighlightChannels,
 }
 
+fn clipping_colors(pixels: &[[f32; 4]], mode: ClippingMode, t: &Tokens) -> Vec<Color32> {
+    let color = |p: &[f32; 4]| {
+        let (lo, hi) = clipping(*p);
+        if p[3] <= 0.0 || !p.iter().all(|v| v.is_finite()) {
+            return Color32::TRANSPARENT;
+        }
+        match mode {
+            ClippingMode::ShadowChannels => t.histogram_color(7 ^ lo),
+            ClippingMode::HighlightChannels => {
+                if hi == 0 {
+                    t.histogram_background()
+                } else {
+                    t.histogram_color(hi)
+                }
+            }
+            ClippingMode::Warnings(warnings) => {
+                if warnings & 2 != 0 && hi != 0 {
+                    t.histogram_color(1)
+                } else if warnings & 1 != 0 && lo != 0 {
+                    t.histogram_color(4)
+                } else {
+                    Color32::TRANSPARENT
+                }
+            }
+            ClippingMode::None => Color32::TRANSPARENT,
+        }
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    if pixels.len() >= 64 * 1024 {
+        use rayon::prelude::*;
+        return pixels.par_iter().with_min_len(16 * 1024).map(color).collect();
+    }
+    pixels.iter().map(color).collect()
+}
+
+fn convert_scope_samples(pixels: &mut [[f32; 4]], transform: &photocraft_cms::Transform) {
+    let convert = |p: &mut [f32; 4]| {
+        let mut rgb = [0.0; 3];
+        transform.eval(&p[..3], &mut rgb);
+        *p = [rgb[0], rgb[1], rgb[2], p[3]];
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    if pixels.len() >= 4096 {
+        use rayon::prelude::*;
+        pixels.par_iter_mut().with_min_len(1024).for_each(convert);
+        return;
+    }
+    pixels.iter_mut().for_each(convert);
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum ToneZone {
@@ -192,19 +242,16 @@ impl CameraRawDialog {
         // and columns step separately, so a stride can't alias with the row width into stripes.
         let step = ((self.pixels().len() as f64 / SCOPE_SAMPLES as f64).sqrt().ceil() as usize).max(1);
         let (pw, ph) = (self.pw, self.ph);
-        let pixels: Vec<_> = (0..ph)
+        let mut pixels: Vec<_> = (0..ph)
             .step_by(step)
             .flat_map(|y| (0..pw).step_by(step).map(move |x| y * pw + x))
             .filter_map(|i| self.pixels().get(i).map(|p| (i, p)))
             .filter(|(i, p)| {
                 p[3] > 0.0 && p.iter().all(|v| v.is_finite()) && (!selected || self.selection.as_ref().and_then(|m| m.get(*i)).is_some_and(|v| *v > 0.0))
             })
-            .map(|(_, p)| {
-                let mut rgb = [0.0; 3];
-                self.scope_transform.eval(&p[..3], &mut rgb);
-                [rgb[0], rgb[1], rgb[2], p[3]]
-            })
+            .map(|(_, p)| *p)
             .collect();
+        convert_scope_samples(&mut pixels, &self.scope_transform);
         let scope = Vectorscope::from_rgba(&pixels);
         self.scope.cache = Some((self.preview_revision, self.show_before, selected, scope));
         self.scope.ms = crate::gpu_canvas::now_ms() - start;
@@ -619,36 +666,7 @@ pub(crate) fn preview(ui: &mut egui::Ui, d: &mut CameraRawDialog, view: &mut Cam
     } else if mode != ClippingMode::None {
         if d.scope.overlay_key != Some(key) || d.scope.overlay_detail {
             d.scope.overlay_detail = false;
-            let colors = d
-                .pixels()
-                .iter()
-                .map(|p| {
-                    let (lo, hi) = clipping(*p);
-                    if p[3] <= 0.0 || !p.iter().all(|v| v.is_finite()) {
-                        return Color32::TRANSPARENT;
-                    }
-                    match mode {
-                        ClippingMode::ShadowChannels => t.histogram_color(7 ^ lo),
-                        ClippingMode::HighlightChannels => {
-                            if hi == 0 {
-                                t.histogram_background()
-                            } else {
-                                t.histogram_color(hi)
-                            }
-                        }
-                        ClippingMode::Warnings(warnings) => {
-                            if warnings & 2 != 0 && hi != 0 {
-                                t.histogram_color(1)
-                            } else if warnings & 1 != 0 && lo != 0 {
-                                t.histogram_color(4)
-                            } else {
-                                Color32::TRANSPARENT
-                            }
-                        }
-                        ClippingMode::None => Color32::TRANSPARENT,
-                    }
-                })
-                .collect();
+            let colors = clipping_colors(d.pixels(), mode, &t);
             let image = egui::ColorImage::new([d.pw, d.ph], colors);
             match &mut d.scope.overlay_tex {
                 Some(t) => t.set(image, egui::TextureOptions::NEAREST),
@@ -694,4 +712,68 @@ pub(crate) fn shortcuts(ctx: &egui::Context, view: &mut CameraRawScopeState) {
             view.sampler_tool = !view.sampler_tool;
         }
     });
+}
+
+#[cfg(test)]
+mod overlay_pixel_tests {
+    use super::*;
+
+    #[test]
+    fn parallel_clipping_overlay_keeps_modes_invalid_pixels_and_order() {
+        let patterns = [
+            [0.0, 0.5, 1.0, 1.0],
+            [0.0001, 0.9999, 0.5, 0.25],
+            [-1.0, 2.0, 0.5, 1.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [f32::NAN, 1.0, 0.0, 1.0],
+            [0.0, 0.5, 1.0, f32::INFINITY],
+        ];
+        let pixels: Vec<_> = (0..131_073).map(|i| patterns[i % patterns.len()]).collect();
+        for kind in [crate::theme::ThemeKind::Pro, crate::theme::ThemeKind::Studio] {
+            let t = Tokens::for_kind(kind);
+            for mode in [
+                ClippingMode::None,
+                ClippingMode::Warnings(0),
+                ClippingMode::Warnings(1),
+                ClippingMode::Warnings(2),
+                ClippingMode::Warnings(3),
+                ClippingMode::ShadowChannels,
+                ClippingMode::HighlightChannels,
+            ] {
+                let reference = clipping_colors(&patterns, mode, &t);
+                for len in [0, 65_535, 65_536, 65_537, pixels.len()] {
+                    let actual = clipping_colors(&pixels[..len], mode, &t);
+                    assert_eq!(actual.len(), len);
+                    assert!(actual.iter().enumerate().all(|(i, color)| *color == reference[i % reference.len()]));
+                }
+                assert!(reference[3..].iter().all(|p| *p == Color32::TRANSPARENT));
+                if mode == ClippingMode::Warnings(3) {
+                    assert_eq!(reference[..3], [t.histogram_color(1), Color32::TRANSPARENT, t.histogram_color(1)]);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn parallel_scope_conversion_matches_exact_cms_pipeline_and_preserves_alpha() {
+        use photocraft_cms::Builtin;
+        let pixels: Vec<_> =
+            (0..16_387).map(|i| [(i % 257) as f32 / 256.0, (i % 113) as f32 / 112.0, (i % 79) as f32 / 78.0, (i % 11) as f32 / 10.0]).collect();
+        for source in [Builtin::Srgb, Builtin::AdobeRgbCompat] {
+            let transform = photocraft_cms::cached(source.profile(), Builtin::Srgb.profile(), Default::default()).unwrap();
+            for len in [0, 4095, 4096, 4097, pixels.len()] {
+                let expected: Vec<_> = pixels[..len]
+                    .iter()
+                    .map(|p| {
+                        let mut rgb = [0.0; 3];
+                        transform.eval(&p[..3], &mut rgb);
+                        [rgb[0], rgb[1], rgb[2], p[3]]
+                    })
+                    .collect();
+                let mut actual = pixels[..len].to_vec();
+                convert_scope_samples(&mut actual, &transform);
+                assert!(actual.iter().flatten().zip(expected.iter().flatten()).all(|(a, b)| a.to_bits() == b.to_bits()));
+            }
+        }
+    }
 }

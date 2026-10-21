@@ -760,7 +760,7 @@ pub(crate) fn state_hash(app: &PhotocraftApp, input: Option<u64>) -> u64 {
     }
     let ui = &app.ui;
     (&ui.recent_files, &ui.workspace, ui.palette_open, ui.transform.is_some(), ui.text_edit.is_some(), ui.dialogs.len()).hash(&mut h);
-    (app.discard.is_some(), app.camera_raw.is_some()).hash(&mut h);
+    (app.discard.is_some(), crate::camera_raw_ui::blocks_editor(app)).hash(&mut h);
     serde_json::to_string(&(&ui.panels, &ui.extras, &ui.view, ui.theme, ui.tool)).unwrap_or_default().hash(&mut h);
     s.prefs().interface.language.hash(&mut h);
     h.finish()

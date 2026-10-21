@@ -4004,3 +4004,205 @@ cameraData	Lens	Lens
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU bağdaştırıcısı
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Derecelendirme henüz okunmadı
+	Unrated	Derecelendirilmemiş
+	Rating: {n} of 5	Derecelendirme: 5 üzerinden {n}
+	Rejected	Reddedildi
+	Not read yet	Henüz okunmadı
+	No adjustments	Ayarlama yok
+	Not available yet	Henüz kullanılamıyor
+	Open Images	Görüntüleri Aç
+	Fit ({zoom})	Uygun ({zoom})
+	Sort By:	Sıralama Ölçütü:
+	Open Order	Açılış Sırası
+	Star Rating	Yıldız Derecelendirmesi
+	Capture Date	Çekim Tarihi
+	Color Label	Renk Etiketi
+	Rated	Derecelendirilmiş
+	{n} hidden	{n} gizli
+	{n} hidden, {m} selected	{n} gizli, {m} seçili
+	Shown; hidden by filter	Gösteriliyor; filtreyle gizlendi
+	Workflow	İş Akışı
+	Generative AI	Üretken Yapay Zekâ
+	Long-session recovery	Uzun Oturum Kurtarma
+	Camera Raw Preferences	Camera Raw Tercihleri
+	All photos	Tüm fotoğraflar
+	Any	Herhangi biri
+	Any colour	Herhangi bir renk
+	Blue — Review	Mavi — İncelenecek
+	Blue — Review (9)	Mavi — İncelenecek (9)
+	Cancelling before publication…	Dosya yazılmadan önce iptal ediliyor…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Camera Raw'da film şeridi boyutunu, yönünü ve ızgara görünümünü değiştirin. Bu görüntüleme seçimleri fotoğrafları düzenlemez.
+	Changes not yet saved to XMP	Değişiklikler henüz XMP'ye kaydedilmedi
+	Clear filters	Filtreleri temizle
+	Colour label	Renk etiketi
+	Destination folder	Hedef klasör
+	Green — Approved	Yeşil — Onaylandı
+	Green — Approved (8)	Yeşil — Onaylandı (8)
+	JPEG quality	JPEG kalitesi
+	Live save is planned for a later release.	Canlı kaydetme daha sonraki bir sürüm için planlanıyor.
+	Live save — Planned	Canlı kaydetme — Planlandı
+	Mark	İşaretle
+	Marked	İşaretli
+	Marked and unmarked	İşaretli ve işaretsiz
+	No Label	Etiket Yok
+	No photos match	Eşleşen fotoğraf yok
+	Other label	Diğer etiket
+	Photo actions	Fotoğraf işlemleri
+	Photograph	Fotoğraf
+	Purple — To Do	Mor — Yapılacak
+	Purple — To Do (Ctrl+Shift+0)	Mor — Yapılacak (Ctrl+Shift+0)
+	Rating	Derecelendirme
+	Red — Select	Kırmızı — Seçilen
+	Red — Select (6)	Kırmızı — Seçilen (6)
+	Remove…	Oturumdan çıkar…
+	Replace existing JPEG?	Mevcut JPEG değiştirilsin mi?
+	Return to photo preview	Fotoğraf önizlemesine dön
+	Save JPEG	JPEG kaydet
+	Save JPEG:	JPEG kaydet:
+	Save this photo as JPEG	Bu fotoğrafı JPEG olarak kaydet
+	Saving JPEG	JPEG kaydediliyor
+	Saving mode: Cache saving	Kaydetme modu: Önbelleğe kaydetme
+	Show grid	Izgarayı göster
+	Show hidden photos	Gizli fotoğrafları göster
+	Unmark	İşareti kaldır
+	Unmarked	İşaretsiz
+	Unrated (0)	Derecelendirilmemiş (0)
+	Uses the settings captured when Save was chosen.	Kaydet seçildiğinde kaydedilen ayarları kullanır.
+	Yellow — Second	Sarı — İkinci tercih
+	Yellow — Second (7)	Sarı — İkinci tercih (7)
+	hidden	gizli
+	selected photos	seçili fotoğraf
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Çalışırken Camera Raw değişiklikleriniz kurtarma için kaydedilir. Değişiklikleri fotoğrafların XMP yardımcı dosyalarına kaydetmek için Bitti'yi seçin.
+	A recovered photograph has no retained source binding.	Kurtarılan fotoğrafın saklanmış kaynak bağlantısı yok.
+	Applies the same value to every selected photograph. Other settings remain independent.	Her seçili fotoğrafa aynı değeri uygular. Diğer ayarlar her fotoğrafa özgü kalır.
+	Back to editing	Düzenlemeye dön
+	Camera Raw recovery details	Camera Raw kurtarma ayrıntıları
+	Camera Raw recovery needs attention	Camera Raw kurtarma işlemi dikkat gerektiriyor
+	Camera Raw session	Camera Raw oturumu
+	Choose how to leave this visit's changes.	Bu açılışta yapılan değişikliklerin nasıl ele alınacağını seçin.
+	Close Camera Raw session	Camera Raw oturumunu kapat
+	Close details	Ayrıntıları kapat
+	Discard this photo's changes and remove	Bu fotoğrafın değişikliklerini at ve oturumdan çıkar
+	Discard this visit's changes and close	Bu açılıştaki değişiklikleri at ve kapat
+	Finish Camera Raw session	Camera Raw oturumunu bitir
+	Keep editing	Düzenlemeye devam et
+	Keep in recovery and close	Kurtarma için sakla ve kapat
+	Keep in session	Oturumda tut
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Şu anda önizlenebilecek fotoğraf yok. Kurtarma ayrıntıları çözümlenmemiş çalışmaları saklar.
+	Open from files	Dosyalardan aç
+	Original NEF files remain unchanged.	Özgün NEF dosyaları değişmeden kalır.
+	Remove photograph from session	Fotoğrafı oturumdan çıkar
+	Reset selected	Seçilenleri sıfırla
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Özgün dosyayı kayıtlı yoluna geri koyun, ardından Kurtarma kaydını yeniden dene'yi seçin. İçeriği veya kimliği değişmiş bir dosya özgün kaynak olarak kabul edilemez.
+	Resume saved session	Kaydedilen oturumu sürdür
+	Retry recovery save	Kurtarma kaydını yeniden dene
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Bitirmeden önce kullanılamayan dosyaları, kesilen içe aktarmaları ve kurtarma iletilerini inceleyin.
+	Save XMP and close	XMP kaydet ve kapat
+	Save XMP and remove	XMP kaydet ve oturumdan çıkar
+	Saved Camera Raw sessions	Kaydedilen Camera Raw oturumları
+	Set value	Değer ayarla
+	Set value for selected photos	Seçili fotoğraflar için değer ayarla
+	Set value…	Değer ayarla…
+	Show recovery details	Kurtarma ayrıntılarını göster
+	Skip removes this unfinished import from the current request. You can open the file again later.	Atlama, bu tamamlanmamış içe aktarmayı mevcut istekten kaldırır. Dosyayı daha sonra yeniden açabilirsiniz.
+	Skip unfinished import	Tamamlanmamış içe aktarmayı atla
+	Synchronise selected	Seçilenleri eşitle
+	This changes session membership. Hide and filters keep photographs in the session.	Bu işlem oturumdaki fotoğrafları değiştirir. Gizleme ve filtreler fotoğrafları oturumda tutar.
+	Undo group edit	Grup düzenlemesini geri al
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw, JPEG ve TIFF için XMP yan dosyaları kaydeder; özgün görüntü dosyaları değişmeden kalır.
+	Disable Camera Raw support	Camera Raw desteğini devre dışı bırak
+	JPEG and TIFF Handling	JPEG ve TIFF İşleme
+	JPEG handling	JPEG işleme
+	Layered TIFF files open in the editor with their layers preserved.	Katmanlı TIFF dosyaları, katmanları korunarak düzenleyicide açılır.
+	Open all supported files	Desteklenen tüm dosyaları aç
+	Open files with Camera Raw settings	Camera Raw ayarları olan dosyaları aç
+	Original image files remain unchanged.	Özgün görüntü dosyaları değişmeden kalır.
+	Recovery details	Kurtarma ayrıntıları
+	Save XMP and keep editing	XMP'yi kaydet ve düzenlemeye devam et
+	Save edits	Düzenlemeleri kaydet
+	Saved edits to XMP; Camera Raw remains open	Düzenlemeler XMP'ye kaydedildi; Camera Raw açık kalır
+	TIFF handling	TIFF işleme
+	Existing settings	Mevcut ayarlar
+	Jpeg handling	JPEG işleme
+	Tiff handling	TIFF işleme
+	Open in Camera Raw…	Camera raw'da aç…
+	Discard edits	Düzenlemeleri at
+	Cache	Önbellek
+	Recovery mode	Kurtarma modu
+	Show recovery progress	Kurtarma ilerlemesini göster
+	PhotoCraft default — recovery off	PhotoCraft varsayılanı — kurtarma kapalı
+	Long-session recovery — cache saving	Uzun oturum kurtarma — önbelleğe kaydetme
+	Opening photographs	Fotoğraflar açılıyor
+	Preparing Camera Raw previews…	Camera Raw önizlemeleri hazırlanıyor…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Bu oturumdaki düzenlemeleri atın. Önceden kaydedilmiş XMP dosyaları değişmez.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Bitti varsayılan olarak XMP'yi kaydeder ve kapatır. Özgün fotoğraflar değişmez.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Kurtarma varsayılan olarak kapalıdır. Uzun bir düzenleme oturumunu arka planda korumak için önbelleğe kaydetmeyi açın.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Kurtarmayı kapatmak bu oturumu kaydedilmiş kurtarma verilerinden kaldırır. Açık düzenlemeler Bitti'yi seçene veya onları atana kadar bellekte kalır.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Önbelleğe kaydetme açıkken Camera Raw değişiklikleri kurtarma için arka planda kaydedilir. Bitti, ayarları XMP yardımcı dosyalarına kaydeder.
+	Discard edits?	Düzenlemeleri at?
+	Show recovery progress in Camera Raw	Camera Raw — Kurtarma ilerlemesini göster
+	Long-session recovery…	Uzun Oturum Kurtarma…
+	Recovery details…	Kurtarma ayrıntıları…
+	Keep in recovery and close…	Kurtarma için sakla ve kapat…
+	Live saving — planned	Canlı kaydetme — Planlandı
+	Discard unsaved edits?	Kaydedilmemiş düzenlemeler atılsın mı?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Bu Camera Raw oturumunda henüz XMP'ye kaydedilmemiş tüm düzenlemeleri atın ve ardından kapatın. Önceden kaydedilmiş XMP dosyaları değişmez.
+	Discard unsaved edits and close	Kaydedilmemiş düzenlemeleri at ve kapat
+	Save and open images	Kaydet ve görüntüleri aç
+	Save XMP and open images	XMP kaydet ve görüntüleri aç
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Kaydettikten sonra bu oturumdaki tüm fotoğraflar, filtre veya seçim ne olursa olsun, açıldıkları sırayla düzenleyicide açılır.
+	Recover Camera Raw session	Camera Raw oturumunu kurtar
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Önceki bir Camera Raw oturumu normal şekilde tamamlanmadı. Düzenlemelerinin hangi sürümünün açılacağını seçin.
+	Session	Oturum
+	{count} photos · last checkpoint {time}	{count} fotoğraf · son kontrol noktası: {time}
+	{count} photos have edits not saved to XMP	{count} fotoğrafta XMP'ye kaydedilmemiş düzenlemeler var
+	The newest checkpoint is unusable; the one from {time} is used instead.	En yeni kontrol noktası kullanılamıyor; bunun yerine {time} tarihli olan kullanılıyor.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Bu oturumdaki bir XMP kaydetme işlemi tamamlanmadı. Başka bir şey yazılmadan önce bu işlemin dosyaları yeniden denetlenir.
+	Show file details	Dosya ayrıntılarını göster
+	Hide file details	Dosya ayrıntılarını gizle
+	Checking files…	Dosyalar denetleniyor…
+	Recovered edits	Kurtarılan düzenlemeler
+	Cache version	Önbellek sürümü
+	Saved edits	Kaydedilen düzenlemeler
+	XMP sidecar version	XMP yardımcı dosyası sürümü
+	Resume recovered edits	Kurtarılan düzenlemeleri sürdür
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Düzenlemeleri en son kullanılabilir PhotoCraft kurtarma kontrol noktasından geri yükleyin.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	PhotoCraft beklenmedik şekilde kapandıysa veya bir Görüntüleri Aç, Bitti ya da İptal işlemi yarıda kesildiyse bunu kullanın. XMP yardımcı dosyasına hiç kaydedilmemiş çalışmaları geri yükleyebilir. Son onaylanan kontrol noktasından sonraki değişiklikler kullanılamayabilir.
+	Open saved XMP edits	Kaydedilen XMP düzenlemelerini aç
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Özgün fotoğrafları, XMP dosyalarında şu anda kayıtlı olan desteklenen düzenlemelerle yeniden açın.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Kaydedilmemiş kurtarma kontrol noktası yerine yardımcı dosyalarda kayıtlı sürümleri kullanmak için bunu seçin. Her fotoğrafın XMP dosyası olmayabilir; dosyası olmayanlar mevcut dosya ayarlarını veya varsayılan ayarları kullanır. Bu, önbellekteki kaydedilmemiş değişiklikleri geri yüklemez.
+	Open other files	Diğer dosyaları aç
+	Discard recovered copy…	Kurtarılan kopyayı at…
+	Discard recovered copy?	Kurtarılan kopya atılsın mı?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Bu işlem, bu oturumun kurtarma kontrol noktasını kalıcı olarak kaldırır. Kaydedilmiş XMP dosyaları ve özgün fotoğraflar değiştirilmez.
+	Discard recovered copy	Kurtarılan kopyayı at
+	Keep recovered copy	Kurtarılan kopyayı sakla
+	{n} of {total} photos are missing or changed	{total} fotoğraftan {n} tanesi eksik veya değişmiş
+	{n} photos have no XMP file	{n} fotoğrafın XMP dosyası yok
+	{n} XMP files changed after the checkpoint	{n} XMP dosyası kontrol noktasından sonra değişti
+	No usable checkpoint can be opened.	Açılabilecek kullanılabilir bir kontrol noktası yok.
+	None of the photographs is available.	Fotoğrafların hiçbiri kullanılamıyor.
+	Photo available	Fotoğraf kullanılabilir
+	Photo missing or changed	Fotoğraf eksik veya değişmiş
+	No XMP file	XMP dosyası yok
+	XMP as at the checkpoint	XMP kontrol noktasındaki haliyle
+	XMP changed after the checkpoint	XMP kontrol noktasından sonra değişti
+	XMP unreadable	XMP okunamıyor
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Bazı XMP dosyaları kontrol noktasından sonra, örneğin Lightroom'da, değiştirildi. Seçim yapmadan önce bunları inceleyin.
+	Camera Raw Preferences…	Camera Raw Tercihleri…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Kurtarma yalnızca normal şekilde tamamlanmayan bir oturumdan sonra sunulur. Bitti, Görüntüleri Aç ve İptal kurtarılacak bir şey bırakmaz.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Bitti ve Görüntüleri Aç, desteklenen düzenlemeleri önce XMP yardımcı dosyalarına kaydeder. Özgün fotoğraflar değişmez.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Kurtarmayı kapatmak bu oturumu kaydedilmiş kurtarma verilerinden kaldırır. Açık düzenlemeler Bitti, Görüntüleri Aç veya İptal'i seçene kadar bellekte kalır.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Önbelleğe kaydetme açıkken Camera Raw değişiklikleri kurtarma için arka planda kaydedilir. Bitti ve Görüntüleri Aç, ayarları XMP yardımcı dosyalarına kaydeder.
+	Saving XMP before opening…	Açmadan önce XMP kaydediliyor…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Bu ziyaretteki değişiklikleri at ve kapat. Daha önce kurtarılan taslaklar ve bu ziyarette kaydedilen XMP dosyaları korunur.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Kurtarmayı kapatmak otomatik kontrol noktalarını durdurur. Daha önce kurtarılan çalışma, siz tamamlayana veya kurtarma kopyasını atana kadar korunur.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Kurtarma, bir kesintiden sonra veya çalışmayı kurtarma için saklamayı seçtiğinizde sunulur. Bitti ve Görüntüleri Aç, tamamlanan oturumları kaldırır. Devam ettirilen bir oturumun değişikliklerini atmak, daha önce kurtarılan çalışmayı korur.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Bunu kurtarma için saklanan çalışmalarda, PhotoCraft beklenmedik şekilde kapandıktan sonra veya Görüntüleri Aç, Bitti ya da İptal işlemi kesintiye uğradığında kullanın. Hiçbir zaman XMP yardımcı dosyasına kaydedilmemiş çalışmaları geri getirebilir. Son onaylanan kontrol noktasından sonraki değişiklikler kullanılamayabilir.
+	Sync Settings	Ayarları eşitle
+	Reset Settings	Ayarları sıfırla
+	Copy settings from {photo} to the selected photos.	{photo} fotoğrafının ayarlarını seçilen fotoğraflara kopyala.
+	Select the active photograph to sync its settings.	Ayarlarını eşitlemek için etkin fotoğrafı seçin.

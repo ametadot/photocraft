@@ -3986,3 +3986,209 @@ curves	Smooth	Згладити
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Адаптер GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Рейтинг ще не прочитано
+	Unrated	Без рейтингу
+	Rating: {n} of 5	Рейтинг: {n} з 5
+	Rejected	Відхилено
+	Not read yet	Ще не прочитано
+	No adjustments	Без корекції
+	Not available yet	Поки недоступно
+	Open Images	Відкрити зображення
+	Fit ({zoom})	Умістити ({zoom})
+	Sort By:	Сортувати за:
+	Open Order	Порядок відкриття
+	Star Rating	Рейтинг (зірки)
+	Capture Date	Дата зйомки
+	Color Label	Кольорова мітка
+	Rated	З рейтингом
+	{n} hidden	Приховано: {n}
+	{n} hidden, {m} selected	Приховано: {n}, вибрано: {m}
+	Shown; hidden by filter	Показано; приховано фільтром
+	Defaults	Типові значення
+	Workflow	Робочий процес
+	Generative AI	Генеративний ШІ
+	Long-session recovery	Відновлення тривалих сеансів
+	Camera Raw Preferences	Налаштування Camera Raw
+	All photos	Усі фотографії
+	Any	Будь-яке
+	Any colour	Будь-який колір
+	Back	Назад
+	Blue — Review	Синій — На перевірку
+	Blue — Review (9)	Синій — На перевірку (9)
+	Cancelling before publication…	Скасування до запису файлу…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Змінюйте розмір і орієнтацію стрічки та вигляд сітки в Camera Raw. Ці параметри відображення не редагують фотографії.
+	Changes not yet saved to XMP	Зміни ще не збережено в XMP
+	Clear filters	Скинути фільтри
+	Colour label	Кольорова мітка
+	Destination folder	Цільова папка
+	Filename	Ім’я файлу
+	Green — Approved	Зелений — Схвалено
+	Green — Approved (8)	Зелений — Схвалено (8)
+	JPEG quality	Якість JPEG
+	Live save is planned for a later release.	Збереження в реальному часі заплановано для майбутнього випуску.
+	Live save — Planned	Збереження в реальному часі — Заплановано
+	Mark	Позначити
+	Marked	Позначено
+	Marked and unmarked	Позначені й непозначені
+	No Label	Без мітки
+	No photos match	Немає відповідних фотографій
+	Other label	Інша мітка
+	Photo actions	Дії з фотографією
+	Photograph	Фотографія
+	Purple — To Do	Фіолетовий — До виконання
+	Purple — To Do (Ctrl+Shift+0)	Фіолетовий — До виконання (Ctrl+Shift+0)
+	Rating	Оцінка
+	Red — Select	Червоний — Відібрано
+	Red — Select (6)	Червоний — Відібрано (6)
+	Remove…	Прибрати із сеансу…
+	Replace existing JPEG?	Замінити наявний JPEG?
+	Return to photo preview	Повернутися до перегляду фотографії
+	Save JPEG	Зберегти JPEG
+	Save JPEG:	Зберегти JPEG:
+	Save this photo as JPEG	Зберегти цю фотографію як JPEG
+	Saving JPEG	Збереження JPEG
+	Saving mode: Cache saving	Режим збереження: збереження в кеш
+	Show grid	Показати сітку
+	Show hidden photos	Показати приховані фотографії
+	Unmark	Зняти позначку
+	Unmarked	Без позначки
+	Unrated (0)	Без оцінки (0)
+	Uses the settings captured when Save was chosen.	Використовуються параметри, зафіксовані під час вибору «Зберегти».
+	Yellow — Second	Жовтий — Другий вибір
+	Yellow — Second (7)	Жовтий — Другий вибір (7)
+	hidden	приховано
+	selected photos	вибраних фотографій
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Під час роботи зміни Camera Raw зберігаються для відновлення. Виберіть «Готово», щоб зберегти зміни в супровідних файлах XMP фотографій.
+	A recovered photograph has no retained source binding.	Відновлена фотографія не має збереженої прив’язки до вихідного файлу.
+	Applies the same value to every selected photograph. Other settings remain independent.	Застосовує однакове значення до всіх вибраних фотографій. Решта параметрів залишаються індивідуальними.
+	Back to editing	Повернутися до редагування
+	Camera Raw recovery details	Відомості про відновлення Camera Raw
+	Camera Raw recovery needs attention	Відновлення Camera Raw потребує уваги
+	Camera Raw session	Сеанс Camera Raw
+	Choose how to leave this visit's changes.	Виберіть, що зробити зі змінами після цього відкриття.
+	Close Camera Raw session	Закрити сеанс Camera Raw
+	Close details	Закрити відомості
+	Discard this photo's changes and remove	Відкинути зміни цієї фотографії та прибрати її
+	Discard this visit's changes and close	Відкинути зміни після цього відкриття та закрити
+	Finish Camera Raw session	Завершити сеанс Camera Raw
+	Keep editing	Продовжити редагування
+	Keep in recovery and close	Зберегти для відновлення та закрити
+	Keep in session	Залишити в сеансі
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Наразі немає фотографій для перегляду. Відомості про відновлення зберігають усю невирішену роботу.
+	Open from files	Відкрити з файлів
+	Original NEF files remain unchanged.	Вихідні файли NEF залишаються без змін.
+	Remove photograph from session	Прибрати фотографію із сеансу
+	Reset selected	Скинути вибрані
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Поверніть вихідний файл за записаним шляхом, потім виберіть «Повторити збереження для відновлення». Файл зі зміненим вмістом або ідентифікатором не можна прийняти за вихідний.
+	Resume saved session	Продовжити збережений сеанс
+	Retry recovery save	Повторити збереження для відновлення
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Перед завершенням перевірте недоступні файли, перерваний імпорт і повідомлення про відновлення.
+	Save XMP and close	Зберегти XMP та закрити
+	Save XMP and remove	Зберегти XMP та прибрати
+	Saved Camera Raw sessions	Збережені сеанси Camera Raw
+	Set value	Задати значення
+	Set value for selected photos	Задати значення для вибраних фотографій
+	Set value…	Задати значення…
+	Show recovery details	Показати відомості про відновлення
+	Skip removes this unfinished import from the current request. You can open the file again later.	Пропуск прибирає цей незавершений імпорт із поточного запиту. Файл можна відкрити знову пізніше.
+	Skip unfinished import	Пропустити незавершений імпорт
+	Synchronise selected	Синхронізувати вибрані
+	This changes session membership. Hide and filters keep photographs in the session.	Це змінює склад сеансу. Приховування та фільтри залишають фотографії в сеансі.
+	Undo group edit	Скасувати групову зміну
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw зберігає налаштування JPEG і TIFF у супровідних файлах XMP; вихідні файли зображень залишаються незмінними.
+	Disable Camera Raw support	Вимкнути підтримку Camera Raw
+	JPEG and TIFF Handling	Обробка JPEG і TIFF
+	JPEG handling	Обробка JPEG
+	Layered TIFF files open in the editor with their layers preserved.	Файли TIFF із шарами відкриваються в редакторі зі збереженням шарів.
+	Open all supported files	Відкривати всі підтримувані файли
+	Open files with Camera Raw settings	Відкривати файли з налаштуваннями Camera Raw
+	Original image files remain unchanged.	Вихідні файли зображень залишаються незмінними.
+	Recovery details	Відомості про відновлення
+	Save XMP and keep editing	Зберегти XMP і продовжити редагування
+	Save edits	Зберегти зміни
+	Saved edits to XMP; Camera Raw remains open	Зміни збережено в XMP; Camera Raw залишається відкритим
+	TIFF handling	Обробка TIFF
+	Disabled	Вимкнено
+	Existing settings	Наявні налаштування
+	Jpeg handling	Обробка JPEG
+	Tiff handling	Обробка TIFF
+	Open in Camera Raw…	Відкривати в Camera Raw…
+	Discard edits	Відкинути зміни
+	Cache	Кеш
+	Recovery mode	Режим відновлення
+	Show recovery progress	Показувати перебіг збереження для відновлення
+	PhotoCraft default — recovery off	Типово в PhotoCraft — відновлення вимкнено
+	Long-session recovery — cache saving	Відновлення тривалих сеансів — збереження в кеш
+	Opening photographs	Відкриття фотографій
+	Preparing Camera Raw previews…	Підготовка попереднього перегляду Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Відкинути зміни поточного сеансу. Раніше збережені файли XMP залишаться без змін.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Типово «Готово» зберігає XMP і закриває вікно. Оригінальні фотографії не змінюються.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Відновлення типово вимкнено. Увімкніть збереження в кеш для фонового захисту тривалого сеансу редагування.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Вимкнення відновлення вилучає цей сеанс зі збережених даних відновлення. Відкриті зміни залишаються в пам’яті до вибору «Готово» або їх відкидання.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Коли кеш увімкнено, зміни Camera Raw зберігаються у фоні для відновлення. «Готово» записує налаштування в супровідні файли XMP.
+	Discard edits?	Відкинути зміни?
+	Show recovery progress in Camera Raw	Camera Raw — Показувати перебіг збереження для відновлення
+	Long-session recovery…	Відновлення тривалих сеансів…
+	Recovery details…	Відомості про відновлення…
+	Keep in recovery and close…	Зберегти для відновлення та закрити…
+	Live saving — planned	Збереження в реальному часі — Заплановано
+	Discard unsaved edits?	Відкинути незбережені зміни?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Відкинути всі зміни цього сеансу Camera Raw, ще не збережені в XMP, і закрити вікно. Раніше збережені файли XMP залишаться без змін.
+	Discard unsaved edits and close	Відкинути незбережені зміни та закрити
+	Save and open images	Зберегти та відкрити зображення
+	Save XMP and open images	Зберегти XMP та відкрити зображення
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Після збереження всі фотографії цього сеансу відкриваються в редакторі в тому порядку, у якому їх було відкрито, незалежно від фільтра чи вибору.
+	Recover Camera Raw session	Відновити сеанс Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Попередній сеанс Camera Raw не було завершено штатно. Виберіть, яку версію його змін відкрити.
+	Session	Сеанс
+	{count} photos · last checkpoint {time}	Фотографій: {count} · остання контрольна точка: {time}
+	{count} photos have edits not saved to XMP	Фотографій зі змінами, не збереженими в XMP: {count}
+	The newest checkpoint is unusable; the one from {time} is used instead.	Найновіша контрольна точка непридатна; натомість використовується точка від {time}.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Збереження XMP у цьому сеансі не завершилося. Його файли буде перевірено повторно, перш ніж буде записано щось інше.
+	Show file details	Показати відомості про файли
+	Hide file details	Приховати відомості про файли
+	Checking files…	Перевірка файлів…
+	Recovered edits	Відновлені зміни
+	Cache version	Версія з кешу
+	Saved edits	Збережені зміни
+	XMP sidecar version	Версія із супровідного файлу XMP
+	Resume recovered edits	Продовжити з відновленими змінами
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Відновити зміни з останньої придатної контрольної точки відновлення PhotoCraft.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Використовуйте цей варіант, якщо PhotoCraft неочікувано закрився або було перервано операцію «Відкрити зображення», «Готово» чи «Скасувати». Він може відновити роботу, яку так і не було збережено в супровідному файлі XMP. Зміни після останньої підтвердженої контрольної точки можуть бути недоступні.
+	Open saved XMP edits	Відкрити збережені зміни XMP
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Повторно відкрити оригінальні фотографії з підтримуваними змінами, які зараз збережено в їхніх файлах XMP.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Виберіть цей варіант, щоб використати збережені версії із супровідних файлів замість незбереженої контрольної точки відновлення. Не кожна фотографія може мати файл XMP; фотографії без нього використовують свої поточні налаштування файлу або типові налаштування. Це не відновлює незбережені зміни з кешу.
+	Open other files	Відкрити інші файли
+	Discard recovered copy…	Відкинути відновлену копію…
+	Discard recovered copy?	Відкинути відновлену копію?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Це остаточно видаляє контрольну точку відновлення цього сеансу. Збережені файли XMP та оригінальні фотографії не змінюються.
+	Discard recovered copy	Відкинути відновлену копію
+	Keep recovered copy	Залишити відновлену копію
+	{n} of {total} photos are missing or changed	Відсутні або змінені фотографії: {n} з {total}
+	{n} photos have no XMP file	Фотографій без файлу XMP: {n}
+	{n} XMP files changed after the checkpoint	Файлів XMP, змінених після контрольної точки: {n}
+	No usable checkpoint can be opened.	Немає придатної для відкриття контрольної точки.
+	None of the photographs is available.	Немає доступних фотографій.
+	Photo available	Фотографія доступна
+	Photo missing or changed	Фотографія відсутня або змінена
+	No XMP file	Немає файлу XMP
+	XMP as at the checkpoint	XMP як у контрольній точці
+	XMP changed after the checkpoint	XMP змінено після контрольної точки
+	XMP unreadable	Не вдається прочитати XMP
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Деякі файли XMP змінилися після контрольної точки, наприклад у Lightroom. Перегляньте їх, перш ніж вибирати.
+	Camera Raw Preferences…	Налаштування Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Відновлення пропонується лише після сеансу, який не було завершено штатно. Після «Готово», «Відкрити зображення» і «Скасувати» відновлювати нічого.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	«Готово» і «Відкрити зображення» спершу зберігають підтримувані зміни в супровідних файлах XMP. Оригінальні фотографії не змінюються.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Вимкнення відновлення вилучає цей сеанс зі збережених даних відновлення. Відкриті зміни залишаються в пам’яті до вибору «Готово», «Відкрити зображення» або «Скасувати».
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Коли кеш увімкнено, зміни Camera Raw зберігаються у фоні для відновлення. «Готово» і «Відкрити зображення» записують налаштування в супровідні файли XMP.
+	Saving XMP before opening…	Збереження XMP перед відкриттям…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Відкинути зміни цього відвідування й закрити. Попередньо відновлені чернетки та файли XMP, збережені під час цього відвідування, залишаться.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Вимкнення відновлення зупиняє автоматичне створення контрольних точок. Попередньо відновлена робота зберігається, доки ви не завершите її або не відкинете її копію для відновлення.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Відновлення пропонується після переривання або коли ви вирішуєте зберегти роботу для відновлення. Команди «Готово» та «Відкрити зображення» видаляють завершені сеанси. Відкидання змін поновленого сеансу зберігає попередньо відновлену роботу.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Використовуйте цей варіант для роботи, збереженої для відновлення, після неочікуваного закриття PhotoCraft або переривання дії «Відкрити зображення», «Готово» чи «Скасувати». Він може відновити роботу, яку ніколи не зберігали в супровідному файлі XMP. Зміни після останньої підтвердженої контрольної точки можуть бути недоступні.
+	Sync Settings	Синхронізувати налаштування
+	Reset Settings	Скинути налаштування
+	Copy settings from {photo} to the selected photos.	Скопіювати налаштування з фотографії {photo} до вибраних фотографій.
+	Select the active photograph to sync its settings.	Виберіть активну фотографію, щоб синхронізувати її налаштування.

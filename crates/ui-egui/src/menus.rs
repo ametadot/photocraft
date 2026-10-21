@@ -10,7 +10,7 @@ use crate::state::DialogKind;
 /// commands also usable through shortcuts. Camera Raw blocks menu commands entirely, and a pending
 /// crop blocks the commands Photoshop greys during one (`crop_ui::blocks`).
 pub(crate) fn modal_allows(app: &PhotocraftApp, id: &str) -> bool {
-    if app.camera_raw.is_some() || crate::crop_ui::blocks(app, id) {
+    if crate::camera_raw_ui::blocks_editor(app) || crate::crop_ui::blocks(app, id) {
         return false;
     }
     (app.ui.dialogs.is_empty() && app.discard.is_none()) || crate::shortcuts::NAV_COMMANDS.contains(&id)
@@ -217,6 +217,18 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
             let fields = app.new_document_fields();
             let d = app.ui.open_dialog(DialogKind::NewDocument, fields);
             Ok(json!({"dialog": d}))
+        }
+        "file.openCameraRaw" => {
+            // An automated caller must use its capability-scoped document route;
+            // this interactive command must never open a privileged native picker.
+            if app.automation_input {
+                return Err("automated Camera Raw opening requires a capability-scoped document route".into());
+            }
+            if let Some(path) = params.get("path").and_then(Value::as_str) {
+                app.open_path_camera_raw(path).map(|warnings| json!({"warnings": warnings}))
+            } else {
+                app.open_dialog_file_mode(true)
+            }
         }
         "file.open" => {
             if let Some(path) = params.get("path").and_then(Value::as_str) {
@@ -704,7 +716,7 @@ pub fn is_enabled(app: &PhotocraftApp, id: &str) -> bool {
     match id {
         "window.panel.activate" | "window.panel.layout" => true,
         "window.panel.group" | "window.panel.move" | "window.panel.float" | "window.panel.dock" | "window.panel.close" => !app.session.prefs().workspace_locked,
-        "file.open" | "file.exit" | "file.clearRecent" | "file.removeRecent" | "help.about" | "help.systemInfo" | "edit.search" => true,
+        "file.open" | "file.openCameraRaw" | "file.exit" | "file.clearRecent" | "file.removeRecent" | "help.about" | "help.systemInfo" | "edit.search" => true,
         i if i.starts_with("file.openRecent.") => true,
         i if i.starts_with(DOCUMENT_ITEM) => true,
         i if crate::links::url_for(i).is_some() => true,

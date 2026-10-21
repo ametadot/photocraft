@@ -538,10 +538,11 @@ impl CameraRaw {
         [self.curve_highlights, self.curve_lights, self.curve_darks, self.curve_shadows].iter().all(|v| *v == 0.0)
             && [&self.point_curve, &self.point_curve_red, &self.point_curve_green, &self.point_curve_blue].iter().all(|c| is_linear(c))
     }
-    /// True when every control is neutral (the filter is an identity).
-    pub fn is_identity(&self) -> bool {
-        self.wb_neutral()
-            && self.tone_neutral()
+    /// All stages after white balance/exposure are inactive. In this case an SDR
+    /// clamp can be completed with the white-balance pass instead of a second
+    /// full-image walk; no later stage can observe the unclamped intermediate.
+    fn after_wb_neutral(&self) -> bool {
+        self.tone_neutral()
             && self.dehaze == 0.0
             && self.vibrance == 0.0
             && self.saturation == 0.0
@@ -553,6 +554,11 @@ impl CameraRaw {
             && self.noise_color == 0.0
             && self.grain_amount == 0.0
             && self.vignette_amount == 0.0
+    }
+
+    /// True when every control is neutral (the filter is an identity).
+    pub fn is_identity(&self) -> bool {
+        self.wb_neutral() && self.after_wb_neutral()
     }
 }
 
@@ -571,6 +577,20 @@ pub fn white_balance_gains(temperature: f32, tint: f32) -> [f32; 3] {
     [1.0 + 0.35 * t, 1.0 - 0.25 * tn, 1.0 - 0.35 * t]
 }
 
+/// The white-balance arithmetic is identical for both paths. The compile-time
+/// flag only places the existing final SDR clamp directly after the result when
+/// there are no later stages. Native rows stay parallel; wasm rows stay serial.
+fn white_balance_pass<const CLAMP_SDR: bool>(px: &mut [[f32; 4]], w: usize, gains: [f32; 3]) {
+    par_rows(px, w, 1, |_, row| {
+        for q in row.iter_mut() {
+            for c in 0..3 {
+                let value = linear_to_srgb((srgb_to_linear(q[c]) * gains[c]).max(0.0));
+                q[c] = if CLAMP_SDR { value.clamp(0.0, 1.0) } else { value };
+            }
+        }
+    });
+}
+
 /// Runs the Camera Raw pipeline on straight RGBA pixels (`w × h`, display-encoded RGB).
 /// `float` keeps values above 1 (32-bit documents).
 pub fn develop(px: &mut [[f32; 4]], w: usize, h: usize, p: &CameraRaw, float: bool) {
@@ -579,18 +599,19 @@ pub fn develop(px: &mut [[f32; 4]], w: usize, h: usize, p: &CameraRaw, float: bo
     }
     let ps = p.pixel_scale.clamp(0.01, 1.0);
     let long = w.max(h) as f32;
+    // Fuse the terminal SDR clamp only when every stage after WB is inactive.
+    // Float documents still retain their overrange values and original path.
+    let finish_in_wb = !float && p.after_wb_neutral();
     // 1. White balance + exposure in linear light.
     if !p.wb_neutral() {
         let mut g = white_balance_gains(p.temperature, p.tint);
         let norm = luma(g);
         g = g.map(|v| v / norm * 2f32.powf(p.exposure));
-        par_rows(px, w, 1, |_, row| {
-            for q in row.iter_mut() {
-                for c in 0..3 {
-                    q[c] = linear_to_srgb((srgb_to_linear(q[c]) * g[c]).max(0.0));
-                }
-            }
-        });
+        if finish_in_wb {
+            white_balance_pass::<true>(px, w, g);
+        } else {
+            white_balance_pass::<false>(px, w, g);
+        }
     }
     // 2. Dehaze.
     if p.dehaze != 0.0 {
@@ -750,7 +771,7 @@ pub fn develop(px: &mut [[f32; 4]], w: usize, h: usize, p: &CameraRaw, float: bo
             }
         });
     }
-    if !float {
+    if !float && !finish_in_wb {
         for q in px.iter_mut() {
             for c in 0..3 {
                 q[c] = q[c].clamp(0.0, 1.0);
@@ -1149,5 +1170,120 @@ mod tests {
         let mut a = vec![[2.0f32, 1.5, 0.5, 1.0]; 16];
         develop(&mut a, 4, 4, &CameraRaw { exposure: 0.5, ..Default::default() }, true);
         assert!(a[0][0] > 2.0);
+    }
+
+    // The exact pre-repair two-pass WB path: per-channel transform first, and a
+    // separate serial SDR clamp at the end. Keep it independent of the optimized
+    // helper so a reordered/omitted clamp cannot make both sides agree.
+    fn reference_white_balance(px: &mut [[f32; 4]], w: usize, p: &CameraRaw) {
+        let mut gains = white_balance_gains(p.temperature, p.tint);
+        let norm = luma(gains);
+        gains = gains.map(|v| v / norm * 2f32.powf(p.exposure));
+        par_rows(px, w, 1, |_, row| {
+            for q in row.iter_mut() {
+                for c in 0..3 {
+                    q[c] = linear_to_srgb((srgb_to_linear(q[c]) * gains[c]).max(0.0));
+                }
+            }
+        });
+    }
+
+    fn reference_sdr_clamp(px: &mut [[f32; 4]]) {
+        for q in px.iter_mut() {
+            for c in 0..3 {
+                q[c] = q[c].clamp(0.0, 1.0);
+            }
+        }
+    }
+
+    fn assert_pixel_bits_equal(got: &[[f32; 4]], expected: &[[f32; 4]]) {
+        assert_eq!(got.len(), expected.len());
+        for (index, (a, b)) in got.iter().zip(expected).enumerate() {
+            for c in 0..4 {
+                assert_eq!(a[c].to_bits(), b[c].to_bits(), "pixel {index} channel {c}");
+            }
+        }
+    }
+
+    #[test]
+    fn fused_white_balance_clamp_matches_original_two_pass_bits() {
+        // Tiny/odd rows and >64k pixels exercise serial-sized and native
+        // multi-worker workloads; wasm uses the same helper's serial fallback.
+        let sizes = [(1, 1), (3, 2), (17, 9), (128, 64), (257, 257)];
+        let variants = [
+            CameraRaw { exposure: 0.75, ..Default::default() },
+            CameraRaw { temperature: 38.0, tint: -27.0, ..Default::default() },
+            CameraRaw { exposure: -1.25, temperature: -40.0, tint: 19.0, encoding_gamma: 1.8, pixel_scale: 0.25, ..Default::default() },
+            CameraRaw { exposure: 0.25, encoding_gamma: 2.2, ..Default::default() },
+            CameraRaw { exposure: f32::INFINITY, ..Default::default() },
+            CameraRaw { temperature: f32::NAN, ..Default::default() },
+        ];
+        let samples = [
+            [0.0, 0.04045, 1.0, 0.0],
+            [0.1, 0.5, 0.8, 1.0],
+            [-0.25, 1.2, 2.0, 0.5],
+            [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -0.0],
+            [0.003_130_8, 0.040_449_99, f32::MIN_POSITIVE, f32::NAN],
+            [255.0 / 255.0, 32767.0 / 65535.0, 12345.0 / 65535.0, 2.0],
+        ];
+        for (w, h) in sizes {
+            let original: Vec<[f32; 4]> = (0..w * h).map(|i| samples[i % samples.len()]).collect();
+            for p in &variants {
+                assert!(p.after_wb_neutral());
+                assert!(!p.wb_neutral());
+                for float in [false, true] {
+                    let mut expected = original.clone();
+                    reference_white_balance(&mut expected, w, p);
+                    if !float {
+                        reference_sdr_clamp(&mut expected);
+                    }
+                    let mut actual = original.clone();
+                    develop(&mut actual, w, h, p, float);
+                    assert_pixel_bits_equal(&actual, &expected);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn white_balance_fusion_never_clamps_before_other_color_stages() {
+        let p = CameraRaw { exposure: 1.0, saturation: -100.0, encoding_gamma: 1.8, ..Default::default() };
+        assert!(!p.after_wb_neutral());
+        // HDR-range channels reveal an incorrectly early clamp: the luminance
+        // used by the subsequent saturation stage would be changed.
+        let original = vec![[0.8, 1.8, -0.2, 0.25], [1.2, 0.3, 0.1, 0.75]];
+        let mut expected = original.clone();
+        reference_white_balance(&mut expected, 2, &p);
+        for q in &mut expected {
+            let c = [q[0], q[1], q[2]];
+            let l = luma(c);
+            let (mx, mn) = (c[0].max(c[1]).max(c[2]), c[0].min(c[1]).min(c[2]));
+            let sat = if mx > 1e-6 { (mx - mn) / mx } else { 0.0 };
+            let hue = rgb_to_hsv(c)[0];
+            let skin = (1.0 - ((hue - 25.0).abs() / 25.0)).clamp(0.0, 1.0) * 0.5;
+            let k = 1.0 + p.saturation / 100.0 + p.vibrance / 100.0 * (1.0 - sat) * (1.0 - skin);
+            let result = c.map(|v| l + (v - l) * k.max(0.0));
+            q[..3].copy_from_slice(&result);
+        }
+        reference_sdr_clamp(&mut expected);
+        let mut actual = original;
+        develop(&mut actual, 2, 1, &p, false);
+        assert_pixel_bits_equal(&actual, &expected);
+    }
+
+    #[test]
+    fn white_balance_fusion_preserves_identity_and_alpha() {
+        let original = vec![[-0.5, 0.0, 2.0, -0.0], [0.5, 0.75, 1.0, f32::NAN]];
+        let mut identity = original.clone();
+        develop(&mut identity, 2, 1, &CameraRaw::default(), false);
+        assert_pixel_bits_equal(&identity, &original);
+        for gamma in [0.0, 1.8, 2.2] {
+            let p = CameraRaw { exposure: 0.5, encoding_gamma: gamma, ..Default::default() };
+            let mut edited = original.clone();
+            develop(&mut edited, 2, 1, &p, false);
+            for (a, b) in edited.iter().zip(&original) {
+                assert_eq!(a[3].to_bits(), b[3].to_bits());
+            }
+        }
     }
 }

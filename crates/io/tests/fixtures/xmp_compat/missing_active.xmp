@@ -1,0 +1,3 @@
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/" xmlns:crss="http://ns.adobe.com/camera-raw-saved-settings/1.0/">
+<rdf:Description><crss:SavedSettings><rdf:Bag><rdf:li><rdf:Description crss:Name="Historic"><crss:Parameters><rdf:Description crs:Exposure2012="3"/></crss:Parameters></rdf:Description></rdf:li></rdf:Bag></crss:SavedSettings></rdf:Description>
+</rdf:RDF>

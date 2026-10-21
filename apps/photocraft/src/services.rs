@@ -388,6 +388,9 @@ fn recovery_services(dir: Option<PathBuf>) -> Services {
     let store: SharedRecovery = Rc::new(RefCell::new(dir.map(RecoveryStore::new)));
     let (s1, s2, s4) = (store.clone(), store.clone(), store.clone());
     Services {
+        camera_raw_recovery_root: std::env::var_os("PHOTOCRAFT_CAMERA_RAW_RECOVERY_DIR")
+            .map(std::path::PathBuf::from)
+            .or_else(|| std::env::var_os("LOCALAPPDATA").map(|root| std::path::PathBuf::from(root).join("Photocraft").join("CameraRawSessions"))),
         autosave: Some(Box::new(move |doc: &Arc<Document>, revision: u64, path: Option<&str>| {
             with_store(&s1, |s| s.autosave_checked(doc, revision, path.map(str::to_string)))?
         })),
@@ -496,6 +499,12 @@ fn shell_word(s: &str) -> String {
 pub fn native(automation: Option<photocraft_automation::AuthorizedWorkspace>) -> Services {
     let clip: Rc<RefCell<Option<arboard::Clipboard>>> = Rc::default();
     let clip_unreadable: Rc<Cell<bool>> = Rc::default();
+    let camera_raw_sidecar_publisher = automation.clone().map(|workspace| {
+        Arc::new(move |path: &Path, bytes: &[u8]| {
+            let path = path.to_str().ok_or_else(|| std::io::Error::other("Sidecar path is not UTF-8"))?;
+            workspace.write_outcome(path, bytes).map_err(std::io::Error::other)
+        }) as photocraft_io::raw_session::SidecarPublisher
+    });
     let automation_read = automation.clone().map(|workspace| {
         Box::new(move |path: &str| {
             let bytes = workspace.read(path).map_err(|error| error.to_string())?;
@@ -549,6 +558,7 @@ pub fn native(automation: Option<photocraft_automation::AuthorizedWorkspace>) ->
         automation_save,
         automation_command,
         automation_authorize,
+        camera_raw_sidecar_publisher,
         encode_png: Some(Box::new(|w, h, rgba| {
             let img = Image::from_u8(w, h, ChannelLayout::Rgba, rgba.to_vec()).map_err(|e| e.to_string())?;
             photocraft_codecs::encode(&img, photocraft_codecs::Format::Png, &EncodeOptions::default()).map_err(|e| e.to_string())

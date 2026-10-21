@@ -990,3 +990,74 @@ fn a_wrongly_typed_section_or_colour_setting_resets_only_that_part() {
     assert!(s.load_prefs_json(&deep).is_ok());
     assert!(s.load_prefs_json(r#"{"interface": {"theme": 3, "uiScale": [1]}, "workspaces": {"x": 1}, "menus": 1}"#).is_ok());
 }
+
+#[test]
+fn jpeg_and_tiff_camera_raw_modes_are_independent_persistent_and_strict() {
+    use super::RenderedRawHandling::{All, Disabled, ExistingSettings};
+    let mut session = Session::new();
+    assert_eq!(session.prefs().raw_defaults.jpeg_handling, ExistingSettings);
+    assert_eq!(session.prefs().raw_defaults.tiff_handling, ExistingSettings);
+    session.execute("prefs.set", json!({"path":"rawDefaults.jpegHandling", "value":"all"})).unwrap();
+    session.execute("prefs.set", json!({"path":"rawDefaults.tiffHandling", "value":"disabled"})).unwrap();
+    let mut restored = Session::new();
+    restored.load_prefs_json(&session.prefs_to_json()).unwrap();
+    assert_eq!(restored.prefs().raw_defaults.jpeg_handling, All);
+    assert_eq!(restored.prefs().raw_defaults.tiff_handling, Disabled);
+    let before = restored.prefs_to_json();
+    for value in [json!(true), json!(3), json!("always"), json!(null)] {
+        assert!(restored.execute("prefs.set", json!({"path":"rawDefaults.jpegHandling","value":value})).is_err());
+        assert_eq!(restored.prefs_to_json(), before);
+    }
+    let old: super::RawDefaults = serde_json::from_str("{}").unwrap();
+    assert_eq!(old.jpeg_handling, ExistingSettings);
+    assert_eq!(old.tiff_handling, ExistingSettings);
+}
+
+#[test]
+fn camera_raw_routing_uses_content_settings_and_keeps_layered_tiff_in_editor() {
+    use super::RenderedRawHandling::{All, Disabled};
+    use photocraft_io::camera_raw_source::{Inspection, SourceKind};
+    let mut prefs = super::RawDefaults::default();
+    for kind in [SourceKind::Raw, SourceKind::Jpeg, SourceKind::Tiff, SourceKind::Other] {
+        for has_settings in [false, true] {
+            let source = Inspection { kind, supported: kind != SourceKind::Other, layered_tiff: false, has_settings, embedded_xmp: None };
+            assert_eq!(prefs.routes_to_camera_raw(&source, false), kind == SourceKind::Raw || (kind != SourceKind::Other && has_settings));
+            assert_eq!(prefs.routes_to_camera_raw(&source, true), kind != SourceKind::Other);
+        }
+    }
+    prefs.jpeg_handling = All;
+    prefs.tiff_handling = Disabled;
+    assert!(
+        prefs
+            .routes_to_camera_raw(&Inspection { kind: SourceKind::Jpeg, supported: true, layered_tiff: false, has_settings: false, embedded_xmp: None }, false)
+    );
+    assert!(
+        !prefs
+            .routes_to_camera_raw(&Inspection { kind: SourceKind::Tiff, supported: true, layered_tiff: false, has_settings: true, embedded_xmp: None }, false)
+    );
+    prefs.tiff_handling = All;
+    for explicit in [false, true] {
+        assert!(!prefs.routes_to_camera_raw(
+            &Inspection { kind: SourceKind::Tiff, supported: false, layered_tiff: true, has_settings: true, embedded_xmp: None },
+            explicit
+        ));
+        assert!(!prefs.routes_to_camera_raw(
+            &Inspection { kind: SourceKind::Jpeg, supported: false, layered_tiff: false, has_settings: true, embedded_xmp: None },
+            explicit
+        ));
+    }
+}
+
+#[test]
+fn recovery_defaults_off_and_round_trips_only_supported_modes() {
+    let p: Preferences = serde_json::from_value(json!({"rawDefaults":{}})).unwrap();
+    assert_eq!(p.raw_defaults.recovery_mode, RawRecoveryMode::Off);
+    assert!(!p.raw_defaults.show_recovery_progress);
+    let mut s = Session::new();
+    s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"cache"})).unwrap();
+    s.execute("prefs.set", json!({"path":"rawDefaults.showRecoveryProgress","value":true})).unwrap();
+    let loaded: Preferences = serde_json::from_value(s.prefs().to_json()).unwrap();
+    assert_eq!(loaded.raw_defaults.recovery_mode, RawRecoveryMode::Cache);
+    assert!(loaded.raw_defaults.show_recovery_progress);
+    assert!(s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"live"})).is_err());
+}

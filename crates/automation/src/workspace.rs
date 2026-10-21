@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use cap_std::ambient_authority;
 use cap_std::fs::{Dir, OpenOptions};
-use photocraft_format::atomic::RenameRetry;
+use photocraft_format::atomic::{PublicationOutcome, RenameRetry};
 use serde_json::Value;
 
 use crate::AutomationError;
@@ -85,14 +85,26 @@ impl AuthorizedWorkspace {
     /// resolution and file creation relative to the held directory handle, so
     /// a non-existent final target is supported without ambient path access.
     pub fn write(&self, path: &str, bytes: &[u8]) -> Result<(), AutomationError> {
+        match self.write_outcome(path, bytes)? {
+            PublicationOutcome::Published => Ok(()),
+            PublicationOutcome::PublishedUnconfirmed(error) => Err(file_error("write acknowledged incompletely", path, error)),
+        }
+    }
+
+    /// Phase-aware publication for journalled recipe saves. All operations use
+    /// a held parent capability. No ambient path check followed by a write is
+    /// used, and a post-replacement flush failure cannot mean "never written".
+    pub fn write_outcome(&self, path: &str, bytes: &[u8]) -> Result<PublicationOutcome, AutomationError> {
         let relative = request_path(path, self.write.as_ref())?;
         let root = self.write.as_ref().ok_or_else(|| AutomationError::BadRequest(format!("{DENIED}: write authority is absent")))?;
-        let leaf = relative.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        let leaf = relative.file_name().and_then(|n| n.to_str()).ok_or_else(|| path_error(path, "target filename is not UTF-8"))?;
         let parent = relative.parent().map(Path::to_path_buf).unwrap_or_default();
-        let tmp = parent.join(photocraft_format::atomic::temp_name(&leaf));
+        let parent = if parent.as_os_str().is_empty() { PathBuf::from(".") } else { parent };
+        let dir = root.dir.open_dir(&parent).map_err(|e| file_error("write parent", path, e))?;
+        let tmp = photocraft_format::atomic::temp_name(leaf);
         let mut options = OpenOptions::new();
         options.write(true).create_new(true);
-        let written = root.dir.open_with(&tmp, &options).and_then(|file| {
+        let written = dir.open_with(&tmp, &options).and_then(|file| {
             let mut file = file.into_std();
             file.write_all(bytes)?;
             #[cfg(unix)]
@@ -100,27 +112,27 @@ impl AuthorizedWorkspace {
                 use std::os::fd::AsFd;
                 // Best effort, and only when there is a file being replaced: a save still
                 // succeeds for a document whose Finder tag could not come along.
-                if let Ok(old) = root.dir.open(&relative) {
+                if let Ok(old) = dir.open(leaf) {
                     let _ = photocraft_format::atomic::meta::copy_xattrs(old.as_fd(), file.as_fd());
                 }
             }
             // Falls back to a plain fsync on shares that refuse a full flush (#1336).
             photocraft_format::atomic::sync_file(&file)
         });
-        let renamed = written.and_then(|()| photocraft_format::atomic::retry_rename(RenameRetry::platform(), || root.dir.rename(&tmp, &root.dir, &relative)));
+        let renamed = written.and_then(|()| photocraft_format::atomic::retry_rename(RenameRetry::platform(), || dir.rename(&tmp, &dir, leaf)));
         if let Err(e) = renamed {
-            let _ = root.dir.remove_file(&tmp);
+            let _ = dir.remove_file(&tmp);
             return Err(file_error("write", path, e));
         }
-        // Flush the directory entry (Unix); best effort, the new bytes are already in place.
+        // Windows has no supported directory flush here. This acknowledges the
+        // tested process/restart boundary, not physical power-loss durability.
         #[cfg(unix)]
         {
-            let dir = if parent.as_os_str().is_empty() { PathBuf::from(".") } else { parent };
-            if let Ok(d) = root.dir.open(&dir) {
-                let _ = photocraft_format::atomic::sync_file(&d.into_std());
+            if let Err(error) = dir.open(".").and_then(|d| photocraft_format::atomic::sync_file(&d.into_std())) {
+                return Ok(PublicationOutcome::PublishedUnconfirmed(error));
             }
         }
-        Ok(())
+        Ok(PublicationOutcome::Published)
     }
 }
 
@@ -176,7 +188,7 @@ fn request_path(raw: &str, root: Option<&RootCapability>) -> Result<PathBuf, Aut
     let mut request = Path::new(raw).components();
     for want in root.path.components() {
         let same = match (request.next(), want) {
-            (Some(Component::Prefix(a)), Component::Prefix(b)) => a.as_os_str().eq_ignore_ascii_case(b.as_os_str()),
+            (Some(Component::Prefix(a)), Component::Prefix(b)) => same_prefix(a, b),
             (Some(got), want) => got == want,
             (None, _) => false,
         };
@@ -186,6 +198,17 @@ fn request_path(raw: &str, root: Option<&RootCapability>) -> Result<PathBuf, Aut
     }
     let rest: Vec<&str> = request.map(|c| c.as_os_str().to_str().unwrap_or("\u{FFFD}")).collect();
     relative_path(&rest.join("/"))
+}
+
+fn same_prefix(a: std::path::PrefixComponent<'_>, b: std::path::PrefixComponent<'_>) -> bool {
+    use std::path::Prefix;
+    match (a.kind(), b.kind()) {
+        (Prefix::Disk(a) | Prefix::VerbatimDisk(a), Prefix::Disk(b) | Prefix::VerbatimDisk(b)) => a.eq_ignore_ascii_case(&b),
+        (Prefix::UNC(a, x) | Prefix::VerbatimUNC(a, x), Prefix::UNC(b, y) | Prefix::VerbatimUNC(b, y)) => {
+            a.eq_ignore_ascii_case(b) && x.eq_ignore_ascii_case(y)
+        }
+        _ => a.as_os_str().eq_ignore_ascii_case(b.as_os_str()),
+    }
 }
 
 fn relative_path(raw: &str) -> Result<PathBuf, AutomationError> {
@@ -512,6 +535,28 @@ mod tests {
         assert_eq!(workspace.read("read.txt").unwrap(), b"canary");
         workspace.write("new-output.txt", b"created").unwrap();
         assert_eq!(std::fs::read(inside.join("new-output.txt")).unwrap(), b"created");
+    }
+
+    #[test]
+    fn recipe_publication_needs_write_authority_and_accepts_canonical_native_paths() {
+        let (inside, outside, allowed) = roots("recipe-publication");
+        let source = inside.join("photo.dng");
+        std::fs::write(&source, b"protected original").unwrap();
+        let source = std::fs::canonicalize(source).unwrap();
+        let target = source.with_extension("xmp");
+        let read_only = AuthorizedWorkspace::new(Some(&inside), None).unwrap();
+        assert_eq!(read_only.read(source.to_str().unwrap()).unwrap(), b"protected original");
+        assert!(read_only.write_outcome(target.to_str().unwrap(), b"recipe").is_err());
+        assert!(!target.exists(), "read access must not create an adjacent sidecar");
+        let outside_target = outside.join("sentinel.xmp");
+        std::fs::write(&outside_target, b"sentinel").unwrap();
+        for path in [outside_target.to_str().unwrap(), "../outside/sentinel.xmp"] {
+            assert!(allowed.write_outcome(path, b"wrong").is_err());
+        }
+        assert_eq!(std::fs::read(outside_target).unwrap(), b"sentinel");
+        assert!(matches!(allowed.write_outcome(target.to_str().unwrap(), b"recipe"), Ok(PublicationOutcome::Published)));
+        assert_eq!(std::fs::read(target).unwrap(), b"recipe");
+        assert_eq!(std::fs::read(source).unwrap(), b"protected original");
     }
 
     #[test]

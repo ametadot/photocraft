@@ -66,6 +66,97 @@ pub struct RawTuning {
     pub dehaze: f32,
 }
 
+/// Capture the actual default RAW processing choices once at admission. A saved
+/// recipe carries the fitted look rather than fitting again during restoration.
+/// The original verified source still supplies its sensor calibration and curve.
+pub fn capture_processing(bytes: &[u8]) -> Result<crate::raw_session::Processing, IoError> {
+    let sensor = photocraft_raw::decode(bytes, &limits()).map_err(IoError::Raw)?;
+    let look = default_look(bytes, &sensor);
+    let defaults = DevelopOptions::default();
+    Ok(crate::raw_session::Processing {
+        version: 1,
+        source_kind: crate::camera_raw_source::SourceKind::Raw,
+        demosaic: defaults.demosaic.id().into(),
+        white_balance: crate::raw_session::WhiteBalance::AsShot,
+        orient: defaults.orient,
+        camera_matrix: look.as_ref().map(|look| look.to_xyz),
+        camera_tone_curve: look.as_ref().and_then(|look| look.tone.as_ref()).map(|tone| tone.knots()).unwrap_or_default(),
+    })
+}
+
+/// Reconstruct RAW-stage options without consulting newer preferences or fitting
+/// a new camera look. Returns whether temperature/tint were applied at this stage.
+pub fn recipe_options(recipe: &crate::raw_session::NativeRecipe, sensor: &Sensor) -> Result<(DevelopOptions, bool), String> {
+    use crate::raw_session::WhiteBalance as SavedWhiteBalance;
+    recipe.validate()?;
+    if recipe.processing.source_kind != crate::camera_raw_source::SourceKind::Raw {
+        return Err("Rendered source cannot use sensor processing".into());
+    }
+    let processing = &recipe.processing;
+    let p = &recipe.adjustments;
+    let base_wb = match processing.white_balance {
+        SavedWhiteBalance::AsShot => sensor.camera_wb,
+        SavedWhiteBalance::Auto => None,
+        SavedWhiteBalance::Multipliers(values) => Some(values),
+    };
+    let white_balance = if let Some(values) = base_wb {
+        let gains = wb_gains(p.temperature, p.tint);
+        WhiteBalance::Multipliers([values[0] * gains[0], values[1] * gains[1], values[2] * gains[2]])
+    } else {
+        // AsShot also resolves DNG neutral/white-xy calibration, even when the
+        // decoder has no camera_wb multipliers. Preserve that production choice.
+        match processing.white_balance {
+            SavedWhiteBalance::AsShot => WhiteBalance::AsShot,
+            SavedWhiteBalance::Auto => WhiteBalance::Auto,
+            SavedWhiteBalance::Multipliers(values) => WhiteBalance::Multipliers(values),
+        }
+    };
+    let tone = if processing.camera_tone_curve.is_empty() {
+        None
+    } else {
+        Some(photocraft_raw::ToneCurve::new(&processing.camera_tone_curve).ok_or("Invalid saved camera tone curve")?)
+    };
+    if tone.is_some() && processing.camera_matrix.is_none() {
+        return Err("Saved fitted tone curve requires its camera matrix".into());
+    }
+    let camera_look = processing.camera_matrix.map(|to_xyz| CameraLook { to_xyz, tone, delta_e: 0.0, delta_e_fallback: 0.0 });
+    Ok((
+        DevelopOptions {
+            demosaic: photocraft_raw::Demosaic::from_id(&processing.demosaic).ok_or("Unsupported saved demosaic")?,
+            white_balance,
+            exposure: f64::from(p.exposure),
+            orient: processing.orient,
+            tone: Tone { shadows: p.shadows, highlights: p.highlights, clarity: p.clarity, texture: p.texture, dehaze: p.dehaze },
+            limits: limits(),
+            camera_look,
+        },
+        base_wb.is_some(),
+    ))
+}
+
+/// Restore the sensor-stage pixels for a complete native recipe. The caller then
+/// applies the remaining CameraRaw RGB adjustments using the existing pipeline.
+/// Binding verification is the native controller's prerequisite for these bytes.
+pub fn import_raw_recipe(name: &str, bytes: &[u8], recipe: &crate::raw_session::NativeRecipe) -> Result<(ImportResult, bool), IoError> {
+    if recipe.processing.source_kind != crate::camera_raw_source::SourceKind::Raw {
+        return crate::camera_raw_source::import_rendered_recipe(name, bytes, recipe).map(|imported| (imported, false));
+    }
+    let sensor = photocraft_raw::decode(bytes, &limits()).map_err(IoError::Raw)?;
+    let (options, wb_applied) = recipe_options(recipe, &sensor).map_err(|error| IoError::Raw(RawError::Malformed(error)))?;
+    let developed = photocraft_raw::develop_sensor(&sensor, &options).map_err(IoError::Raw)?;
+    let format = photocraft_raw::identify(bytes).map(|f| f.name()).unwrap_or("camera raw");
+    let result = developed_document(name, format, developed, "restored saved Camera Raw processing")?;
+    let mut result = result;
+    // The fit quality statistics are diagnostics, not rendering inputs. Do not
+    // present placeholder reconstruction values as a new measured fit.
+    for warning in &mut result.warnings {
+        if warning.starts_with("colour fitted to the camera's embedded JPEG") {
+            *warning = "Restored the saved camera colour matrix and tone curve".into();
+        }
+    }
+    Ok((result, wb_applied))
+}
+
 /// Develops a raw file with `tuning` applied at the raw stage: Exposure as develop exposure,
 /// Shadows, Highlights, Clarity, Texture and Dehaze in linear light before the tone curve, Temperature / Tint as gains on the
 /// camera's as-shot white-balance multipliers (the same gains the Camera Raw filter applies to
@@ -277,6 +368,79 @@ pub fn import_raw_with(name: &str, bytes: &[u8], opts: &DevelopOptions) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn captured_processing_reconstructs_options_and_developed_pixels() {
+        let bytes = photocraft_raw::testgen::tiff_ep("NIKON CORPORATION", 16, 16, &[1024; 256], [0, 1, 1, 2], 12, vec![]);
+        let sensor = photocraft_raw::decode(&bytes, &limits()).unwrap();
+        let mut recipe = crate::raw_session::tests::recipe(0.75);
+        recipe.processing = capture_processing(&bytes).unwrap();
+        recipe.adjustments.temperature = 23.0;
+        recipe.adjustments.shadows = 17.0;
+        let (before, applied_before) = recipe_options(&recipe, &sensor).unwrap();
+        let decoded = crate::raw_session::NativeRecipe::decode(&recipe.encode().unwrap()).unwrap();
+        let (after, applied_after) = recipe_options(&decoded, &sensor).unwrap();
+        assert_eq!(before, after);
+        assert_eq!(applied_before, applied_after);
+        let original = photocraft_raw::develop_sensor(&sensor, &before).unwrap();
+        let restored = photocraft_raw::develop_sensor(&sensor, &after).unwrap();
+        assert_eq!(original.rgb, restored.rgb);
+        assert_eq!((original.width, original.height), (restored.width, restored.height));
+        assert!(import_raw_recipe("fixture.NEF", &bytes, &decoded).is_ok());
+    }
+
+    #[test]
+    fn restored_as_shot_preserves_profile_neutral_without_camera_multipliers() {
+        let bytes = photocraft_raw::testgen::tiff_ep("NIKON CORPORATION", 16, 16, &[1024; 256], [0, 1, 1, 2], 12, vec![]);
+        let mut sensor = photocraft_raw::decode(&bytes, &limits()).unwrap();
+        sensor.camera_wb = None;
+        sensor.color.as_shot_neutral = Some([0.5, 1.0, 0.75]);
+        let mut recipe = crate::raw_session::tests::recipe(0.0);
+        recipe.processing = capture_processing(&bytes).unwrap();
+        let (restored, wb_applied) = recipe_options(&recipe, &sensor).unwrap();
+        assert_eq!(restored.white_balance, WhiteBalance::AsShot);
+        assert!(!wb_applied);
+        let original = DevelopOptions { limits: limits(), ..Default::default() };
+        assert_eq!(photocraft_raw::develop_sensor(&sensor, &original).unwrap().rgb, photocraft_raw::develop_sensor(&sensor, &restored).unwrap().rgb);
+        sensor.color.as_shot_neutral = None;
+        sensor.color.as_shot_white_xy = Some([0.3457, 0.3585]);
+        assert_eq!(photocraft_raw::develop_sensor(&sensor, &original).unwrap().rgb, photocraft_raw::develop_sensor(&sensor, &restored).unwrap().rgb);
+    }
+
+    #[test]
+    fn saved_fitted_look_matches_explicit_original_pipeline() {
+        let bytes = photocraft_raw::testgen::tiff_ep("NIKON CORPORATION", 16, 16, &[1024; 256], [0, 1, 1, 2], 12, vec![]);
+        let sensor = photocraft_raw::decode(&bytes, &limits()).unwrap();
+        let knots = vec![[0.0, 0.0], [0.25, 0.4], [1.0, 1.0]];
+        let matrix = [[0.5, 0.3, 0.1642], [0.2, 0.7, 0.1], [0.05, 0.15, 0.6249]];
+        for (saved_wb, wb) in [
+            (crate::raw_session::WhiteBalance::Auto, WhiteBalance::Auto),
+            (crate::raw_session::WhiteBalance::Multipliers([1.2, 1.0, 1.5]), WhiteBalance::Multipliers([1.2, 1.0, 1.5])),
+        ] {
+            for demosaic in [photocraft_raw::Demosaic::Bilinear, photocraft_raw::Demosaic::Mhc, photocraft_raw::Demosaic::Ahd] {
+                let mut recipe = crate::raw_session::tests::recipe(0.0);
+                recipe.processing.white_balance = saved_wb.clone();
+                recipe.processing.demosaic = demosaic.id().into();
+                recipe.processing.orient = false;
+                recipe.processing.camera_matrix = Some(matrix);
+                recipe.processing.camera_tone_curve = knots.clone();
+                let saved = crate::raw_session::NativeRecipe::decode(&recipe.encode().unwrap()).unwrap();
+                let original = DevelopOptions {
+                    limits: limits(),
+                    demosaic,
+                    white_balance: wb,
+                    orient: false,
+                    camera_look: Some(CameraLook { to_xyz: matrix, tone: photocraft_raw::ToneCurve::new(&knots), delta_e: 2.0, delta_e_fallback: 5.0 }),
+                    ..Default::default()
+                };
+                let (restored, _) = recipe_options(&saved, &sensor).unwrap();
+                assert_eq!(photocraft_raw::develop_sensor(&sensor, &original).unwrap().rgb, photocraft_raw::develop_sensor(&sensor, &restored).unwrap().rgb);
+            }
+        }
+        let mut invalid = crate::raw_session::tests::recipe(0.0);
+        invalid.processing.camera_tone_curve = knots;
+        assert!(invalid.encode().is_err());
+    }
 
     #[test]
     fn camera_names_drop_a_repeated_make() {

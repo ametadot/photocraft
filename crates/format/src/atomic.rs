@@ -191,6 +191,61 @@ pub fn atomic_write_with(fs: &dyn AtomicFs, retry: RenameRetry, path: &Path, byt
 
 /// [`atomic_write_with`] reporting write progress (see [`atomic_write_progress`]).
 pub fn atomic_write_with_progress(fs: &dyn AtomicFs, retry: RenameRetry, path: &Path, bytes: &[u8], progress: &dyn Fn(f32)) -> io::Result<()> {
+    // Preserve the historical document-save contract. Transactional callers must use
+    // the phase-aware API below and retain their journal on publication uncertainty.
+    match atomic_write_outcome_with(fs, retry, path, bytes, progress)? {
+        PublicationOutcome::Published | PublicationOutcome::PublishedUnconfirmed(_) => Ok(()),
+    }
+}
+
+/// Publication and the following durability step are separate observations. This does
+/// not acknowledge a higher-level operation journal or promise multi-file atomicity.
+#[derive(Debug)]
+pub enum PublicationOutcome {
+    /// Replacement and the platform's supported sync steps completed.
+    /// On Windows `RealFs::sync_dir` is a no-op: this is not a power-loss guarantee
+    /// for the directory entry, nor an acknowledgement that a journal was persisted.
+    Published,
+    /// Replacement completed, but its following sync failed. The new content may be
+    /// present. Preserve the journal and reconcile; never retry as definitely unwritten.
+    PublishedUnconfirmed(io::Error),
+}
+
+/// Phase-aware native publication for recovery and commit journals.
+pub fn atomic_write_outcome(path: &Path, bytes: &[u8]) -> io::Result<PublicationOutcome> {
+    atomic_write_outcome_with(&RealFs, RenameRetry::platform(), path, bytes, &|_| {})
+}
+
+/// Observable boundaries of the same staged publication algorithm. Observers
+/// cannot replace filesystem operations or alter their acknowledged outcomes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PublicationStage {
+    BeforeStaging,
+    BeforeReplacement,
+    AfterReplacement,
+}
+
+pub fn atomic_write_outcome_observed(path: &Path, bytes: &[u8], observer: &dyn Fn(PublicationStage)) -> io::Result<PublicationOutcome> {
+    atomic_write_outcome_with_observer(&RealFs, RenameRetry::platform(), path, bytes, &|_| {}, observer)
+}
+
+/// As [`atomic_write_outcome`], with an injectable filesystem. An `Err` occurs
+/// before a successful replacement; a post-replacement sync error is retained in
+/// [`PublicationOutcome::PublishedUnconfirmed`]. Adapters must not return an error
+/// from `rename` after actually replacing the target: a lost remote response needs
+/// reconciliation at that adapter's boundary.
+pub fn atomic_write_outcome_with(fs: &dyn AtomicFs, retry: RenameRetry, path: &Path, bytes: &[u8], progress: &dyn Fn(f32)) -> io::Result<PublicationOutcome> {
+    atomic_write_outcome_with_observer(fs, retry, path, bytes, progress, &|_| {})
+}
+
+fn atomic_write_outcome_with_observer(
+    fs: &dyn AtomicFs,
+    retry: RenameRetry,
+    path: &Path,
+    bytes: &[u8],
+    progress: &dyn Fn(f32),
+    observer: &dyn Fn(PublicationStage),
+) -> io::Result<PublicationOutcome> {
     let target = resolve_symlink(path).map_err(|e| context(e, format!("cannot save {}", path.display())))?;
     let name = target.file_name().ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, format!("{}: not a file path", path.display())))?;
     let dir = match target.parent() {
@@ -201,6 +256,7 @@ pub fn atomic_write_with_progress(fs: &dyn AtomicFs, retry: RenameRetry, path: &
     if fs.is_readonly(&target) {
         return Err(io::Error::new(io::ErrorKind::PermissionDenied, format!("cannot save {}: the file is read-only; {UNCHANGED}", path.display())));
     }
+    observer(PublicationStage::BeforeStaging);
 
     // Create a fresh temporary file next to the target (same directory, so the rename never
     // crosses a device). The name is unique per process and call; retry a few on collisions.
@@ -230,6 +286,7 @@ pub fn atomic_write_with_progress(fs: &dyn AtomicFs, retry: RenameRetry, path: &
         let _ = fs.copy_metadata(&target, &tmp);
     }
 
+    observer(PublicationStage::BeforeReplacement);
     // Replacing an existing file goes through `replace_existing`, which on Windows is the one
     // call that can keep the destination's DACL and named streams; creating a new one is a
     // plain rename, with nothing to preserve.
@@ -238,10 +295,11 @@ pub fn atomic_write_with_progress(fs: &dyn AtomicFs, retry: RenameRetry, path: &
         let _ = fs.remove(&tmp);
         return Err(rename_error(e, path));
     }
-    // The new bytes are in place; a failed directory fsync can't be undone and must not report
-    // the save as failed, so it is best effort.
-    let _ = fs.sync_dir(&dir);
-    Ok(())
+    observer(PublicationStage::AfterReplacement);
+    Ok(match fs.sync_dir(&dir) {
+        Ok(()) => PublicationOutcome::Published,
+        Err(error) => PublicationOutcome::PublishedUnconfirmed(error),
+    })
 }
 
 /// Run `rename`, retrying with backoff while it fails with `PermissionDenied` (see

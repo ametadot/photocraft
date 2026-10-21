@@ -524,6 +524,16 @@ pub struct Session {
     /// document, source read-only)`. The shell takes them with [`Session::take_held_open`].
     held_opens: Vec<(u64, Document, bool)>,
     next_held_open: u64,
+    /// Documents the app shell holds back from anything but their owner (a RAW waiting for Open or
+    /// Cancel in Camera Raw). While one of them is open, Script Events and script steps do not run:
+    /// they act on whichever document is active, or on one they name, and cannot be trusted with these.
+    /// Empty (the default) changes nothing.
+    provisional: Vec<photocraft_doc::DocId>,
+    /// A RAW is still being decoded or developed: its document may already be in the session (a finished job is
+    /// applied before the shell handles its event) without being declared yet. Pauses scripts like a declared one.
+    provisional_pending: bool,
+    /// One trusted Camera Raw dispatch, bounded by its owner, document and review generation.
+    review_command: Option<jobs::ReviewCommandPermit>,
 }
 
 /// Move item `i` of `v` to position `to`, clamped to the end. Returns where it went; `None` when
@@ -589,6 +599,38 @@ impl Session {
     pub fn sync_tools_mask_target(&mut self) {
         let mask = self.active().is_some_and(|st| st.channel_view.target == crate::channel_cmds::ChannelTarget::LayerMask);
         self.tools.target_mask(mask);
+    }
+
+    /// Declare the provisional documents, replacing the previous list (see the field). The shell owns
+    /// what makes a document provisional and keeps this list current.
+    pub fn set_provisional_documents(&mut self, ids: Vec<photocraft_doc::DocId>) {
+        self.provisional = ids;
+    }
+
+    /// The declared documents that are still open, in tab order.
+    pub fn provisional_documents(&self) -> Vec<photocraft_doc::DocId> {
+        self.docs.iter().map(|st| st.doc.id).filter(|id| self.provisional.contains(id) || self.is_admitted(*id)).collect()
+    }
+
+    /// A provisional document may exist that is not declared yet (see the field). The shell sets this while
+    /// it is true and clears it when it is not.
+    pub fn set_provisional_pending(&mut self, pending: bool) {
+        self.provisional_pending = pending;
+    }
+
+    /// Does a provisional document exist or may one be about to? A declared document that is open, or a
+    /// pending one. A declared document that was closed never counts, so a stale entry cannot pause
+    /// scripts for longer than it takes the shell to refresh the list.
+    pub fn has_provisional(&self) -> bool {
+        self.provisional_pending || self.docs.iter().any(|st| self.provisional.contains(&st.doc.id) || self.is_admitted(st.doc.id))
+    }
+
+    fn is_admitted(&self, id: photocraft_doc::DocId) -> bool {
+        self.jobs.admitted.iter().any(|(admitted, _)| *admitted == id)
+    }
+
+    fn is_review_held(&self, id: photocraft_doc::DocId) -> bool {
+        self.provisional.contains(&id) || self.is_admitted(id)
     }
 
     /// Move the document at `from` to tab position `to` (clamped to the last), keeping the active

@@ -1,0 +1,21 @@
+[package]
+name = "photocraft-xmp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Bounded, clean-room, read-only XMP sidecar inspection for PhotoCraft"
+publish = false
+
+[features]
+private-fixture = []
+
+[dependencies]
+quick-xml = { version = "=0.41.0", default-features = false }
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "photocraft-xmp-inspect"
+path = "src/bin/inspect.rs"

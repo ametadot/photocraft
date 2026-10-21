@@ -858,6 +858,16 @@ impl Default for EnhancedControls {
     }
 }
 
+choice!(
+    /// Automatic Camera Raw routing for photographs whose pixels are already rendered.
+    RenderedRawHandling { Disabled = "disabled", ExistingSettings = "existingSettings", All = "all" } default ExistingSettings
+);
+
+choice!(
+    /// Recovery is optional; live saving is a disabled planned UI choice.
+    RawRecoveryMode { Off = "off", Cache = "cache" } default Off
+);
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct RawDefaults {
@@ -871,6 +881,33 @@ pub struct RawDefaults {
     /// Photoshop does; off develops it with the defaults straight away. Automation opens never
     /// show the dialog.
     pub open_in_camera_raw: bool,
+    pub jpeg_handling: RenderedRawHandling,
+    pub tiff_handling: RenderedRawHandling,
+    pub recovery_mode: RawRecoveryMode,
+    pub show_recovery_progress: bool,
+}
+
+impl RawDefaults {
+    /// Classify the decoded content, never the filename. Layered TIFFs always
+    /// remain editor documents so Camera Raw cannot flatten their layer data.
+    pub fn routes_to_camera_raw(&self, source: &photocraft_io::camera_raw_source::Inspection, explicit: bool) -> bool {
+        use photocraft_io::camera_raw_source::SourceKind;
+        if source.layered_tiff || !source.supported {
+            return false;
+        }
+        let mode = match source.kind {
+            SourceKind::Raw => return self.open_in_camera_raw || explicit,
+            SourceKind::Jpeg => self.jpeg_handling,
+            SourceKind::Tiff => self.tiff_handling,
+            SourceKind::Other => return false,
+        };
+        explicit
+            || match mode {
+                RenderedRawHandling::Disabled => false,
+                RenderedRawHandling::ExistingSettings => source.has_settings,
+                RenderedRawHandling::All => true,
+            }
+    }
 }
 
 impl Default for RawDefaults {
@@ -883,6 +920,10 @@ impl Default for RawDefaults {
             open_as_smart_object: false,
             apply_auto_tone: false,
             open_in_camera_raw: true,
+            jpeg_handling: RenderedRawHandling::ExistingSettings,
+            tiff_handling: RenderedRawHandling::ExistingSettings,
+            recovery_mode: RawRecoveryMode::Off,
+            show_recovery_progress: false,
         }
     }
 }
@@ -1071,7 +1112,10 @@ pub const HIDDEN_UNTIL_IMPLEMENTED: &[&str] = &[
 
 /// Is the preference at `path` (`"section.key"`) hidden from the Preferences dialog?
 pub fn is_hidden(path: &str) -> bool {
-    HIDDEN_UNTIL_IMPLEMENTED.contains(&path) || (!cfg!(target_os = "linux") && LINUX_ONLY.contains(&path))
+    // These implemented options belong exclusively to Camera Raw's Long-session recovery page.
+    matches!(path, "rawDefaults.recoveryMode" | "rawDefaults.showRecoveryProgress")
+        || HIDDEN_UNTIL_IMPLEMENTED.contains(&path)
+        || (!cfg!(target_os = "linux") && LINUX_ONLY.contains(&path))
 }
 
 /// Preferences that only do something on Linux; the dialog doesn't show them elsewhere. They
@@ -1117,9 +1161,11 @@ pub fn choices(path: &str) -> Option<&'static [&'static str]> {
         "guidesGridAndSlices.guideStyle" | "guidesGridAndSlices.gridStyle" => LineStyle::NAMES,
         "type.textEngine" => TextEngine::NAMES,
         "type.fontPreview" => FontPreview::NAMES,
+        "rawDefaults.recoveryMode" => RawRecoveryMode::NAMES,
         "rawDefaults.colorSpace" => RawColorSpace::NAMES,
         "rawDefaults.bitDepth" => RawDepth::NAMES,
         "rawDefaults.sharpenFor" => RawSharpen::NAMES,
+        "rawDefaults.jpegHandling" | "rawDefaults.tiffHandling" => RenderedRawHandling::NAMES,
         "performance.gpuBackend" => GpuBackend::NAMES,
         "performance.linuxDisplayServer" => LinuxDisplayServer::NAMES,
         "performance.renderingMode" => RenderingMode::NAMES,
@@ -1953,6 +1999,15 @@ fn prefs_get(s: &mut Session, p: &Value) -> Result<Value> {
     get_path(&v, path).cloned().ok_or_else(|| bad("prefs.get", format!("unknown preference `{path}`")))
 }
 
+pub(crate) fn raw_preferences_only(p: &Value) -> bool {
+    let raw_path = |path: &str| path == "rawDefaults" || path.starts_with("rawDefaults.");
+    let path = p.get("path");
+    let values = p.get("values");
+    (path.is_some() || values.is_some())
+        && path.is_none_or(|path| path.as_str().is_some_and(raw_path))
+        && values.is_none_or(|values| values.as_object().is_some_and(|map| !map.is_empty() && map.keys().all(|key| raw_path(key))))
+}
+
 fn prefs_set(s: &mut Session, p: &Value) -> Result<Value> {
     let cmd = "prefs.set";
     let mut changes: Vec<(String, Value)> = Vec::new();
@@ -1984,8 +2039,10 @@ fn prefs_set(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(bad(cmd, e));
     }
     // `colorSettings.blendTextGamma` lives in the compositor too, as `edit.colorSettings` sets it.
-    photocraft_compose::psblend::set_text_gamma(s.color.settings.blend_text_gamma);
-    s.apply_prefs();
+    if !raw_preferences_only(p) {
+        photocraft_compose::psblend::set_text_gamma(s.color.settings.blend_text_gamma);
+        s.apply_prefs();
+    }
     let view = s.prefs_view();
     let out: Map<String, Value> = changes.iter().map(|(k, _)| (k.clone(), get_path(&view, k).cloned().unwrap_or(Value::Null))).collect();
     Ok(Value::Object(out))

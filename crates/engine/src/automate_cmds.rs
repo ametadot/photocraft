@@ -122,6 +122,11 @@ fn check_known(steps: &[(String, Value)], cmd: &str) -> Result<()> {
 fn run_steps(s: &mut Session, steps: &[(String, Value)]) -> Vec<Value> {
     let mut results = Vec::new();
     for (id, params) in steps {
+        // Checked before every step: an earlier step can activate, name or open a provisional document.
+        if s.has_provisional() {
+            results.push(json!({"command": id, "error": PAUSED}));
+            break;
+        }
         match s.execute(id, params.clone()) {
             // A called action reports a failed step inside an `Ok`; it stops the script too.
             Ok(r) => match crate::actions_cmds::nested_failure(id, &r) {
@@ -250,9 +255,13 @@ fn script_events(s: &mut Session, p: &Value) -> Result<Value> {
     Ok(json!({"enabled": ev.enabled, "bindings": ev.bindings, "events": events}))
 }
 
-/// Runs the scripts bound to `event` (when Script Events are enabled). Returns how many ran.
+/// Why a script stopped: the shell declared a provisional document (a RAW waiting in Camera Raw).
+const PAUSED: &str = "stopped: a document is waiting for Open or Cancel in Camera Raw, so scripts do not run";
+
+/// Runs the scripts bound to `event` (when Script Events are enabled). Returns how many ran. None run
+/// while a provisional document is open ([`Session::has_provisional`]).
 pub fn fire_event(s: &mut Session, event: &str) -> usize {
-    if s.file_menu.firing {
+    if s.file_menu.firing || s.has_provisional() {
         return 0;
     }
     let ev = &s.prefs().script_events;

@@ -4067,3 +4067,205 @@ layerLabel	No Color	Sem cor
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	Adaptador de GPU
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	Classificação ainda não lida
+	Unrated	Sem classificação
+	Rating: {n} of 5	Classificação: {n} de 5
+	Rejected	Rejeitada
+	Not read yet	Ainda não lido
+	No adjustments	Sem ajustes
+	Not available yet	Ainda não disponível
+	Open Images	Abrir imagens
+	Fit ({zoom})	Ajustar ({zoom})
+	Sort By:	Classificar por:
+	Open Order	Ordem de abertura
+	Star Rating	Classificação por estrelas
+	Capture Date	Data de captura
+	Color Label	Rótulo de cor
+	Rated	Classificadas
+	{n} hidden	{n} ocultas
+	{n} hidden, {m} selected	{n} ocultas, {m} selecionadas
+	Shown; hidden by filter	Exibida; oculta pelo filtro
+	Workflow	Fluxo de trabalho
+	Generative AI	IA generativa
+	Long-session recovery	Recuperação de sessões longas
+	Camera Raw Preferences	Preferências do Camera Raw
+	All photos	Todas as fotos
+	Any	Qualquer
+	Any colour	Qualquer cor
+	Blue — Review	Azul — Revisar
+	Blue — Review (9)	Azul — Revisar (9)
+	Cancelling before publication…	Cancelando antes da gravação…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Altere o tamanho, a orientação e a exibição em grade da tira de fotos no Camera Raw. Essas opções de exibição não editam as fotografias.
+	Changes not yet saved to XMP	Alterações ainda não salvas em XMP
+	Clear filters	Limpar filtros
+	Colour label	Rótulo de cor
+	Destination folder	Pasta de destino
+	Green — Approved	Verde — Aprovado
+	Green — Approved (8)	Verde — Aprovado (8)
+	JPEG quality	Qualidade JPEG
+	Live save is planned for a later release.	O salvamento contínuo está planejado para uma versão futura.
+	Live save — Planned	Salvamento contínuo — Planejado
+	Mark	Marcar
+	Marked	Marcadas
+	Marked and unmarked	Marcadas e desmarcadas
+	No Label	Sem rótulo
+	No photos match	Nenhuma foto correspondente
+	Other label	Outro rótulo
+	Photo actions	Ações da foto
+	Photograph	Fotografia
+	Purple — To Do	Roxo — A fazer
+	Purple — To Do (Ctrl+Shift+0)	Roxo — A fazer (Ctrl+Shift+0)
+	Rating	Classificação
+	Red — Select	Vermelho — Seleção
+	Red — Select (6)	Vermelho — Seleção (6)
+	Remove…	Remover…
+	Replace existing JPEG?	Substituir o JPEG existente?
+	Return to photo preview	Voltar à prévia da foto
+	Save JPEG	Salvar JPEG
+	Save JPEG:	Salvar JPEG:
+	Save this photo as JPEG	Salvar esta foto como JPEG
+	Saving JPEG	Salvando JPEG
+	Saving mode: Cache saving	Modo de salvamento: Salvamento em cache
+	Show grid	Mostrar grade
+	Show hidden photos	Mostrar fotos ocultas
+	Unmark	Desmarcar
+	Unmarked	Desmarcadas
+	Unrated (0)	Sem classificação (0)
+	Uses the settings captured when Save was chosen.	Usa as configurações capturadas quando Salvar foi escolhido.
+	Yellow — Second	Amarelo — Segunda opção
+	Yellow — Second (7)	Amarelo — Segunda opção (7)
+	hidden	ocultas
+	selected photos	fotos selecionadas
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Suas alterações no Camera Raw são salvas para recuperação enquanto você trabalha. Escolha Concluído para salvar as alterações nos arquivos XMP associados às fotografias.
+	A recovered photograph has no retained source binding.	Uma fotografia recuperada não tem um vínculo preservado com o arquivo de origem.
+	Applies the same value to every selected photograph. Other settings remain independent.	Aplica o mesmo valor a todas as fotografias selecionadas. As outras configurações permanecem independentes.
+	Back to editing	Voltar à edição
+	Camera Raw recovery details	Detalhes de recuperação do Camera Raw
+	Camera Raw recovery needs attention	A recuperação do Camera Raw requer atenção
+	Camera Raw session	Sessão do Camera Raw
+	Choose how to leave this visit's changes.	Escolha o que fazer com as alterações desde esta abertura.
+	Close Camera Raw session	Fechar sessão do Camera Raw
+	Close details	Fechar detalhes
+	Discard this photo's changes and remove	Descartar alterações desta foto e remover
+	Discard this visit's changes and close	Descartar alterações desde esta abertura e fechar
+	Finish Camera Raw session	Concluir sessão do Camera Raw
+	Keep editing	Continuar editando
+	Keep in recovery and close	Manter para recuperação e fechar
+	Keep in session	Manter na sessão
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Nenhuma fotografia está disponível para prévia no momento. Os detalhes de recuperação preservam todo o trabalho ainda não resolvido.
+	Open from files	Abrir a partir dos arquivos
+	Original NEF files remain unchanged.	Os arquivos NEF originais permanecem inalterados.
+	Remove photograph from session	Remover fotografia da sessão
+	Reset selected	Redefinir selecionadas
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Restaure o arquivo original no caminho registrado e escolha Tentar salvar recuperação novamente. Um arquivo com conteúdo ou identidade alterados não pode ser aceito como origem original.
+	Resume saved session	Retomar sessão salva
+	Retry recovery save	Tentar salvar recuperação novamente
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Revise os arquivos indisponíveis, as importações interrompidas e as mensagens de recuperação antes de concluir.
+	Save XMP and close	Salvar XMP e fechar
+	Save XMP and remove	Salvar XMP e remover
+	Saved Camera Raw sessions	Sessões salvas do Camera Raw
+	Set value	Definir valor
+	Set value for selected photos	Definir valor para as fotos selecionadas
+	Set value…	Definir valor…
+	Show recovery details	Mostrar detalhes de recuperação
+	Skip removes this unfinished import from the current request. You can open the file again later.	Pular remove esta importação incompleta da solicitação atual. Você pode abrir o arquivo novamente mais tarde.
+	Skip unfinished import	Pular importação incompleta
+	Synchronise selected	Sincronizar selecionadas
+	This changes session membership. Hide and filters keep photographs in the session.	Isso altera quais fotografias pertencem à sessão. Ocultar e os filtros mantêm as fotografias na sessão.
+	Undo group edit	Desfazer edição em grupo
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	O Camera Raw salva arquivos XMP auxiliares para JPEG e TIFF; os arquivos de imagem originais permanecem inalterados.
+	Disable Camera Raw support	Desativar o suporte ao Camera Raw
+	JPEG and TIFF Handling	Tratamento de JPEG e TIFF
+	JPEG handling	Tratamento de JPEG
+	Layered TIFF files open in the editor with their layers preserved.	Os arquivos TIFF com camadas são abertos no editor com as camadas preservadas.
+	Open all supported files	Abrir todos os arquivos compatíveis
+	Open files with Camera Raw settings	Abrir arquivos com configurações do Camera Raw
+	Original image files remain unchanged.	Os arquivos de imagem originais permanecem inalterados.
+	Recovery details	Detalhes da recuperação
+	Save XMP and keep editing	Salvar XMP e continuar editando
+	Save edits	Salvar alterações
+	Saved edits to XMP; Camera Raw remains open	Alterações salvas em XMP; o Camera Raw permanece aberto
+	TIFF handling	Tratamento de TIFF
+	Existing settings	Configurações existentes
+	Jpeg handling	Tratamento de JPEG
+	Tiff handling	Tratamento de TIFF
+	Open in Camera Raw…	Abrir no Camera Raw…
+	Discard edits	Descartar edições
+	Cache	Memória cache
+	Recovery mode	Modo de recuperação
+	Show recovery progress	Mostrar progresso da recuperação
+	PhotoCraft default — recovery off	Padrão do PhotoCraft — recuperação desativada
+	Long-session recovery — cache saving	Recuperação de sessões longas — salvamento em cache
+	Opening photographs	Abrindo fotografias
+	Preparing Camera Raw previews…	Preparando visualizações do Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Descartar as edições desta sessão. Os arquivos XMP salvos anteriormente permanecem inalterados.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Concluído usa Salvar XMP e fechar por padrão. As fotografias originais permanecem inalteradas.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	A recuperação fica desativada por padrão. Ative o salvamento em cache para proteger uma sessão longa de edição em segundo plano.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Desativar a recuperação remove esta sessão dos dados recuperáveis. As edições abertas ficam na memória até você escolher Concluído ou descartá-las.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Com o salvamento em cache ativado, as alterações do Camera Raw são salvas em segundo plano para recuperação. Concluído salva os ajustes em arquivos auxiliares XMP.
+	Discard edits?	Descartar edições?
+	Show recovery progress in Camera Raw	Camera Raw — Mostrar progresso da recuperação
+	Long-session recovery…	Recuperação de sessões longas…
+	Recovery details…	Detalhes da recuperação…
+	Keep in recovery and close…	Manter para recuperação e fechar…
+	Live saving — planned	Salvamento contínuo — Planejado
+	Discard unsaved edits?	Descartar edições não salvas?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Descartar todas as edições ainda não salvas em XMP nesta sessão do Camera Raw e, em seguida, fechar. Os arquivos XMP salvos anteriormente permanecem inalterados.
+	Discard unsaved edits and close	Descartar edições não salvas e fechar
+	Save and open images	Salvar e abrir imagens
+	Save XMP and open images	Salvar XMP e abrir imagens
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Após salvar, todas as fotos desta sessão são abertas no editor na ordem em que foram abertas, independentemente do filtro ou da seleção.
+	Recover Camera Raw session	Recuperar sessão do Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Uma sessão anterior do Camera Raw não foi concluída normalmente. Escolha qual versão das edições dela deve ser aberta.
+	Session	Sessão
+	{count} photos · last checkpoint {time}	{count} fotos · último ponto de recuperação: {time}
+	{count} photos have edits not saved to XMP	{count} fotos têm edições não salvas em XMP
+	The newest checkpoint is unusable; the one from {time} is used instead.	O ponto de recuperação mais recente não pode ser usado; o de {time} é usado em seu lugar.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Um salvamento de XMP desta sessão não foi concluído. Os arquivos envolvidos são verificados novamente antes de qualquer outra gravação.
+	Show file details	Mostrar detalhes dos arquivos
+	Hide file details	Ocultar detalhes dos arquivos
+	Checking files…	Verificando arquivos…
+	Recovered edits	Edições recuperadas
+	Cache version	Versão do cache
+	Saved edits	Edições salvas
+	XMP sidecar version	Versão do arquivo auxiliar XMP
+	Resume recovered edits	Retomar edições recuperadas
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Restaurar as edições a partir do ponto de recuperação utilizável mais recente do PhotoCraft.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Use esta opção depois que o PhotoCraft for fechado inesperadamente ou quando uma operação de Abrir imagens, Concluído ou Cancelar for interrompida. Ela pode restaurar trabalho que nunca foi salvo em um arquivo auxiliar XMP. As alterações feitas após o último ponto de recuperação confirmado podem não estar disponíveis.
+	Open saved XMP edits	Abrir edições salvas em XMP
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Reabrir as fotografias originais com as edições compatíveis atualmente salvas nos respectivos arquivos XMP.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Escolha esta opção para usar as versões salvas nos arquivos auxiliares em vez do ponto de recuperação não salvo. Nem todas as fotografias têm necessariamente um arquivo XMP; as que não têm usam as configurações atuais do arquivo ou as configurações padrão. Isso não restaura alterações em cache não salvas.
+	Open other files	Abrir outros arquivos
+	Discard recovered copy…	Descartar cópia recuperada…
+	Discard recovered copy?	Descartar cópia recuperada?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Isso remove permanentemente o ponto de recuperação desta sessão. Os arquivos XMP salvos e as fotografias originais não são alterados.
+	Discard recovered copy	Descartar cópia recuperada
+	Keep recovered copy	Manter cópia recuperada
+	{n} of {total} photos are missing or changed	{n} de {total} fotos estão ausentes ou foram alteradas
+	{n} photos have no XMP file	{n} fotos não têm arquivo XMP
+	{n} XMP files changed after the checkpoint	{n} arquivos XMP foram alterados após o ponto de recuperação
+	No usable checkpoint can be opened.	Nenhum ponto de recuperação utilizável pode ser aberto.
+	None of the photographs is available.	Nenhuma das fotografias está disponível.
+	Photo available	Foto disponível
+	Photo missing or changed	Foto ausente ou alterada
+	No XMP file	Sem arquivo XMP
+	XMP as at the checkpoint	XMP igual ao do ponto de recuperação
+	XMP changed after the checkpoint	XMP alterado após o ponto de recuperação
+	XMP unreadable	XMP ilegível
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Alguns arquivos XMP foram alterados após o ponto de recuperação, por exemplo no Lightroom. Revise-os antes de escolher.
+	Camera Raw Preferences…	Preferências do Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	A recuperação só é oferecida após uma sessão que não foi concluída normalmente. Concluído, Abrir imagens e Cancelar não deixam nada para recuperar.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Concluído e Abrir imagens salvam primeiro as edições compatíveis em arquivos auxiliares XMP. As fotografias originais permanecem inalteradas.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Desativar a recuperação remove esta sessão dos dados recuperáveis. As edições abertas ficam na memória até você escolher Concluído, Abrir imagens ou Cancelar.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Com o salvamento em cache ativado, as alterações do Camera Raw são salvas em segundo plano para recuperação. Concluído e Abrir imagens salvam os ajustes em arquivos auxiliares XMP.
+	Saving XMP before opening…	Salvando XMP antes de abrir…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Descartar as alterações desta visita e fechar. Os rascunhos recuperados anteriormente e os arquivos XMP salvos durante esta visita são preservados.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Desativar a recuperação interrompe os pontos de verificação automáticos. O trabalho recuperado anteriormente é mantido até que você o conclua ou descarte sua cópia de recuperação.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	A recuperação é oferecida após uma interrupção ou quando você escolhe manter o trabalho para recuperação. Concluído e Abrir imagens removem as sessões concluídas. Descartar as alterações de uma sessão retomada preserva o trabalho recuperado anteriormente.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Use esta opção para trabalho mantido para recuperação, após o fechamento inesperado do PhotoCraft ou a interrupção de uma operação Abrir imagens, Concluído ou Cancelar. Ela pode restaurar trabalho que nunca foi salvo em um arquivo auxiliar XMP. As alterações desde o último ponto de verificação confirmado podem não estar disponíveis.
+	Sync Settings	Sincronizar configurações
+	Reset Settings	Redefinir configurações
+	Copy settings from {photo} to the selected photos.	Copiar as configurações de {photo} para as fotos selecionadas.
+	Select the active photograph to sync its settings.	Selecione a fotografia ativa para sincronizar suas configurações.

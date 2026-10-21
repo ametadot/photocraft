@@ -116,6 +116,25 @@ fn in_order(background: bool, order: &[&str]) {
 }
 
 #[test]
+fn raw_loading_yields_to_the_profile_question_needed_to_finish_opening() {
+    use photocraft_raw::testgen::{DngSpec, mosaic, scene};
+    let (width, height) = (32, 24);
+    let dng = DngSpec::cfa(width, height, mosaic(&scene(width, height), width, [0, 1, 1, 2], 0, 30000)).build();
+    let mut h = harness(false);
+    h.state_mut().open_file("/pics/first.dng", &dng).unwrap();
+    h.state_mut().open_file("/pics/profile.png", &adobe_png()).unwrap();
+    h.run_steps(4);
+    assert!(crate::open_prompt::waiting(h.state()));
+    assert!(crate::camera_raw_ui::hides_unaccepted_raw(h.state()));
+    assert!(h.state().camera_raw.is_none());
+    assert!(h.query_all_by_label("Opening photographs").next().is_none(), "the loading modal must yield to the profile decision");
+    answer(&mut h, USE);
+    h.run_steps(4);
+    assert!(!crate::open_prompt::waiting(h.state()));
+    assert!(h.state().camera_raw.is_some(), "the RAW workspace opens after prerequisite decisions");
+}
+
+#[test]
 fn files_opened_together_ask_one_at_a_time_before_each_opens() {
     for background in [false, true] {
         let mut h = harness(background);

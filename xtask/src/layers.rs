@@ -44,6 +44,8 @@ pub const TABLE: &[(&str, Class)] = &[
     // IPP client for CUPS printing (pure Rust, no dependencies), used by `engine` on Unix.
     ("ipp", Class::Standalone),
     ("raw", Class::Standalone),
+    // Read-only Adobe XMP metadata parser; integration is first exercised by the IO test oracle.
+    ("xmp", Class::Standalone),
     ("affinity", Class::Standalone),
     ("adobe-assets", Class::Standalone),
     // Pen tablet input (the one isolated `unsafe` helper: AppKit interop on macOS).

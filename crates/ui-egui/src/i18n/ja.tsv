@@ -3955,3 +3955,210 @@ curves	Smooth	スムーズ
 
 # Graphics Adapter preference (#1885)
 	GPU adapter	GPU アダプター
+
+# Camera Raw whole-shoot workspace, saving and recovery
+	Rating not read yet	レーティングは未読み込み
+	Unrated	レーティングなし
+	Rating: {n} of 5	レーティング: {n} / 5
+	Rejected	除外
+	Not read yet	未読み込み
+	No adjustments	補正なし
+	Not available yet	まだ使用できません
+	Open Images	画像を開く
+	Fit ({zoom})	合わせる ({zoom})
+	Sort By:	並べ替え:
+	Open Order	開いた順
+	Star Rating	星のレーティング
+	Capture Date	撮影日
+	Color Label	カラーラベル
+	Rated	レーティングあり
+	Show All	すべて表示
+	{n} hidden	{n} 件非表示
+	{n} hidden, {m} selected	{n} 件非表示、{m} 件選択
+	Shown; hidden by filter	表示中、フィルターで非表示
+	Defaults	初期設定
+	Workflow	ワークフロー
+	Generative AI	生成AI
+	Long-session recovery	長時間セッションの復元
+	Camera Raw Preferences	Camera Raw 環境設定
+	All photos	すべての写真
+	Any	すべて
+	Any colour	すべてのカラー
+	Back	戻る
+	Blue — Review	青 — 要確認
+	Blue — Review (9)	青 — 要確認 (9)
+	Cancelling before publication…	書き込み前にキャンセルしています…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Camera Rawでフィルムストリップのサイズ、向き、グリッド表示を変更できます。これらの表示設定は写真を編集しません。
+	Changes not yet saved to XMP	変更はまだXMPに保存されていません
+	Clear filters	フィルターを解除
+	Colour label	カラーラベル
+	Destination folder	保存先フォルダー
+	Filename	ファイル名
+	Green — Approved	緑 — 承認済み
+	Green — Approved (8)	緑 — 承認済み (8)
+	JPEG quality	JPEG画質
+	Live save is planned for a later release.	リアルタイム保存は今後のリリースで対応予定です。
+	Live save — Planned	リアルタイム保存 — 対応予定
+	Mark	マークを付ける
+	Marked	マークあり
+	Marked and unmarked	マークの有無を問わない
+	No Label	ラベルなし
+	No photos match	一致する写真はありません
+	Other label	その他のラベル
+	Photo actions	写真の操作
+	Photograph	写真
+	Purple — To Do	紫 — 作業予定
+	Purple — To Do (Ctrl+Shift+0)	紫 — 作業予定 (Ctrl+Shift+0)
+	Rating	評価
+	Red — Select	赤 — 選定
+	Red — Select (6)	赤 — 選定 (6)
+	Remove…	取り除く…
+	Replace existing JPEG?	既存のJPEGを置き換えますか？
+	Return to photo preview	写真のプレビューに戻る
+	Save JPEG	JPEGを保存
+	Save JPEG:	JPEGを保存:
+	Save this photo as JPEG	この写真をJPEGとして保存
+	Saving JPEG	JPEGを保存中
+	Saving mode: Cache saving	保存モード: キャッシュ保存
+	Show grid	グリッドを表示
+	Show hidden photos	非表示の写真を表示
+	Unmark	マークを外す
+	Unmarked	マークなし
+	Unrated (0)	未評価 (0)
+	Uses the settings captured when Save was chosen.	「保存」を選んだ時点の設定を使用します。
+	Yellow — Second	黄 — 次点
+	Yellow — Second (7)	黄 — 次点 (7)
+	hidden	非表示
+	selected photos	選択した写真
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	作業中のCamera Rawの変更は復元用に保存されます。「完了」を選ぶと、変更が写真のXMPサイドカーファイルに保存されます。
+	A recovered photograph has no retained source binding.	復元した写真に、保持された元ファイルの対応情報がありません。
+	Applies the same value to every selected photograph. Other settings remain independent.	選択したすべての写真に同じ値を適用します。他の設定は写真ごとに保持されます。
+	Back to editing	編集に戻る
+	Camera Raw recovery details	Camera Rawの復元の詳細
+	Camera Raw recovery needs attention	Camera Rawの復元には確認が必要です
+	Camera Raw session	Camera Rawセッション
+	Choose how to leave this visit's changes.	今回の作業で行った変更の扱いを選んでください。
+	Close Camera Raw session	Camera Rawセッションを閉じる
+	Close details	詳細を閉じる
+	Discard this photo's changes and remove	この写真の変更を破棄して取り除く
+	Discard this visit's changes and close	今回の作業で行った変更を破棄して閉じる
+	Finish Camera Raw session	Camera Rawセッションを完了
+	Keep editing	編集を続ける
+	Keep in recovery and close	復元用に保持して閉じる
+	Keep in session	セッションに残す
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	現在プレビューできる写真はありません。未解決の作業は復元の詳細に保持されています。
+	Open from files	ファイルから開く
+	Original NEF files remain unchanged.	元のNEFファイルは変更されません。
+	Remove photograph from session	写真をセッションから取り除く
+	Reset selected	選択した写真をリセット
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	元のファイルを記録された場所に戻し、「復元用保存を再試行」を選んでください。内容や識別情報が変わったファイルは、元のファイルとして扱えません。
+	Resume saved session	保存したセッションを再開
+	Retry recovery save	復元用保存を再試行
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	完了する前に、利用できないファイル、中断された読み込み、復元メッセージを確認してください。
+	Save XMP and close	XMPを保存して閉じる
+	Save XMP and remove	XMPを保存して取り除く
+	Saved Camera Raw sessions	保存したCamera Rawセッション
+	Set value	値を設定
+	Set value for selected photos	選択した写真に値を設定
+	Set value…	値を設定…
+	Show recovery details	復元の詳細を表示
+	Skip removes this unfinished import from the current request. You can open the file again later.	スキップすると、この未完了の読み込みが現在の要求から外れます。ファイルは後で再度開くことができます。
+	Skip unfinished import	未完了の読み込みをスキップ
+	Synchronise selected	選択した写真を同期
+	This changes session membership. Hide and filters keep photographs in the session.	セッションの写真構成を変更します。非表示やフィルターでは、写真はセッションに残ります。
+	Undo group edit	グループ編集を取り消す
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera RawではJPEGとTIFFの設定をXMPサイドカーファイルに保存します。元の画像ファイルは変更されません。
+	Disable Camera Raw support	Camera Rawのサポートを無効にする
+	JPEG and TIFF Handling	JPEGとTIFFの処理
+	JPEG handling	JPEGの処理
+	Layered TIFF files open in the editor with their layers preserved.	レイヤー付きTIFFファイルは、レイヤーを保持してエディターで開きます。
+	Open all supported files	対応するすべてのファイルを開く
+	Open files with Camera Raw settings	Camera Rawの設定があるファイルを開く
+	Original image files remain unchanged.	元の画像ファイルは変更されません。
+	Recovery details	復元の詳細
+	Save XMP and keep editing	XMPを保存して編集を続ける
+	Save edits	編集内容を保存
+	Saved edits to XMP; Camera Raw remains open	編集内容をXMPに保存しました。Camera Rawは開いたままです
+	TIFF handling	TIFFの処理
+	Disabled	無効
+	Existing settings	既存の設定
+	Jpeg handling	JPEGの処理
+	Tiff handling	TIFFの処理
+	Open in Camera Raw…	Camera Raw で開く…
+	Discard edits	編集内容を破棄
+	Cache	キャッシュ
+	Recovery mode	復元モード
+	Show recovery progress	復元用保存の進行状況を表示
+	PhotoCraft default — recovery off	PhotoCraftの既定 — 復元オフ
+	Long-session recovery — cache saving	長時間セッションの復元 — キャッシュ保存
+	Opening photographs	写真を開いています
+	Preparing Camera Raw previews…	Camera Rawのプレビューを準備中…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	今回の作業で行った編集を破棄します。以前に保存したXMPファイルは変更されません。
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	「完了」の既定動作はXMPを保存して閉じることです。元の写真は変更されません。
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	復元は既定でオフです。長時間の編集をバックグラウンドで保護するには、キャッシュ保存をオンにしてください。
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	復元をオフにすると、このセッションは保存済みの復元対象から除外されます。開いている編集内容は「完了」を選ぶか破棄するまでメモリに残ります。
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	キャッシュ保存が有効な場合、Camera Rawの変更はバックグラウンドで復元用に保存されます。「完了」は調整をXMPサイドカーに保存します。
+	Discard edits?	編集内容を破棄？
+	Show recovery progress in Camera Raw	Camera Raw — 復元用保存の進行状況を表示
+	Long-session recovery…	長時間セッションの復元…
+	Recovery details…	復元の詳細…
+	Keep in recovery and close…	復元用に保持して閉じる…
+	Live saving — planned	リアルタイム保存 — 対応予定
+	Discard unsaved edits?	未保存の編集内容を破棄しますか？
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	このCamera Rawセッションで、まだXMPに保存されていない編集内容をすべて破棄して閉じます。以前に保存したXMPファイルは変更されません。
+	Discard unsaved edits and close	未保存の編集内容を破棄して閉じる
+	Save and open images	保存して画像を開く
+	Save XMP and open images	XMPを保存して画像を開く
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	保存後、このセッションのすべての写真が、フィルターや選択に関係なく、開いた順にエディターで開かれます。
+	Recover Camera Raw session	Camera Rawセッションを復元
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	以前のCamera Rawセッションが正常に終了しませんでした。開く編集内容のバージョンを選択してください。
+	Session	セッション
+	{count} photos · last checkpoint {time}	写真 {count} 枚 · 最終チェックポイント {time}
+	{count} photos have edits not saved to XMP	{count} 枚の写真に、XMPに保存されていない編集内容があります
+	The newest checkpoint is unusable; the one from {time} is used instead.	最新のチェックポイントは使用できないため、{time} のチェックポイントを代わりに使用します。
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	このセッションでXMPの保存が完了しませんでした。ほかの書き込みを行う前に、対象のファイルを再確認します。
+	Show file details	ファイルの詳細を表示
+	Hide file details	ファイルの詳細を非表示
+	Checking files…	ファイルを確認中…
+	Recovered edits	復元した編集内容
+	Cache version	キャッシュのバージョン
+	Saved edits	保存済みの編集内容
+	XMP sidecar version	XMPサイドカーのバージョン
+	Resume recovered edits	復元した編集内容で再開
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	使用可能な最新のPhotoCraft復元チェックポイントから編集内容を復元します。
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	PhotoCraftが予期せず終了した場合や、「画像を開く」「完了」「キャンセル」の操作が中断された場合に使用します。XMPサイドカーに保存されなかった作業を復元できる場合があります。最後に確定したチェックポイント以降の変更は利用できないことがあります。
+	Open saved XMP edits	保存済みのXMP編集内容を開く
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	XMPファイルに現在保存されている対応済みの編集内容で、元の写真を開き直します。
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	未保存の復元チェックポイントではなく、保存済みのサイドカーのバージョンを使用するにはこれを選択します。すべての写真にXMPファイルがあるとは限りません。XMPファイルがない写真には、現在のファイル設定または既定の設定が使用されます。キャッシュされた未保存の変更は復元されません。
+	Open other files	他のファイルを開く
+	Discard recovered copy…	復元したコピーを破棄…
+	Discard recovered copy?	復元したコピーを破棄しますか？
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	このセッションの復元チェックポイントを完全に削除します。保存済みのXMPファイルと元の写真は変更されません。
+	Discard recovered copy	復元したコピーを破棄
+	Keep recovered copy	復元したコピーを保持
+	{n} of {total} photos are missing or changed	{total} 枚中 {n} 枚の写真が見つからないか、変更されています
+	{n} photos have no XMP file	{n} 枚の写真にXMPファイルがありません
+	{n} XMP files changed after the checkpoint	{n} 個のXMPファイルがチェックポイント以降に変更されています
+	No usable checkpoint can be opened.	開くことができる使用可能なチェックポイントがありません。
+	None of the photographs is available.	利用できる写真がありません。
+	Photo available	写真は利用可能
+	Photo missing or changed	写真が見つからないか変更済み
+	No XMP file	XMPファイルなし
+	XMP as at the checkpoint	チェックポイント時点のXMP
+	XMP changed after the checkpoint	チェックポイント以降に変更されたXMP
+	XMP unreadable	XMPを読み取れません
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	一部のXMPファイルが、チェックポイント以降にLightroomなどで変更されています。選択する前に確認してください。
+	Camera Raw Preferences…	Camera Raw 環境設定…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	復元は、正常に終了しなかったセッションの後にのみ表示されます。「完了」「画像を開く」「キャンセル」で終了した場合、復元するものは残りません。
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	「完了」と「画像を開く」は、対応している編集内容を先にXMPサイドカーファイルに保存します。元の写真は変更されません。
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	復元をオフにすると、このセッションは保存済みの復元対象から除外されます。開いている編集内容は「完了」「画像を開く」「キャンセル」のいずれかを選ぶまでメモリに残ります。
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	キャッシュ保存が有効な場合、Camera Rawの変更はバックグラウンドで復元用に保存されます。「完了」と「画像を開く」は調整をXMPサイドカーに保存します。
+	Saving XMP before opening…	開く前にXMPを保存中…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	今回の作業で加えた変更を破棄して閉じます。以前に復元された下書きと、今回の作業中に保存したXMPファイルは保持されます。
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	復元をオフにすると、自動チェックポイントの作成が停止します。以前に復元された作業は、完了するか復元用コピーを破棄するまで保持されます。
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	中断後、または復元用に作業を保持した場合に復元が提示されます。「完了」と「画像を開く」は完了済みのセッションを削除します。再開したセッションの変更を破棄しても、以前に復元された作業は保持されます。
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	復元用に保持した作業、PhotoCraftが予期せず終了した場合、または「画像を開く」「完了」「キャンセル」の操作が中断された場合に使用します。XMPサイドカーファイルに一度も保存されていない作業を復元できる場合があります。最後に確認されたチェックポイント以降の変更は利用できない場合があります。
+	Sync Settings	設定を同期
+	Reset Settings	設定をリセット
+	Copy settings from {photo} to the selected photos.	{photo} の設定を選択した写真にコピーします。
+	Select the active photograph to sync its settings.	設定を同期するには、アクティブな写真を選択してください。

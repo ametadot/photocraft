@@ -68,6 +68,62 @@ fn dropped_name(f: &egui::DroppedFileHandle) -> String {
     f.path().file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "dropped".into())
 }
 
+/// A matching XMP file is metadata for a photograph, not another document to decode.
+/// Camera Raw loads the sidecar itself from the RAW's neighbouring path, read-only.
+const XMP_DOCUMENT_ERROR: &str = "XMP sidecars are metadata, not images; open the matching RAW photograph instead";
+
+#[derive(Debug, PartialEq, Eq)]
+enum OpenInput {
+    Document,
+    PairedSidecar,
+    UnpairedSidecar,
+}
+
+fn is_xmp_sidecar(path: &str) -> bool {
+    std::path::Path::new(path).extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("xmp"))
+}
+
+fn same_path_component(a: &std::ffi::OsStr, b: &std::ffi::OsStr) -> bool {
+    if a == b {
+        return true;
+    }
+    // Linux and macOS can have distinct files whose names differ only in case.
+    #[cfg(windows)]
+    {
+        a.to_str().zip(b.to_str()).is_some_and(|(a, b)| a.eq_ignore_ascii_case(b))
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+
+/// Compare exact stems in one directory (not prefixes), handling Windows' ASCII case folding.
+/// A sidecar dragged alongside its RAW is not an additional document. The importer will read
+/// the sidecar from disk when the RAW's Camera Raw review is opened.
+fn xmp_companion_of(sidecar: &str, document: &str) -> bool {
+    if !is_xmp_sidecar(sidecar) || is_xmp_sidecar(document) {
+        return false;
+    }
+    let sidecar = std::path::Path::new(sidecar);
+    let document = std::path::Path::new(document);
+    match (sidecar.parent(), document.parent(), sidecar.file_stem(), document.file_stem()) {
+        (Some(a_dir), Some(b_dir), Some(a_stem), Some(b_stem)) => {
+            // `<stem>.xmp`, or the `<name>.<ext>.xmp` PhotoCraft writes for a JPEG or TIFF.
+            same_path_component(a_dir.as_os_str(), b_dir.as_os_str())
+                && (same_path_component(a_stem, b_stem) || document.file_name().is_some_and(|name| same_path_component(a_stem, name)))
+        }
+        _ => false,
+    }
+}
+
+fn route_open_input(path: &str, submitted: &[String]) -> OpenInput {
+    if !is_xmp_sidecar(path) {
+        return OpenInput::Document;
+    }
+    if submitted.iter().any(|candidate| xmp_companion_of(path, candidate)) { OpenInput::PairedSidecar } else { OpenInput::UnpairedSidecar }
+}
+
 /// The file name of `path` (the document's display name), or `path` itself when it has none.
 pub fn display_name(path: &str) -> String {
     std::path::Path::new(path).file_name().map(|n| n.to_string_lossy().to_string()).filter(|n| !n.is_empty()).unwrap_or_else(|| path.to_string())
@@ -78,8 +134,18 @@ impl PhotocraftApp {
     /// `path` for File › Save unless it is a derivative preview, and `path` goes to the top of Open Recent. Returns the import
     /// warnings (also shown to the user).
     pub fn open_file(&mut self, path: &str, bytes: &[u8]) -> Result<Vec<String>, String> {
+        crate::camera_raw_admission::input(self, &display_name(path), Some(path), |app| app.open_file_inner(path, bytes))
+    }
+
+    fn open_file_inner(&mut self, path: &str, bytes: &[u8]) -> Result<Vec<String>, String> {
+        if is_xmp_sidecar(path) {
+            return Err(XMP_DOCUMENT_ERROR.into());
+        }
         // Brushes/gradients go to the preset libraries (no document, no Open Recent entry).
         if let Some(r) = crate::preset_files_ui::open(self, path, bytes) {
+            if r.is_ok() {
+                crate::camera_raw_admission::outcome(self, crate::camera_raw_admission::Outcome::OutsideRaw);
+            }
             return r.map(|()| Vec::new());
         }
         if self.background_jobs {
@@ -116,7 +182,16 @@ impl PhotocraftApp {
     /// Read and open the file at `path` (see [`open_file`](Self::open_file)).
     #[cfg(not(target_arch = "wasm32"))]
     pub fn open_path(&mut self, path: &str) -> Result<Vec<String>, String> {
+        crate::camera_raw_admission::input(self, &display_name(path), Some(path), |app| app.open_path_inner(path))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn open_path_inner(&mut self, path: &str) -> Result<Vec<String>, String> {
+        if is_xmp_sidecar(path) {
+            return Err(XMP_DOCUMENT_ERROR.into());
+        }
         if self.show_if_open(path) {
+            crate::camera_raw_admission::outcome(self, crate::camera_raw_admission::Outcome::OutsideRaw);
             return Ok(Vec::new());
         }
         // Documents opening in the background are read on the worker too (a 2 GB PSB read
@@ -135,23 +210,90 @@ impl PhotocraftApp {
         Err(format!("cannot open paths on the web: {path}"))
     }
 
+    /// Explicit file-opening route into Camera Raw. Unsupported and layered files
+    /// retain the normal editor route; no original image bytes are written.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn open_path_camera_raw(&mut self, path: &str) -> Result<Vec<String>, String> {
+        crate::camera_raw_admission::input(self, &display_name(path), Some(path), |app| {
+            if is_xmp_sidecar(path) {
+                return Err(XMP_DOCUMENT_ERROR.into());
+            }
+            if app.background_jobs {
+                crate::jobs_ui::start_open_mode(
+                    app,
+                    &display_name(path),
+                    Some(path.to_string()),
+                    photocraft_engine::jobs::OpenSource::Path(path.to_string()),
+                    true,
+                )?;
+                return Ok(Vec::new());
+            }
+            let bytes = photocraft_format::read_file(std::path::Path::new(path)).map_err(|e| format!("{path}: {e}"))?;
+            app.open_bytes_from_mode(&display_name(path), &bytes, Some(path), true)
+        })
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn open_path_camera_raw(&mut self, path: &str) -> Result<Vec<String>, String> {
+        Err(format!("cannot open paths on the web: {path}"))
+    }
+
     /// Open several files, reporting each failure to the user instead of stopping. Relative paths
     /// are resolved against the working directory so the remembered path stays valid. The files
     /// open in name order ([`natural_cmp`]: `File_2` before `File_10`), and their tabs keep that
     /// order however long each takes to open in the background (#3248). Returns how many opened.
     pub fn open_paths(&mut self, paths: &[String]) -> usize {
+        self.open_paths_mode(paths, false)
+    }
+
+    pub(crate) fn open_paths_mode(&mut self, paths: &[String], explicit: bool) -> usize {
+        if let Err(error) = crate::camera_raw_ui::admission_allowed(self) {
+            for path in paths {
+                self.open_failed(&display_name(path), &error);
+            }
+            return 0;
+        }
         let mut paths: Vec<String> = paths.iter().map(|p| absolute(p)).collect();
         paths.sort_by(|a, b| natural_cmp(a, b));
         let batch = crate::jobs_ui::begin_batch(self);
         let mut opened = 0;
-        for (seq, abs) in paths.iter().enumerate() {
-            // Not a member of the set: its tab is already in place.
+        // Filter metadata *before* a background file-open worker can try to decode it.
+        // The RAW opener locates same-stem XMP beside the file it was asked to open.
+        // Register the full intended set before the first disk read or decode.
+        let inputs: Vec<_> =
+            paths.iter().map(|abs| matches!(route_open_input(abs, &paths), OpenInput::Document).then(|| (display_name(abs), Some(abs.clone())))).collect();
+        let requests = match crate::camera_raw_admission::register_many(self, &inputs) {
+            Ok(requests) => requests,
+            Err(error) => {
+                for path in &paths {
+                    self.open_failed(&display_name(path), &error);
+                }
+                crate::jobs_ui::end_batch(&mut self.jobs);
+                return 0;
+            }
+        };
+        let mut seq = 0;
+        for (abs, request) in paths.iter().zip(requests) {
+            match route_open_input(abs, &paths) {
+                OpenInput::PairedSidecar => continue,
+                OpenInput::UnpairedSidecar => {
+                    self.open_failed(&display_name(abs), XMP_DOCUMENT_ERROR);
+                    continue;
+                }
+                OpenInput::Document => {}
+            }
+            // Retain upstream duplicate-open behavior and settle the registered ticket.
             if self.show_if_open(abs) {
+                let _: Result<(), String> = crate::camera_raw_admission::scoped(self, request, |app| {
+                    crate::camera_raw_admission::outcome(app, crate::camera_raw_admission::Outcome::OutsideRaw);
+                    Ok(())
+                });
                 continue;
             }
             let order = crate::jobs_ui::OpenOrder { batch, seq };
+            seq += 1;
             let pending = self.jobs.opens.len();
-            match self.open_path(abs) {
+            match crate::camera_raw_admission::scoped(self, request, |app| if explicit { app.open_path_camera_raw(abs) } else { app.open_path(abs) }) {
                 Ok(_) => {
                     opened += 1;
                     // A background open's tab takes its place when it finishes; a document opened
@@ -217,13 +359,50 @@ impl PhotocraftApp {
         if target == DropTarget::Canvas && self.ui.transform.is_some() && files.iter().any(|f| !crate::preset_files_ui::is_preset_file(&dropped_name(f))) {
             crate::transform_tool::commit(self);
         }
-        for f in files {
+        let submitted: Vec<String> =
+            files.iter().map(|f| if f.path().is_absolute() { f.path().to_string_lossy().into_owned() } else { dropped_name(f) }).collect();
+        if target != DropTarget::Canvas
+            && let Err(error) = crate::camera_raw_ui::admission_allowed(self)
+        {
+            for path in &submitted {
+                self.open_failed(&display_name(path), &error);
+            }
+            return;
+        }
+        let inputs: Vec<_> = files
+            .iter()
+            .zip(&submitted)
+            .map(|(file, path)| {
+                let name = dropped_name(file);
+                (route_open_input(path, &submitted) == OpenInput::Document && (target != DropTarget::Canvas || crate::preset_files_ui::is_preset_file(&name)))
+                    .then(|| (name, file.path().is_absolute().then(|| path.clone())))
+            })
+            .collect();
+        let requests = match crate::camera_raw_admission::register_many(self, &inputs) {
+            Ok(requests) => requests,
+            Err(error) => {
+                for path in &submitted {
+                    self.open_failed(&display_name(path), &error);
+                }
+                return;
+            }
+        };
+        for (f, request) in files.into_iter().zip(requests) {
             let name = dropped_name(&f);
+            let path = if f.path().is_absolute() { f.path().to_string_lossy().into_owned() } else { name.clone() };
+            match route_open_input(&path, &submitted) {
+                OpenInput::PairedSidecar => continue,
+                OpenInput::UnpairedSidecar => {
+                    self.open_failed(&name, XMP_DOCUMENT_ERROR);
+                    continue;
+                }
+                OpenInput::Document => {}
+            }
             if target == DropTarget::Canvas && !crate::preset_files_ui::is_preset_file(&name) {
                 self.drop_places.push_back(DropPlace::File(f));
                 continue;
             }
-            match self.open_dropped_file(&f, &name, slot) {
+            match crate::camera_raw_admission::scoped(self, request, |app| app.open_dropped_file(&f, &name, slot)) {
                 Ok(true) => slot = slot.map(|s| s + 1),
                 Ok(false) => {}
                 Err(e) => self.open_failed(&name, &e),
@@ -267,6 +446,14 @@ impl PhotocraftApp {
     /// Open one dropped file; with `slot`, its tab goes there (when it finishes opening, for
     /// background opens). True when it took the slot.
     fn open_dropped_file(&mut self, f: &egui::DroppedFileHandle, name: &str, slot: Option<usize>) -> Result<bool, String> {
+        let path = f.path().is_absolute().then(|| f.path().to_string_lossy().into_owned());
+        crate::camera_raw_admission::input(self, name, path.as_deref(), |app| app.open_dropped_file_inner(f, name, slot))
+    }
+
+    fn open_dropped_file_inner(&mut self, f: &egui::DroppedFileHandle, name: &str, slot: Option<usize>) -> Result<bool, String> {
+        if is_xmp_sidecar(name) {
+            return Err(XMP_DOCUMENT_ERROR.into());
+        }
         // Opens append: a background open's tab, or a document.
         let (docs, opens) = (self.session.documents().len(), self.jobs.opens.len());
         if f.path().is_absolute() {
@@ -423,3 +610,65 @@ fn same_file(p: &str, path: &str, canon: Option<&std::path::Path>) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod xmp_sidecar_routing_tests {
+    use super::*;
+
+    #[test]
+    fn mixed_nef_and_xmp_batch_routes_only_the_photographs_to_the_decoder() {
+        let paths = vec![
+            "/photos/sample_0001.xmp".to_string(),
+            "/photos/sample_0002.NEF".to_string(),
+            "/photos/sample_0001.NEF".to_string(),
+            "/photos/sample_0002.XMP".to_string(),
+            "/photos/sample_0003.nef".to_string(),
+        ];
+        assert_eq!(route_open_input(&paths[0], &paths), OpenInput::PairedSidecar);
+        assert_eq!(route_open_input(&paths[1], &paths), OpenInput::Document);
+        assert_eq!(route_open_input(&paths[2], &paths), OpenInput::Document);
+        assert_eq!(route_open_input(&paths[3], &paths), OpenInput::PairedSidecar);
+        assert_eq!(route_open_input(&paths[4], &paths), OpenInput::Document);
+        assert_eq!(paths.iter().filter(|p| route_open_input(p, &paths) == OpenInput::Document).count(), 3);
+    }
+
+    #[test]
+    fn xmp_is_not_matched_by_prefix_or_across_directories() {
+        let paths = vec!["/photos/sample_00010.NEF".to_string(), "/other/sample_0001.NEF".to_string()];
+        assert_eq!(route_open_input("/photos/sample_0001.xmp", &paths), OpenInput::UnpairedSidecar);
+        assert!(!xmp_companion_of("/photos/sample_0001.xmp", "/photos/sample_00010.NEF"));
+        assert!(!xmp_companion_of("/photos/sample_0001.xmp", "/other/sample_0001.NEF"));
+    }
+
+    #[test]
+    fn xmp_companions_are_case_insensitive_but_unpaired_xmp_is_not_an_image() {
+        let paths = vec!["C:/Photos/sample_0001.NEF".to_string()];
+        assert_eq!(route_open_input("C:/Photos/SAMPLE_0001.XmP", &paths), if cfg!(windows) { OpenInput::PairedSidecar } else { OpenInput::UnpairedSidecar },);
+        assert_eq!(route_open_input("C:/Photos/another.xmp", &paths), OpenInput::UnpairedSidecar);
+        assert_eq!(route_open_input("C:/Photos/another.psd", &paths), OpenInput::Document);
+        assert!(!is_xmp_sidecar("C:/Photos/file.xmp.bak"));
+    }
+
+    /// The `<name>.<ext>.xmp` PhotoCraft writes for a JPEG or TIFF pairs with that file in a
+    /// batch (round-5 sweep): it is not reported as an unpaired, failed document.
+    #[test]
+    fn a_full_name_sidecar_pairs_with_its_jpeg_or_tiff() {
+        let paths = vec![
+            "/photos/sample_1.JPG".to_string(),
+            "/photos/sample_1.JPG.xmp".to_string(),
+            "/photos/scan.tif".to_string(),
+            "/photos/scan.tif.xmp".to_string(),
+        ];
+        assert_eq!(route_open_input(&paths[1], &paths), OpenInput::PairedSidecar);
+        assert_eq!(route_open_input(&paths[3], &paths), OpenInput::PairedSidecar);
+        assert_eq!(paths.iter().filter(|p| route_open_input(p, &paths) == OpenInput::Document).count(), 2);
+        assert!(!xmp_companion_of("/photos/sample_1.JPG.xmp", "/photos/sample_2.JPG"));
+    }
+
+    #[test]
+    fn xmp_only_selection_and_same_stem_sidecars_are_not_importable_documents() {
+        let paths = vec!["/photos/sample_0001.xmp".to_string(), "/photos/sample_0001.XMP".to_string()];
+        assert!(paths.iter().all(|p| route_open_input(p, &paths) == OpenInput::UnpairedSidecar));
+        assert!(XMP_DOCUMENT_ERROR.contains("matching RAW"));
+    }
+}

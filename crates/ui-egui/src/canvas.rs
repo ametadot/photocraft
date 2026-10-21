@@ -2877,7 +2877,7 @@ const HOME_BUTTON_WIDTH: f32 = 190.0;
 /// Space between the Home screen's two buttons.
 const HOME_BUTTON_GAP: f32 = 12.0;
 
-fn start_screen(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
+pub(crate) fn start_screen(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
     let t = crate::theme::Tokens::get(ui.ctx());
     let area = ui.available_rect_before_wrap();
     paint_dots(ui, area, app.session.prefs().interface.show_canvas_dots);

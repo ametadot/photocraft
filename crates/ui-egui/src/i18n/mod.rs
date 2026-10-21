@@ -1317,7 +1317,7 @@ mod tests {
     /// tl! scanner cannot see. Cover the partial catalog too, without claiming whole-app coverage.
     #[test]
     fn camera_raw_labels_are_translated_in_every_available_language() {
-        let sources = [include_str!("../camera_raw_ui.rs"), include_str!("../camera_raw_scope_ui.rs")];
+        let sources = [include_str!("../camera_raw_ui.rs"), include_str!("../camera_raw_scope_ui.rs"), include_str!("../camera_raw_preferences_ui.rs")];
         let mut labels = std::collections::BTreeSet::new();
         for source in sources {
             let code = source.split("#[cfg(test)]").next().unwrap();
