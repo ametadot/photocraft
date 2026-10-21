@@ -47,10 +47,63 @@ fn blend_preview_selection(pixels: &mut [[f32; 4]], original: &[[f32; 4]], mask:
 mod edit_actions;
 #[path = "camera_raw_filmstrip_ui.rs"]
 mod filmstrip_ui;
+#[cfg(not(target_arch = "wasm32"))]
+#[path = "camera_raw_jpeg_ui.rs"]
+mod jpeg_ui;
+#[cfg(not(target_arch = "wasm32"))]
+#[path = "camera_raw_persistence_ui.rs"]
+mod persistence_ui;
 #[path = "camera_raw_preferences_ui.rs"]
 mod preferences_ui;
 #[path = "camera_raw_selection.rs"]
 mod selection_ui;
+
+pub(crate) fn intercept_close(app: &mut PhotocraftApp) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        persistence_ui::request_exit(app)
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = app;
+        false
+    }
+}
+
+pub(crate) fn admission_changed(app: &mut PhotocraftApp) {
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::admission_changed(app);
+    #[cfg(target_arch = "wasm32")]
+    let _ = app;
+}
+
+/// See `persistence_ui::unadmitted`.
+pub(crate) fn unadmitted(app: &PhotocraftApp, key: &str) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    return persistence_ui::unadmitted(app, key);
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = (app, key);
+        false
+    }
+}
+
+/// See `persistence_ui::forget_admission`.
+pub(crate) fn forget_admission(app: &mut PhotocraftApp, key: &str) {
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::forget_admission(app, key);
+    #[cfg(target_arch = "wasm32")]
+    let _ = (app, key);
+}
+
+pub(crate) fn admission_allowed(app: &PhotocraftApp) -> Result<(), String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::finishing(app) || jpeg_ui::is_running(app) || jpeg_ui::is_modal_open(app) {
+        return Err("Finish the current Camera Raw save or decision before opening another batch".into());
+    }
+    let _ = app;
+    Ok(())
+}
 
 const PROXY_SIDE: usize = 900;
 const PANEL_W: f32 = 330.0;
@@ -106,6 +159,8 @@ pub struct CameraRawDialog {
     redo: Vec<CameraRaw>,
     /// Params at pointer-down. One drag is one undo step.
     edit_origin: Option<CameraRaw>,
+    /// Transient window state only; blank preference pages do not persist settings.
+    preferences: preferences_ui::Preferences,
 }
 
 impl CameraRawDialog {
@@ -402,12 +457,18 @@ struct ParkedRawReview {
 #[derive(Default)]
 pub struct FilmstripState {
     pub(crate) admission: crate::camera_raw_admission::AdmissionState,
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence: Option<persistence_ui::Host>,
+    #[cfg(not(target_arch = "wasm32"))]
+    last_persistence_result: Option<Value>,
+    #[cfg(not(target_arch = "wasm32"))]
+    jpeg: jpeg_ui::JpegState,
     fullscreen: bool,
     manually_hidden: std::collections::BTreeSet<PhotoId>,
-    metadata: std::collections::BTreeMap<PhotoId, photocraft_io::raw_session::Metadata>,
     group_undo: Vec<edit_actions::GroupChange>,
     group_redo: Vec<edit_actions::GroupChange>,
     group_set: Option<(String, f32, Vec<PhotoId>)>,
+    recovery_checked: bool,
     parked: std::collections::VecDeque<ParkedRawReview>,
     /// Open Images commits every RAW originally selected in the file picker.
     /// Only one development job can run at a time; continue on later UI frames.
@@ -653,7 +714,11 @@ pub(crate) fn sync_provisional(app: &mut PhotocraftApp) {
     app.session.set_provisional_pending(pending);
     app.session.set_provisional_documents(held);
     // The review session is over (nothing waits, develops or is shown): the next one starts from scratch.
-    if !raw_in_progress(app) {
+    #[cfg(not(target_arch = "wasm32"))]
+    let retained_session = persistence_ui::retains_session(app);
+    #[cfg(target_arch = "wasm32")]
+    let retained_session = false;
+    if !raw_in_progress(app) && !retained_session {
         app.raw_filmstrip.selection.clear();
         app.raw_filmstrip.thumbs.clear();
         // The filter is for this review only (the sort stays): the next review never starts with photos hidden.
@@ -661,20 +726,6 @@ pub(crate) fn sync_provisional(app: &mut PhotocraftApp) {
         app.raw_filmstrip.hidden = Default::default();
         app.raw_filmstrip.thumb_job = None;
         app.raw_filmstrip.thumb_failed.clear();
-        // The workspace has no durable session owner. Retire its transient
-        // records only after every import and editor handoff has settled.
-        if !pending
-            && !app.raw_filmstrip.batch_open_all
-            && !app.raw_filmstrip.metadata.is_empty()
-            && app.held_opens.is_empty()
-            && crate::camera_raw_admission::settled(app)
-        {
-            app.raw_filmstrip.metadata.clear();
-            app.raw_filmstrip.group_undo.clear();
-            app.raw_filmstrip.group_redo.clear();
-            app.raw_filmstrip.manually_hidden.clear();
-            crate::camera_raw_admission::clear(app);
-        }
     }
 }
 
@@ -708,9 +759,24 @@ pub(crate) fn commit_jobs(app: &PhotocraftApp) -> Vec<photocraft_engine::jobs::J
 /// while a RAW that landed after it opened is not the active tab, because its commit runs on the active tab.
 pub(crate) fn dialog_is_drivable(app: &PhotocraftApp) -> bool {
     let Some(dialog) = app.camera_raw.as_ref() else {
+        #[cfg(not(target_arch = "wasm32"))]
+        return app.raw_filmstrip.persistence.is_some();
+        #[cfg(target_arch = "wasm32")]
         return false;
     };
     dialog.target == Target::OpenRaw || !app.session.active().is_some_and(|st| unaccepted_documents(app).contains(&st.doc.id))
+}
+
+/// Read-only status survives a completed Done, so a lost transport response can
+/// be inspected before any caller considers replaying a write.
+pub(crate) fn persistence_snapshot(app: &PhotocraftApp) -> Value {
+    #[cfg(not(target_arch = "wasm32"))]
+    return persistence_ui::describe(app);
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = app;
+        json!({"available":false})
+    }
 }
 
 /// Expose the same stable RAW request IDs to the authorised Camera Raw control channel.
@@ -764,6 +830,10 @@ fn describe_active_raw(app: &PhotocraftApp) -> Value {
             "toolbarRect": rect(frame.toolbar),
             "cards": frame.cards.iter().map(|(document, card)| json!({"document": document.0, "rect": rect(*card)})).collect::<Vec<_>>(),
         });
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if description.is_object() {
+        description["persistence"] = persistence_ui::describe(app);
     }
     description
 }
@@ -989,24 +1059,8 @@ pub fn queue_open_dialog(app: &mut PhotocraftApp, document: photocraft_doc::DocI
         path: path.map(str::to_string),
         bytes: bytes.map(|b| std::sync::Arc::new(b.to_vec())),
     };
-    let mut metadata = photocraft_io::raw_session::Metadata {
-        rating: match raw.rating {
-            PhotoRating::Stars(n) => Some(n as i8),
-            PhotoRating::Rejected => Some(-1),
-            PhotoRating::Unrated => Some(0),
-            PhotoRating::Unknown => None,
-        },
-        label: String::new(),
-        marked: false,
-    };
-    if let Ok(Some((_, bytes))) = adjacent_xmp_bytes(path) {
-        if let Ok(Some(recipe)) = photocraft_io::raw_session::xmp::load_native(&bytes) {
-            metadata = recipe.metadata;
-        } else if let Some(label) = photocraft_io::raw_xmp::read_workspace_label(&bytes) {
-            metadata.label = label;
-        }
-    }
-    app.raw_filmstrip.metadata.insert(raw.photo, metadata);
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::queue(app, &raw);
     if app.camera_raw.is_none() && app.pending_raw_open.is_none() && app.queued_raw_opens.is_empty() {
         app.pending_raw_open = Some(raw);
     } else {
@@ -1036,6 +1090,10 @@ fn open_raw(app: &mut PhotocraftApp, ctx: &egui::Context, raw: RawOpen) -> Resul
         Ok(Some(imported)) => imported.params.clone(),
         _ => CameraRaw::default(),
     };
+    #[cfg(not(target_arch = "wasm32"))]
+    let params = persistence_ui::recipe(app, raw.photo).map_or(params, |recipe| recipe.adjustments.clone());
+    #[cfg(not(target_arch = "wasm32"))]
+    let original = persistence_ui::original(app, raw.photo).cloned();
     open_pixels(app, ctx, layer, surf, params, Coverage::None, Target::OpenRaw)?;
     let curve = match (&raw.bytes, &raw.path) {
         (Some(b), _) => Some(photocraft_io::raw::tone_curve(b)),
@@ -1044,6 +1102,12 @@ fn open_raw(app: &mut PhotocraftApp, ctx: &egui::Context, raw: RawOpen) -> Resul
         _ => None,
     };
     if let Some(d) = app.camera_raw.as_mut() {
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(mut original) = original {
+            original.encoding_gamma = d.params.encoding_gamma;
+            original.pixel_scale = d.params.pixel_scale;
+            d.original = original;
+        }
         d.layer_name = raw.name.clone();
         d.raw_curve = curve.map(std::sync::Arc::new);
         d.raw_open = Some(raw);
@@ -1115,7 +1179,11 @@ fn raw_stage(p: &CameraRaw) -> photocraft_io::raw::Tone {
 /// document is locked meanwhile, and [`on_redevelop_event`] finishes when it lands. Elsewhere
 /// (tests, the web) it runs inline.
 fn commit_open_raw(app: &mut PhotocraftApp, params: &CameraRaw, raw: &RawOpen) -> Result<Value, String> {
-    let complete_recipe = false;
+    #[cfg(not(target_arch = "wasm32"))]
+    let native = persistence_ui::recipe(app, raw.photo).cloned().zip(persistence_ui::binding(app, raw.photo));
+    #[cfg(target_arch = "wasm32")]
+    let native: Option<(photocraft_io::raw_session::NativeRecipe, photocraft_io::raw_session::SourceBinding)> = None;
+    let complete_recipe = native.is_some();
     let index = document_index(app, raw.document).ok_or("the raw document was closed")?;
     let tuning = photocraft_io::raw::RawTuning {
         temperature: params.temperature,
@@ -1134,7 +1202,7 @@ fn commit_open_raw(app: &mut PhotocraftApp, params: &CameraRaw, raw: &RawOpen) -
         (None, Some(p)) => Some(photocraft_engine::jobs::OpenSource::Path(p.clone())),
         _ => None,
     };
-    let Some(source) = source.filter(|_| tuning != photocraft_io::raw::RawTuning::default()) else {
+    let Some(source) = source.filter(|_| native.is_some() || tuning != photocraft_io::raw::RawTuning::default()) else {
         return finish_open_raw(app, index, params.clone(), None, Some(raw));
     };
     app.session.set_active(index);
@@ -1142,6 +1210,14 @@ fn commit_open_raw(app: &mut PhotocraftApp, params: &CameraRaw, raw: &RawOpen) -
     let work = move |ctx: &photocraft_engine::jobs::JobCtx| -> photocraft_engine::Result<(photocraft_io::ImportResult, bool)> {
         ctx.progress(0.0, "Reading");
         #[cfg(not(target_arch = "wasm32"))]
+        if let Some((recipe, binding)) = &native {
+            let bytes =
+                photocraft_io::raw_session::controller::read_verified_source(binding).map_err(|e| photocraft_engine::EngineError::Other(e.to_string()))?;
+            ctx.check()?;
+            return photocraft_io::raw_session::controller::render_recipe(&name, &bytes, recipe)
+                .map(|result| (result, true))
+                .map_err(|e| photocraft_engine::EngineError::Other(e.to_string()));
+        }
         let bytes = match source {
             photocraft_engine::jobs::OpenSource::Bytes(b) => b,
             #[cfg(not(target_arch = "wasm32"))]
@@ -1272,6 +1348,12 @@ fn finish_open_raw(app: &mut PhotocraftApp, index: usize, rest: CameraRaw, redev
         result["filter"] = r;
     }
     mark_unmodified(app, index);
+    #[cfg(not(target_arch = "wasm32"))]
+    if app.raw_redevelop.is_none()
+        && let Some(raw) = raw
+    {
+        persistence_ui::transferred(app, raw.photo);
+    }
     Ok(result)
 }
 
@@ -1387,8 +1469,14 @@ fn is_raw_name(name: &str) -> bool {
 
 /// Cancel the Camera Raw review session, not merely the current thumbnail.
 fn cancel(app: &mut PhotocraftApp) {
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::request_close(app) {
+        return;
+    }
     cancel_review(app);
     sync_provisional(app);
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::end_sessionless_visit(app);
 }
 
 fn cancel_review(app: &mut PhotocraftApp) {
@@ -1413,8 +1501,6 @@ fn cancel_review(app: &mut PhotocraftApp) {
     app.queued_raw_opens.clear();
     app.raw_filmstrip.parked.clear();
     app.raw_filmstrip.selection.clear();
-    app.raw_filmstrip.metadata.clear();
-    crate::camera_raw_admission::clear(app);
     app.raw_filmstrip.group_undo.clear();
     app.raw_filmstrip.group_redo.clear();
     app.raw_filmstrip.group_set = None;
@@ -1616,6 +1702,7 @@ fn open_pixels(
         undo: Vec::new(),
         redo: Vec::new(),
         edit_origin: None,
+        preferences: Default::default(),
     };
     d.render(ctx);
     app.camera_raw = Some(d);
@@ -1649,11 +1736,26 @@ pub fn menu(app: &mut PhotocraftApp, ctx: &egui::Context, id: &str, params: &Val
     let Some(fields) = ui.as_object() else {
         return Some(Err("Camera Raw ui must be an object".into()));
     };
+    #[cfg(not(target_arch = "wasm32"))]
+    if let Some(request) = ui.get("persistence") {
+        if fields.len() != 1 {
+            return Some(Err("Send a persistence action separately from edits".into()));
+        }
+        return Some(persistence_ui::control(app, request));
+    }
     if let Some(request) = ui.get("group") {
         if fields.len() != 1 {
             return Some(Err("Send a group action separately from other edits".into()));
         }
         return Some(group_control(app, request).map(|()| describe_active_raw(app)));
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::finishing(app) {
+        return Some(Err("Finish decision is holding edits".into()));
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::unready(app) && (fields.contains_key("set") || fields.contains_key("scope")) {
+        return Some(Err("Wait for verified photograph admission before editing".into()));
     }
     for (key, value) in fields {
         match key.as_str() {
@@ -1677,6 +1779,13 @@ pub fn menu(app: &mut PhotocraftApp, ctx: &egui::Context, id: &str, params: &Val
             }
             return Some(run(app));
         }
+    }
+    // With no Camera Raw review open, a RAW session (loading, the recovery chooser, an empty
+    // filmstrip, the Open Images handoff) is driven only by persistence actions: a ui request
+    // must never open a Camera Raw Filter over it and then report on the wrong dialog.
+    #[cfg(not(target_arch = "wasm32"))]
+    if app.camera_raw.is_none() && persistence_ui::raw_visit(app) {
+        return Some(Err("No Camera Raw review is open; use a persistence action (for example cancel, resume or openOtherFiles)".into()));
     }
     let was_closed = app.camera_raw.is_none();
     let previous_view = app.ui.camera_raw_scope.clone();
@@ -1823,6 +1932,14 @@ fn menu_update(app: &mut PhotocraftApp, ctx: &egui::Context, ui: &Value) -> Opti
         cancel(app);
         // With unsaved edits Cancel first asks; without, the session's terminal discard is
         // still on its way. Report what is true now: poll describe() until it is closed.
+        #[cfg(not(target_arch = "wasm32"))]
+        if persistence_ui::cancelling(app) {
+            return Some(Ok(json!({"cancelled": false, "confirmationRequired": true})));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if persistence_ui::closing(app) {
+            return Some(Ok(json!({"cancelled": false, "closing": true})));
+        }
         return Some(Ok(json!({"cancelled": true})));
     }
     if ui.get("commit").and_then(Value::as_bool) == Some(true) {
@@ -1940,6 +2057,10 @@ fn commit(app: &mut PhotocraftApp) -> Result<Value, String> {
 }
 
 fn commit_dialog(app: &mut PhotocraftApp) -> Result<Value, String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if app.camera_raw.as_ref().is_some_and(|d| d.target == Target::OpenRaw) && !persistence_ui::before_open(app)? {
+        return Ok(json!({"pending": true, "operation": "checkpoint-before-open"}));
+    }
     let d = app.camera_raw.as_ref().ok_or(tl!("Camera Raw isn't open"))?;
     let total = if d.target == Target::OpenRaw { filmstrip_raws(app).len() } else { 0 };
     let start_batch = total > 1 && !app.raw_filmstrip.batch_open_all;
@@ -2173,7 +2294,6 @@ fn advance_batch_open(app: &mut PhotocraftApp, ctx: &egui::Context) {
             format!("Open Images incomplete: only {completed} of {total} photos finished")
         };
         app.ui.status_error = completed != total;
-        sync_provisional(app);
         ctx.request_repaint_of(egui::ViewportId::ROOT);
         return;
     }
@@ -2202,10 +2322,18 @@ fn advance_batch_open(app: &mut PhotocraftApp, ctx: &egui::Context) {
 
 /// Imported photographs stay staged until the complete opening batch is ready.
 pub(crate) fn loading(app: &PhotocraftApp) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::cancelling(app) {
+        return false;
+    }
     if !app.jobs.opens.is_empty() && (!crate::camera_raw_admission::snapshot(app).is_empty() || !filmstrip_raws(app).is_empty()) {
         return true;
     }
     if crate::open_prompt::waiting(app) && !crate::camera_raw_admission::snapshot(app).is_empty() {
+        return true;
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::loading(app) {
         return true;
     }
     false
@@ -2241,6 +2369,9 @@ fn loading_dialog(app: &mut PhotocraftApp, ctx: &egui::Context) {
         for job in jobs {
             crate::jobs_ui::cancel(app, job);
         }
+        #[cfg(not(target_arch = "wasm32"))]
+        persistence_ui::cancel_loading(app);
+        #[cfg(target_arch = "wasm32")]
         {
             cancel_review(app);
             sync_provisional(app);
@@ -2250,6 +2381,8 @@ fn loading_dialog(app: &mut PhotocraftApp, ctx: &egui::Context) {
 }
 
 pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::poll(app, ctx);
     sync_provisional(app);
     if loading(app) {
         // The profile decision is a prerequisite for admission. It was drawn
@@ -2268,6 +2401,8 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     }
     start_next_raw_review(app, ctx);
     let Some(d) = app.camera_raw.as_ref() else {
+        #[cfg(not(target_arch = "wasm32"))]
+        persistence_ui::dialogs(app, ctx);
         return;
     };
     // Where the platform has no extra windows (the web build), draw over the main window.
@@ -2286,7 +2421,7 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     ctx.show_viewport_immediate(egui::ViewportId::from_hash_of("camera-raw-window"), builder, |ui, class| {
         if ui.ctx().input(|i| i.viewport().close_requested()) {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            close = true;
+            close = !app.camera_raw.as_mut().is_some_and(|d| d.preferences.handle_native_close(ui.ctx()));
         }
         draw(app, ui.ctx(), class != egui::ViewportClass::EmbeddedWindow);
     });
@@ -2320,6 +2455,8 @@ fn has_edits(p: &CameraRaw) -> bool {
 fn filmstrip_entries(app: &mut PhotocraftApp, ctx: &egui::Context) -> Vec<filmstrip_ui::Entry> {
     let active = app.camera_raw.as_ref().and_then(|dialog| dialog.raw_open.as_ref()).map(|raw| raw.document);
     let settings_source = app.camera_raw.as_ref().and_then(|dialog| dialog.raw_open.as_ref()).map(|raw| (raw.photo, raw.name.clone()));
+    #[cfg(not(target_arch = "wasm32"))]
+    let settings_source = settings_source.filter(|_| !persistence_ui::unready(app));
     let active_edited = app.camera_raw.as_ref().is_some_and(|dialog| has_edits(&dialog.params));
     let raws = filmstrip_raws(app);
     // Photographs, not documents: A1 -> A2 keeps its place. A photograph whose commit is in flight still belongs here.
@@ -2388,17 +2525,21 @@ fn filmstrip_entries(app: &mut PhotocraftApp, ctx: &egui::Context) -> Vec<filmst
         };
         let selected = app.raw_filmstrip.selection.contains(raw.photo);
         let rating = raw.rating;
-        let metadata = app.raw_filmstrip.metadata.get(&raw.photo);
-        let label = metadata.map_or_else(String::new, |m| m.label.clone());
-        let marked = metadata.is_some_and(|m| m.marked);
-        let pending_xmp = false;
-        let rating = metadata.map_or(rating, |m| match m.rating {
-            Some(-1) => PhotoRating::Rejected,
-            Some(n @ 1..=5) => PhotoRating::Stars(n as u8),
-            Some(0) => PhotoRating::Unrated,
-            None => rating,
-            _ => PhotoRating::Unknown,
-        });
+        let (mut label, mut marked, mut pending_xmp) = (String::new(), false, false);
+        #[cfg(not(target_arch = "wasm32"))]
+        let rating = if let Some(recipe) = persistence_ui::recipe(app, raw.photo) {
+            label = recipe.metadata.label.clone();
+            marked = recipe.metadata.marked;
+            pending_xmp = persistence_ui::pending_xmp(app, raw.photo);
+            match recipe.metadata.rating {
+                Some(-1) => PhotoRating::Rejected,
+                None | Some(0) => PhotoRating::Unrated,
+                Some(n) if (1..=5).contains(&n) => PhotoRating::Stars(n as u8),
+                _ => PhotoRating::Unknown,
+            }
+        } else {
+            rating
+        };
         result.push(filmstrip_ui::Entry {
             document: raw.document,
             photo: raw.photo,
@@ -2451,11 +2592,34 @@ fn filmstrip_entries(app: &mut PhotocraftApp, ctx: &egui::Context) -> Vec<filmst
 fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
     let keyboard_owned = ctx.egui_wants_keyboard_input() && !filmstrip_ui::owns_keyboard_focus(ctx);
     let previous_params = app.camera_raw.as_ref().filter(|d| d.target == Target::OpenRaw).map(|d| d.params.clone());
+    #[cfg(not(target_arch = "wasm32"))]
+    let persistence_blocked = persistence_ui::blocked(app) || jpeg_ui::is_modal_open(app) || app.raw_filmstrip.group_set.is_some();
+    #[cfg(not(target_arch = "wasm32"))]
+    let photo_unready = persistence_ui::unready(app);
+    #[cfg(target_arch = "wasm32")]
     let photo_unready = false;
+    #[cfg(target_arch = "wasm32")]
     let persistence_blocked = app.raw_filmstrip.group_set.is_some();
+    #[cfg(not(target_arch = "wasm32"))]
+    let cache_status = persistence_ui::status(app);
+    #[cfg(target_arch = "wasm32")]
+    let cache_status = "Recovery cache unavailable in this browser".to_string();
     // Whether a menu was open as this frame began: an Esc that closes it this frame is not a Cancel (F4 lab F1-R1).
     let menu_was_open = egui::Popup::is_any_open(ctx);
-    let preferences_blocked = false;
+    let raw_defaults = app.session.prefs().raw_defaults.clone();
+    let mut updated_defaults = None;
+    let mut preferences_blocked = false;
+    #[cfg(not(target_arch = "wasm32"))]
+    let recovery_session = app.raw_filmstrip.persistence.is_some();
+    #[cfg(target_arch = "wasm32")]
+    let recovery_session = false;
+    if let Some(d) = app.camera_raw.as_mut() {
+        d.preferences.recovery_session = recovery_session && d.target == Target::OpenRaw;
+        preferences_blocked = d.preferences.open || std::mem::take(&mut d.preferences.block_frame);
+        if d.preferences.open {
+            updated_defaults = preferences_ui::show(ctx, &mut d.preferences, &raw_defaults);
+        }
+    }
     let t = Tokens::get(ctx);
     let screen = ctx.content_rect();
     let current_display = app.session.active().and_then(|st| app.session.color.canvas_display(&st.doc).ok());
@@ -2518,7 +2682,10 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
         } else {
             tl!("OK")
         };
-        let footer_h = 48.0;
+        let show_cache_status = d.target == Target::OpenRaw
+            && raw_defaults.recovery_mode == photocraft_engine::prefs::RawRecoveryMode::Cache
+            && raw_defaults.show_recovery_progress;
+        let footer_h = if show_cache_status { 76.0 } else { 48.0 };
         let body = ERect::from_min_max(pos2(full.left(), title.bottom()), pos2(full.right(), full.bottom() - footer_h));
         let foot = ERect::from_min_max(pos2(full.left(), full.bottom() - footer_h), full.max);
         // Read the gear before any review controls so its opening frame also owns input.
@@ -2529,9 +2696,17 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
         if preferences_blocked {
             gear_ui.disable();
         }
-        let response = crate::icons::button_with_icon_size(&mut gear_ui, "settings", 28.0, 18.0, false, tl!("Settings"));
-        // Portable XMP settings presets and the Before/After view.
+        let response = crate::icons::button_with_icon_size(&mut gear_ui, "settings", 28.0, 18.0, d.preferences.open, tl!("Camera Raw Preferences"));
+        d.preferences.gear = Some(response.rect);
+        let mut opened_preferences = false;
+        // One grey gear: Camera Raw Preferences, the portable XMP settings presets and
+        // Before/After. Recovery settings live only in Preferences > Long-session recovery.
         egui::Popup::menu(&response).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
+            if ui.button(tl!("Camera Raw Preferences…")).clicked() {
+                opened_preferences = true;
+                ui.close();
+            }
+            ui.separator();
             ui.add_enabled_ui(!persistence_blocked, |ui| {
                 if ui.button(tl!("Load Settings…")).clicked() {
                     action = Some("load");
@@ -2544,13 +2719,24 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
                 ui.checkbox(&mut d.show_before, tl!("Before (Y)"));
             });
         });
+        if opened_preferences {
+            egui::Popup::close_all(ctx);
+            d.preferences.open = true;
+            preferences_blocked = true;
+        }
         let saved_selection = (preferences_blocked || persistence_blocked).then(|| app.raw_filmstrip.selection.clone());
         if preferences_blocked || persistence_blocked {
             ui.disable();
             // Preview, scope and Filmstrip shortcuts read InputState directly, bypassing
             // disabled widgets. Consume them for the entire open/dismiss frame.
         }
-        let background_input = persistence_blocked.then(|| preferences_ui::BackgroundInput::before_overlay(ctx));
+        let background_input = if preferences_blocked {
+            Some(preferences_ui::BackgroundInput::block(ctx))
+        } else if persistence_blocked {
+            Some(preferences_ui::BackgroundInput::before_overlay(ctx))
+        } else {
+            None
+        };
         // The show/hide control and the splitter are read before the layout, so the preview
         // reclaims or gives up the width in this same frame. The control sits in the preview toolbar after the zoom group
         // (F3, lab cycle 4): its slot comes from this frame's layout before the click is read, and the toolbar is laid out
@@ -2794,10 +2980,13 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
         let controls = ERect::from_min_max(pos2(foot.left(), foot.bottom() - 48.0), foot.max).shrink2(vec2(16.0, 9.0));
         let mut fu = ui.new_child(egui::UiBuilder::new().max_rect(controls).layout(egui::Layout::right_to_left(egui::Align::Center)));
         // Done and Cancel share the same themed dimensions.
-        let buttons = vec![
+        let mut buttons = vec![
             widgets::DialogButton::new(widgets::ButtonRole::Default, ok_label, 90.0),
             widgets::DialogButton::new(widgets::ButtonRole::Cancel, tl!("Cancel"), 90.0),
         ];
+        if d.target == Target::OpenRaw {
+            buttons.push(widgets::DialogButton::new(widgets::ButtonRole::Apply, tl!("Done"), 90.0));
+        }
         if let Some(role) = widgets::dialog_buttons(&mut fu, &buttons) {
             action = match role {
                 widgets::ButtonRole::Default => Some("ok"),
@@ -2805,10 +2994,18 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
                 _ => Some("cancel"),
             };
         }
+        if show_cache_status {
+            let status_rect = ERect::from_min_size(foot.min + vec2(16.0, 4.0), vec2(foot.width() - 32.0, 22.0));
+            let mut status_ui = ui.new_child(egui::UiBuilder::new().max_rect(status_rect));
+            status_ui.add(egui::Label::new(&cache_status).truncate()).on_hover_text(&cache_status);
+        }
         if let Some(selection) = saved_selection {
             app.raw_filmstrip.selection = selection;
         }
         drop(background_input);
+        if opened_preferences {
+            updated_defaults = preferences_ui::show(ctx, &mut d.preferences, &raw_defaults);
+        }
         if !ctx.input(|i| i.pointer.primary_down())
             && let Some(origin) = d.edit_origin.take()
             && origin != d.params
@@ -2818,6 +3015,28 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
             d.params = edited;
         }
     });
+    if let Some(defaults) = updated_defaults {
+        match serde_json::to_value(defaults)
+            .map_err(|error| error.to_string())
+            .and_then(|value| app.run("prefs.set", json!({"path":"rawDefaults","value":value})))
+        {
+            Ok(_) => {}
+            Err(error) => {
+                app.ui.status = error;
+                app.ui.status_error = true;
+            }
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if let Some(recovery_action) = app.camera_raw.as_mut().and_then(|d| d.preferences.recovery_action.take())
+        && recovery_action == "recovery-details"
+    {
+        persistence_ui::show_details(app);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    persistence_ui::dialogs(app, ctx);
+    #[cfg(not(target_arch = "wasm32"))]
+    jpeg_ui::show(app, ctx);
     group_set_dialog(app, ctx);
     if preferences_blocked || persistence_blocked {
         return;
@@ -2896,6 +3115,22 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
             }
             Ok(false) => {}
         }
+        #[cfg(not(target_arch = "wasm32"))]
+        if let filmstrip_ui::PhotoAction::Remove { targets } = &photo_action {
+            if let Err(error) = persistence_ui::request_remove(app, targets.clone()) {
+                app.ui.status = error;
+                app.ui.status_error = true;
+            }
+            continue;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if let filmstrip_ui::PhotoAction::SaveJpeg(id) = photo_action {
+            if let Err(error) = jpeg_ui::request(app, id) {
+                app.ui.status = error;
+                app.ui.status_error = true;
+            }
+            continue;
+        }
         if let Err(error) = edit_actions::route_photo_action(app, &photo_action) {
             app.ui.status = error;
             app.ui.status_error = true;
@@ -2927,6 +3162,22 @@ fn draw(app: &mut PhotocraftApp, ctx: &egui::Context, own_window: bool) {
         ctx.request_repaint_of(egui::ViewportId::ROOT);
     }
     match action {
+        #[cfg(not(target_arch = "wasm32"))]
+        Some("recovery-details") => persistence_ui::show_details(app),
+        #[cfg(not(target_arch = "wasm32"))]
+        Some("save-edits") => {
+            if let Err(error) = persistence_ui::save_edits(app) {
+                app.ui.status = error;
+                app.ui.status_error = true;
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        Some("done") => {
+            if let Err(error) = persistence_ui::done(app) {
+                app.ui.status = error;
+                app.ui.status_error = true;
+            }
+        }
         Some("ok") => {
             if let Err(e) = commit(app) {
                 app.ui.status = e;
@@ -2950,6 +3201,10 @@ fn apply_group(app: &mut PhotocraftApp, change: edit_actions::GroupChange) -> Re
     if change.is_empty() {
         return Ok(());
     }
+    #[cfg(not(target_arch = "wasm32"))]
+    if app.raw_filmstrip.persistence.is_some() {
+        persistence_ui::set_adjustments(app, &change.after)?;
+    }
     edit_actions::apply_display_group(app, &change.after);
     if app.raw_filmstrip.group_undo.len() >= 100 {
         app.raw_filmstrip.group_undo.remove(0);
@@ -2965,6 +3220,14 @@ fn settings_photo_action(app: &mut PhotocraftApp, action: &filmstrip_ui::PhotoAc
     use filmstrip_ui::PhotoAction;
     if !matches!(action, PhotoAction::SyncSettings { .. } | PhotoAction::ResetSettings(_) | PhotoAction::SetValue { .. } | PhotoAction::UndoGroup) {
         return Ok(false);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::finishing(app) {
+        return Err("Finish decision is holding edits".into());
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::unready(app) {
+        return Err("Wait for verified photograph admission before editing".into());
     }
     if let PhotoAction::UndoGroup = action {
         group_control(app, &json!({"action":"undo"}))?;
@@ -2999,6 +3262,10 @@ fn settings_photo_action(app: &mut PhotocraftApp, action: &filmstrip_ui::PhotoAc
 }
 
 fn group_control(app: &mut PhotocraftApp, request: &Value) -> Result<(), String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if persistence_ui::finishing(app) {
+        return Err("Finish decision is holding edits".into());
+    }
     let action = request.get("action").and_then(Value::as_str).ok_or("A group action is required")?;
     if action == "undo" || action == "redo" {
         let redo = action == "redo";
@@ -3014,6 +3281,10 @@ fn group_control(app: &mut PhotocraftApp, request: &Value) -> Result<(), String>
             return Err("A photograph in this history step has left the Camera Raw review".into());
         }
         edit_actions::settings_targets(app, &targets, &current)?;
+        #[cfg(not(target_arch = "wasm32"))]
+        if app.raw_filmstrip.persistence.is_some() {
+            persistence_ui::set_adjustments(app, values)?;
+        }
         edit_actions::apply_display_group(app, values);
         if redo {
             app.raw_filmstrip.group_redo.pop();
@@ -3083,6 +3354,10 @@ fn group_set_dialog(app: &mut PhotocraftApp, ctx: &egui::Context) {
     }
     if let Some(apply) = action {
         let mut set = || {
+            #[cfg(not(target_arch = "wasm32"))]
+            if persistence_ui::finishing(app) {
+                return Err("Finish decision is holding edits".into());
+            }
             let current = app.camera_raw.as_ref().ok_or("Camera Raw is not open")?.params.clone();
             let targets = edit_actions::settings_targets(app, &targets, &current)?;
             let change = edit_actions::set_value_group(&parameter, value, &targets)?;
@@ -3115,6 +3390,9 @@ fn hue_color(h: f32) -> Color32 {
 #[cfg(test)]
 #[path = "camera_raw_lab_probes.rs"]
 mod lab_probes;
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "camera_raw_persistence_tests.rs"]
+mod persistence_tests;
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3149,6 +3427,10 @@ mod tests {
             assert_eq!(d.proxy, original);
             assert_eq!(d.preview_revision, revision + 1);
         }
+    }
+
+    mod preferences_tests {
+        include!("camera_raw_preferences_tests.rs");
     }
 
     #[test]
@@ -5623,45 +5905,6 @@ mod tests {
         let r = menu(&mut app, &ctx, "filter.cameraRaw", &json!({"ui": {"cancel": true}})).unwrap().unwrap();
         assert_eq!(r["cancelled"], true);
         assert_eq!((app.session.documents().len(), app.raw_filmstrip.selection.clone()), (0, selection_ui::Selection::default()));
-    }
-
-    #[test]
-    fn workspace_completion_retires_transient_rows_after_open_images() {
-        let (mut app, ctx, _) = review_session();
-        let prior_sequence = crate::camera_raw_admission::snapshot(&app).iter().map(|row| row.sequence).max().unwrap();
-        assert_eq!(app.raw_filmstrip.metadata.len(), 3);
-        commit(&mut app).unwrap();
-        for _ in 0..5 {
-            advance_batch_open(&mut app, &ctx);
-        }
-        assert_eq!(app.session.documents().len(), 3);
-        assert!(!raw_in_progress(&app));
-        assert!(app.raw_filmstrip.metadata.is_empty());
-        assert!(crate::camera_raw_admission::snapshot(&app).is_empty());
-        let next = crate::camera_raw_admission::register(&mut app, "next-shoot.dng", None).unwrap();
-        assert!(next > prior_sequence, "retirement never reuses an admission identity");
-    }
-
-    #[test]
-    fn workspace_completion_preserves_unsettled_input_until_it_finishes() {
-        let (mut app, ctx, _) = review_session();
-        let pending = crate::camera_raw_admission::register(&mut app, "still-opening.dng", None).unwrap();
-        commit(&mut app).unwrap();
-        for _ in 0..5 {
-            advance_batch_open(&mut app, &ctx);
-        }
-        assert!(!raw_in_progress(&app));
-        assert_eq!(app.raw_filmstrip.metadata.len(), 3, "an unfinished input prevents session retirement");
-        assert_eq!(crate::camera_raw_admission::snapshot(&app).len(), 4);
-        crate::camera_raw_admission::scoped(&mut app, Some(pending), |app| {
-            crate::camera_raw_admission::outcome(app, crate::camera_raw_admission::Outcome::Cancelled);
-            Ok(())
-        })
-        .unwrap();
-        sync_provisional(&mut app);
-        assert!(app.raw_filmstrip.metadata.is_empty());
-        assert!(crate::camera_raw_admission::snapshot(&app).is_empty());
-        assert_eq!(app.session.documents().len(), 3);
     }
 
     // ---- Stage 2A regressions from the Q2 adversarial probes (A-1, A-1b, A-3, S07) --------------------------------

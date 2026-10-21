@@ -4057,17 +4057,26 @@ curves	Smooth	Vloeiend maken
 	{n} hidden	{n} verborgen
 	{n} hidden, {m} selected	{n} verborgen, {m} geselecteerd
 	Shown; hidden by filter	Getoond; verborgen door filter
+	Workflow	Werkstroom
+	Generative AI	Generatieve AI
+	Long-session recovery	Herstel van lange sessies
+	Camera Raw Preferences	Camera Raw-voorkeuren
 	All photos	Alle foto's
 	Any	Alle
 	Any colour	Elke kleur
 	Blue — Review	Blauw — Beoordelen
 	Blue — Review (9)	Blauw — Beoordelen (9)
+	Cancelling before publication…	Annuleren vóór het schrijven…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Wijzig de grootte, richting en rasterweergave van de filmstrip in Camera Raw. Deze weergavekeuzes wijzigen de foto's niet.
 	Changes not yet saved to XMP	Wijzigingen nog niet opgeslagen in XMP
 	Clear filters	Filters wissen
 	Colour label	Kleurlabel
+	Destination folder	Doelmap
 	Green — Approved	Groen — Goedgekeurd
 	Green — Approved (8)	Groen — Goedgekeurd (8)
 	JPEG quality	JPEG-kwaliteit
+	Live save is planned for a later release.	Doorlopend opslaan is gepland voor een latere versie.
+	Live save — Planned	Doorlopend opslaan — Gepland
 	Mark	Markeren
 	Marked	Gemarkeerd
 	Marked and unmarked	Gemarkeerd en ongemarkeerd
@@ -4081,26 +4090,151 @@ curves	Smooth	Vloeiend maken
 	Rating	Waardering
 	Red — Select	Rood — Selectie
 	Red — Select (6)	Rood — Selectie (6)
+	Remove…	Verwijderen…
+	Replace existing JPEG?	Bestaande JPEG vervangen?
 	Return to photo preview	Terug naar fotovoorbeeld
+	Save JPEG	JPEG opslaan
+	Save JPEG:	JPEG opslaan:
+	Save this photo as JPEG	Deze foto opslaan als JPEG
+	Saving JPEG	JPEG wordt opgeslagen
+	Saving mode: Cache saving	Opslagmodus: Opslaan in cache
 	Show grid	Raster tonen
 	Show hidden photos	Verborgen foto's tonen
 	Unmark	Markering verwijderen
 	Unmarked	Ongemarkeerd
 	Unrated (0)	Niet beoordeeld (0)
+	Uses the settings captured when Save was chosen.	Gebruikt de instellingen die zijn vastgelegd toen Opslaan werd gekozen.
 	Yellow — Second	Geel — Tweede keuze
 	Yellow — Second (7)	Geel — Tweede keuze (7)
 	hidden	verborgen
 	selected photos	geselecteerde foto's
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Uw Camera Raw-wijzigingen worden tijdens het werken opgeslagen voor herstel. Kies Gereed om de wijzigingen op te slaan in de bijbehorende XMP-bestanden van de foto's.
+	A recovered photograph has no retained source binding.	Voor een herstelde foto is geen verwijzing naar het bronbestand bewaard.
+	Applies the same value to every selected photograph. Other settings remain independent.	Past dezelfde waarde toe op elke geselecteerde foto. Andere instellingen blijven onafhankelijk.
+	Back to editing	Terug naar bewerken
+	Camera Raw recovery details	Hersteldetails van Camera Raw
+	Camera Raw recovery needs attention	Camera Raw-herstel vereist aandacht
 	Camera Raw session	Camera Raw-sessie
+	Choose how to leave this visit's changes.	Kies wat er moet gebeuren met de wijzigingen sinds deze keer openen.
+	Close Camera Raw session	Camera Raw-sessie sluiten
+	Close details	Details sluiten
+	Discard this photo's changes and remove	Wijzigingen van deze foto negeren en verwijderen
+	Discard this visit's changes and close	Wijzigingen sinds deze keer openen negeren en sluiten
+	Finish Camera Raw session	Camera Raw-sessie afronden
+	Keep editing	Verder bewerken
+	Keep in recovery and close	Bewaren voor herstel en sluiten
+	Keep in session	In sessie houden
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Er zijn momenteel geen foto's beschikbaar voor een voorbeeld. De hersteldetails bewaren al het nog onopgeloste werk.
+	Open from files	Openen vanuit bestanden
+	Original NEF files remain unchanged.	Originele NEF-bestanden blijven ongewijzigd.
+	Remove photograph from session	Foto uit sessie verwijderen
 	Reset selected	Geselecteerde foto's resetten
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Herstel het oorspronkelijke bestand op het vastgelegde pad en kies daarna Herstel opnieuw opslaan. Een bestand met gewijzigde inhoud of identiteit kan niet als oorspronkelijke bron worden geaccepteerd.
+	Resume saved session	Opgeslagen sessie hervatten
+	Retry recovery save	Herstel opnieuw opslaan
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Controleer onbeschikbare bestanden, onderbroken imports en herstelmeldingen voordat u afrondt.
+	Save XMP and close	XMP opslaan en sluiten
+	Save XMP and remove	XMP opslaan en verwijderen
+	Saved Camera Raw sessions	Opgeslagen Camera Raw-sessies
 	Set value	Waarde instellen
+	Set value for selected photos	Waarde instellen voor geselecteerde foto's
 	Set value…	Waarde instellen…
+	Show recovery details	Hersteldetails tonen
+	Skip removes this unfinished import from the current request. You can open the file again later.	Overslaan verwijdert deze onvoltooide import uit het huidige verzoek. U kunt het bestand later opnieuw openen.
+	Skip unfinished import	Onvoltooide import overslaan
 	Synchronise selected	Geselecteerde foto's synchroniseren
+	This changes session membership. Hide and filters keep photographs in the session.	Dit wijzigt welke foto's bij de sessie horen. Verbergen en filters houden foto's in de sessie.
 	Undo group edit	Groepsbewerking ongedaan maken
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw slaat XMP-nevenbestanden op voor JPEG en TIFF; de oorspronkelijke afbeeldingsbestanden blijven ongewijzigd.
+	Disable Camera Raw support	Camera Raw-ondersteuning uitschakelen
+	JPEG and TIFF Handling	JPEG- en TIFF-verwerking
+	JPEG handling	JPEG-verwerking
+	Layered TIFF files open in the editor with their layers preserved.	TIFF-bestanden met lagen worden in de editor geopend met behoud van hun lagen.
+	Open all supported files	Alle ondersteunde bestanden openen
+	Open files with Camera Raw settings	Bestanden met Camera Raw-instellingen openen
+	Original image files remain unchanged.	De oorspronkelijke afbeeldingsbestanden blijven ongewijzigd.
+	Recovery details	Hersteldetails
+	Save XMP and keep editing	XMP opslaan en doorgaan met bewerken
+	Save edits	Bewerkingen opslaan
+	Saved edits to XMP; Camera Raw remains open	Bewerkingen opgeslagen in XMP; Camera Raw blijft geopend
+	TIFF handling	TIFF-verwerking
+	Existing settings	Bestaande instellingen
+	Jpeg handling	JPEG-verwerking
+	Tiff handling	TIFF-verwerking
+	Open in Camera Raw…	Openen in Camera Raw…
+	Discard edits	Bewerkingen verwerpen
 	Cache	Cachegeheugen
+	Recovery mode	Herstelmodus
+	Show recovery progress	Herstelvoortgang tonen
+	PhotoCraft default — recovery off	PhotoCraft-standaard — herstel uit
+	Long-session recovery — cache saving	Herstel van lange sessies — opslaan in cache
 	Opening photographs	Foto’s openen
 	Preparing Camera Raw previews…	Camera Raw-voorbeelden voorbereiden…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Verwerp de bewerkingen van deze sessie. Eerder opgeslagen XMP-bestanden blijven ongewijzigd.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Gereed gebruikt standaard XMP opslaan en sluiten. De oorspronkelijke foto’s blijven ongewijzigd.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Herstel staat standaard uit. Schakel opslaan in cache in om een lange bewerkingssessie op de achtergrond te beschermen.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Herstel uitschakelen verwijdert deze sessie uit de herstelgegevens. Open bewerkingen blijven in het geheugen totdat u Gereed kiest of ze verwerpt.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Als opslaan in cache is ingeschakeld, worden Camera Raw-wijzigingen op de achtergrond voor herstel opgeslagen. Gereed slaat aanpassingen op in XMP-nevenbestanden.
+	Discard edits?	Bewerkingen verwerpen?
+	Show recovery progress in Camera Raw	Camera Raw — Herstelvoortgang tonen
+	Long-session recovery…	Herstel van lange sessies…
+	Recovery details…	Hersteldetails…
+	Keep in recovery and close…	Bewaren voor herstel en sluiten…
+	Live saving — planned	Doorlopend opslaan — Gepland
+	Discard unsaved edits?	Niet-opgeslagen bewerkingen verwerpen?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Verwerp alle bewerkingen in deze Camera Raw-sessie die nog niet in XMP zijn opgeslagen en sluit daarna. Eerder opgeslagen XMP-bestanden blijven ongewijzigd.
+	Discard unsaved edits and close	Niet-opgeslagen bewerkingen verwerpen en sluiten
+	Save and open images	Opslaan en afbeeldingen openen
+	Save XMP and open images	XMP opslaan en afbeeldingen openen
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Na het opslaan worden alle foto's in deze sessie in de editor geopend in de volgorde waarin ze zijn geopend, ongeacht het filter of de selectie.
+	Recover Camera Raw session	Camera Raw-sessie herstellen
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Een eerdere Camera Raw-sessie is niet normaal afgesloten. Kies welke versie van de bewerkingen u wilt openen.
 	Session	Sessie
+	{count} photos · last checkpoint {time}	{count} foto's · laatste herstelpunt {time}
+	{count} photos have edits not saved to XMP	{count} foto's hebben bewerkingen die niet in XMP zijn opgeslagen
+	The newest checkpoint is unusable; the one from {time} is used instead.	Het nieuwste herstelpunt is onbruikbaar; in plaats daarvan wordt dat van {time} gebruikt.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Het opslaan van XMP in deze sessie is niet voltooid. De bijbehorende bestanden worden opnieuw gecontroleerd voordat er iets anders wordt geschreven.
+	Show file details	Bestandsdetails tonen
+	Hide file details	Bestandsdetails verbergen
+	Checking files…	Bestanden controleren…
+	Recovered edits	Herstelde bewerkingen
+	Cache version	Versie in cache
+	Saved edits	Opgeslagen bewerkingen
+	XMP sidecar version	Versie in XMP-nevenbestand
+	Resume recovered edits	Herstelde bewerkingen hervatten
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Herstel bewerkingen vanaf het laatste bruikbare PhotoCraft-herstelpunt.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Gebruik dit als PhotoCraft onverwacht is afgesloten of als Afbeeldingen openen, Gereed of Annuleren is onderbroken. Hiermee kunt u werk herstellen dat nooit in een XMP-nevenbestand is opgeslagen. Wijzigingen sinds het laatste bevestigde herstelpunt zijn mogelijk niet beschikbaar.
+	Open saved XMP edits	Opgeslagen XMP-bewerkingen openen
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Open de oorspronkelijke foto's opnieuw met de ondersteunde bewerkingen die nu in hun XMP-bestanden zijn opgeslagen.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Kies dit om de opgeslagen versies uit de nevenbestanden te gebruiken in plaats van het niet-opgeslagen herstelpunt. Mogelijk heeft niet elke foto een XMP-bestand; foto's zonder XMP-bestand gebruiken hun huidige bestands- of standaardinstellingen. Niet-opgeslagen wijzigingen in de cache worden hiermee niet hersteld.
+	Open other files	Andere bestanden openen
+	Discard recovered copy…	Herstelde kopie verwerpen…
+	Discard recovered copy?	Herstelde kopie verwerpen?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Hiermee wordt het herstelpunt van deze sessie definitief verwijderd. Opgeslagen XMP-bestanden en oorspronkelijke foto's worden niet gewijzigd.
+	Discard recovered copy	Herstelde kopie verwerpen
+	Keep recovered copy	Herstelde kopie bewaren
+	{n} of {total} photos are missing or changed	{n} van {total} foto's ontbreken of zijn gewijzigd
+	{n} photos have no XMP file	{n} foto's hebben geen XMP-bestand
+	{n} XMP files changed after the checkpoint	{n} XMP-bestanden zijn na het herstelpunt gewijzigd
+	No usable checkpoint can be opened.	Er kan geen bruikbaar herstelpunt worden geopend.
+	None of the photographs is available.	Geen van de foto's is beschikbaar.
+	Photo available	Foto beschikbaar
+	Photo missing or changed	Foto ontbreekt of is gewijzigd
+	No XMP file	Geen XMP-bestand
+	XMP as at the checkpoint	XMP zoals bij het herstelpunt
+	XMP changed after the checkpoint	XMP gewijzigd na het herstelpunt
+	XMP unreadable	XMP onleesbaar
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Sommige XMP-bestanden zijn na het herstelpunt gewijzigd, bijvoorbeeld in Lightroom. Controleer ze voordat u een keuze maakt.
+	Camera Raw Preferences…	Camera Raw-voorkeuren…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Herstel wordt alleen aangeboden na een sessie die niet normaal is afgesloten. Na Gereed, Afbeeldingen openen en Annuleren valt er niets te herstellen.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Gereed en Afbeeldingen openen slaan ondersteunde bewerkingen eerst op in XMP-nevenbestanden. De oorspronkelijke foto's blijven ongewijzigd.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Herstel uitschakelen verwijdert deze sessie uit de herstelgegevens. Open bewerkingen blijven in het geheugen totdat u Gereed, Afbeeldingen openen of Annuleren kiest.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Als opslaan in cache is ingeschakeld, worden Camera Raw-wijzigingen op de achtergrond voor herstel opgeslagen. Gereed en Afbeeldingen openen slaan aanpassingen op in XMP-nevenbestanden.
+	Saving XMP before opening…	XMP opslaan vóór het openen…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Wijzigingen van dit bezoek verwerpen en sluiten. Eerder herstelde concepten en XMP-bestanden die tijdens dit bezoek zijn opgeslagen, blijven behouden.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Als u herstel uitschakelt, stoppen automatische controlepunten. Eerder hersteld werk blijft behouden totdat u het afrondt of de herstelkopie verwerpt.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Herstel wordt aangeboden na een onderbreking of wanneer u werk voor herstel bewaart. Gereed en Afbeeldingen openen ruimen voltooide sessies op. Als u wijzigingen in een hervatte sessie verwerpt, blijft eerder hersteld werk behouden.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Gebruik dit voor werk dat voor herstel is bewaard, nadat PhotoCraft onverwacht is gesloten of wanneer Afbeeldingen openen, Gereed of Annuleren is onderbroken. Hiermee kan werk worden hersteld dat nooit in een XMP-nevenbestand is opgeslagen. Wijzigingen sinds het laatste bevestigde controlepunt zijn mogelijk niet beschikbaar.
 	Sync Settings	Instellingen synchroniseren
 	Reset Settings	Instellingen resetten
 	Copy settings from {photo} to the selected photos.	Instellingen van {photo} naar de geselecteerde foto's kopiëren.

@@ -38,6 +38,20 @@ impl Selection {
         &self.selected
     }
 
+    /// A resumed session already has a selection, including a deliberately empty
+    /// one. Disable first-draw initialization before asynchronous rows arrive.
+    pub fn restore_ids(&mut self, ids: &[PhotoId], anchor: Option<PhotoId>, focus: Option<PhotoId>) {
+        self.selected.clear();
+        for id in ids {
+            if !self.selected.contains(id) {
+                self.selected.push(*id);
+            }
+        }
+        self.anchor = anchor.filter(|id| self.selected.contains(id));
+        self.focus = focus;
+        self.started = true;
+    }
+
     pub fn anchor(&self) -> Option<PhotoId> {
         self.anchor
     }
@@ -273,5 +287,16 @@ mod tests {
         assert_eq!(selection.targets_for(PhotoId(2)), vec![PhotoId(2), PhotoId(9)]);
         assert_eq!(selection.targets_for(PhotoId(4)), vec![PhotoId(4)]);
         assert_eq!(selection.selected_ids(), [PhotoId(2), PhotoId(9)]);
+    }
+
+    #[test]
+    fn resumed_empty_selection_is_not_replaced_while_photos_arrive() {
+        let mut selection = Selection::default();
+        selection.restore_ids(&[], None, None);
+        selection.start_with(Some(PhotoId(1)));
+        assert_eq!(selection.len(), 0);
+        selection.include(PhotoId(3));
+        selection.start_with(Some(PhotoId(1)));
+        assert_eq!(selection.selected_ids(), [PhotoId(3)]);
     }
 }

@@ -7,13 +7,26 @@ use serde::{Deserialize, Serialize};
 #[cfg(not(target_arch = "wasm32"))]
 pub mod commit;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod controller;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod scheduler;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod store;
+#[cfg(not(target_arch = "wasm32"))]
+mod target_coordinator;
 pub mod xmp;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const SCHEMA_VERSION: u32 = 1;
 pub const MAX_PHOTOS: usize = 10_000;
 pub const MAX_RECIPE_BYTES: usize = 256 * 1024;
+
+/// Host-controlled publication boundary. Native hosts inject their filesystem
+/// capability checks here; read access to a photograph never grants write access
+/// to its adjacent sidecar. An error means no publication occurred; an ambiguous
+/// completed write must return `PublishedUnconfirmed` for reconciliation.
+#[cfg(not(target_arch = "wasm32"))]
+pub type SidecarPublisher = std::sync::Arc<dyn Fn(&std::path::Path, &[u8]) -> std::io::Result<photocraft_format::atomic::PublicationOutcome> + Send + Sync>;
 
 /// Durable identities are supplied by the native service, never by a runtime DocId.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

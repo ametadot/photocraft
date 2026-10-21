@@ -2915,19 +2915,28 @@ curves	Smooth	平滑
 	{n} hidden, {m} selected	已隱藏 {n} 張，已選 {m} 張
 	Shown; hidden by filter	正在顯示；已被篩選隱藏
 	Defaults	預設值
+	Workflow	工作流程
+	Generative AI	生成式 AI
+	Long-session recovery	長時間工作階段復原
+	Camera Raw Preferences	Camera Raw 偏好設定
 	All photos	所有相片
 	Any	不限
 	Any colour	任何顏色
 	Back	返回
 	Blue — Review	藍色 — 待審查
 	Blue — Review (9)	藍色 — 待審查 (9)
+	Cancelling before publication…	正在寫入前取消…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	在 Camera Raw 中變更底片顯示窗格大小、方向和格線檢視。這些顯示設定不會編輯相片。
 	Changes not yet saved to XMP	變更尚未儲存至 XMP
 	Clear filters	清除篩選條件
 	Colour label	色彩標籤
+	Destination folder	目的地資料夾
 	Filename	檔案名稱
 	Green — Approved	綠色 — 已核准
 	Green — Approved (8)	綠色 — 已核准 (8)
 	JPEG quality	JPEG 品質
+	Live save is planned for a later release.	即時儲存預計於未來版本提供。
+	Live save — Planned	即時儲存 — 規劃中
 	Mark	加入標記
 	Marked	已標記
 	Marked and unmarked	已標記與未標記
@@ -2941,31 +2950,156 @@ curves	Smooth	平滑
 	Rating	評等
 	Red — Select	紅色 — 入選
 	Red — Select (6)	紅色 — 入選 (6)
+	Remove…	移除…
+	Replace existing JPEG?	取代現有的 JPEG？
 	Return to photo preview	返回相片預覽
+	Save JPEG	儲存 JPEG
+	Save JPEG:	儲存 JPEG:
+	Save this photo as JPEG	將此相片儲存為 JPEG
+	Saving JPEG	正在儲存 JPEG
+	Saving mode: Cache saving	儲存模式：快取儲存
 	Show grid	顯示格線
 	Show hidden photos	顯示隱藏的相片
 	Unmark	取消標記
 	Unmarked	未標記
 	Unrated (0)	未評等 (0)
+	Uses the settings captured when Save was chosen.	使用選擇「儲存」時記錄的設定。
 	Yellow — Second	黃色 — 次選
 	Yellow — Second (7)	黃色 — 次選 (7)
 	hidden	隱藏
 	selected photos	所選相片
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	工作時，Camera Raw 變更會儲存以供復原。選擇「完成」即可將變更儲存至相片的 XMP 附屬檔案。
+	A recovered photograph has no retained source binding.	已復原的相片缺少保留的來源檔案繫結資訊。
+	Applies the same value to every selected photograph. Other settings remain independent.	將相同的值套用至每張所選相片。其他設定保持各自的值。
+	Back to editing	返回編輯
+	Camera Raw recovery details	Camera Raw 復原詳細資料
+	Camera Raw recovery needs attention	Camera Raw 復原需要處理
 	Camera Raw session	Camera Raw 工作階段
+	Choose how to leave this visit's changes.	選擇如何處理本次開啟後所做的變更。
+	Close Camera Raw session	關閉 Camera Raw 工作階段
+	Close details	關閉詳細資料
+	Discard this photo's changes and remove	捨棄此相片的變更並移除
+	Discard this visit's changes and close	捨棄本次開啟後所做的變更並關閉
+	Finish Camera Raw session	完成 Camera Raw 工作階段
+	Keep editing	繼續編輯
+	Keep in recovery and close	保留以供復原並關閉
+	Keep in session	保留在工作階段中
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	目前沒有可供預覽的相片。復原詳細資料會保留所有尚未解決的工作。
+	Open from files	從檔案開啟
+	Original NEF files remain unchanged.	原始 NEF 檔案保持不變。
+	Remove photograph from session	從工作階段移除相片
 	Reset selected	重設所選相片
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	將原始檔案還原至記錄的路徑，然後選擇「重試復原儲存」。內容或識別資訊已變更的檔案無法視為原始來源檔案。
+	Resume saved session	繼續已儲存的工作階段
+	Retry recovery save	重試復原儲存
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	完成前，請檢查無法使用的檔案、中斷的匯入及復原訊息。
+	Save XMP and close	儲存 XMP 並關閉
+	Save XMP and remove	儲存 XMP 並移除
+	Saved Camera Raw sessions	已儲存的 Camera Raw 工作階段
 	Set value	設定值
+	Set value for selected photos	為所選相片設定值
 	Set value…	設定值…
+	Show recovery details	顯示復原詳細資料
+	Skip removes this unfinished import from the current request. You can open the file again later.	略過會從目前要求中移除此未完成的匯入。您可以稍後重新開啟該檔案。
+	Skip unfinished import	略過未完成的匯入
 	Synchronise selected	同步所選相片
+	This changes session membership. Hide and filters keep photographs in the session.	這會變更工作階段中的相片。隱藏和篩選仍會將相片保留在工作階段中。
 	Undo group edit	復原群組編輯
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw 將 JPEG 和 TIFF 的設定儲存至 XMP 附屬檔案；原始影像檔案保持不變。
+	Disable Camera Raw support	停用 Camera Raw 支援
 	Hide	隱藏
+	JPEG and TIFF Handling	JPEG 和 TIFF 處理
+	JPEG handling	JPEG 處理
 	Label	標籤
+	Layered TIFF files open in the editor with their layers preserved.	含圖層的 TIFF 檔案會在編輯器中開啟，並保留其圖層。
+	Open all supported files	開啟所有支援的檔案
+	Open files with Camera Raw settings	開啟具有 Camera Raw 設定的檔案
+	Original image files remain unchanged.	原始影像檔案保持不變。
+	Recovery details	復原詳細資料
+	Save XMP and keep editing	儲存 XMP 並繼續編輯
+	Save edits	儲存編輯
+	Saved edits to XMP; Camera Raw remains open	編輯已儲存至 XMP；Camera Raw 保持開啟
 	Stars	星等
+	TIFF handling	TIFF 處理
 	Disabled	已停用
+	Existing settings	現有設定
+	Jpeg handling	JPEG 處理
+	Tiff handling	TIFF 處理
+	Open in Camera Raw…	在 Camera Raw 中開啟…
+	Discard edits	放棄編輯
 	Cache	快取
+	Recovery mode	復原模式
+	Show recovery progress	顯示復原進度
+	PhotoCraft default — recovery off	PhotoCraft 預設 — 關閉復原
+	Long-session recovery — cache saving	長時間工作階段復原 — 儲存至快取
 	Opening photographs	正在開啟相片
 	Preparing Camera Raw previews…	正在準備 Camera Raw 預覽…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	放棄本次工作階段中的編輯。先前儲存的 XMP 檔案維持不變。
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	「完成」預設會儲存 XMP 並關閉。原始相片維持不變。
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	復原功能預設關閉。開啟快取儲存可在背景保護長時間編輯工作階段。
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	關閉復原會將此工作階段從已儲存的復原資料中移除。正在進行的編輯會保留在記憶體中，直到選擇「完成」或放棄編輯。
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	啟用快取儲存後，Camera Raw 變更會在背景儲存以供復原。「完成」將調整儲存至 XMP 附屬檔案。
+	Discard edits?	放棄編輯？
+	Show recovery progress in Camera Raw	Camera Raw — 顯示復原進度
+	Long-session recovery…	長時間工作階段復原…
+	Recovery details…	復原詳細資料…
+	Keep in recovery and close…	保留以供復原並關閉…
+	Live saving — planned	即時儲存 — 規劃中
 	Settings	設定
+	Discard unsaved edits?	放棄未儲存的編輯？
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	放棄此 Camera Raw 工作階段中尚未儲存至 XMP 的所有編輯，然後關閉。先前儲存的 XMP 檔案維持不變。
+	Discard unsaved edits and close	放棄未儲存的編輯並關閉
+	Save and open images	儲存並開啟影像
+	Save XMP and open images	儲存 XMP 並開啟影像
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	儲存後，無論篩選或選取為何，此工作階段中的所有相片都會依開啟順序在編輯器中開啟。
+	Recover Camera Raw session	復原 Camera Raw 工作階段
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	先前的 Camera Raw 工作階段未正常結束。請選擇要開啟的編輯版本。
 	Session	工作階段
+	{count} photos · last checkpoint {time}	{count} 張相片 · 上次檢查點 {time}
+	{count} photos have edits not saved to XMP	{count} 張相片有尚未儲存至 XMP 的編輯
+	The newest checkpoint is unusable; the one from {time} is used instead.	最新的檢查點無法使用；改用 {time} 的檢查點。
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	此工作階段中有一次 XMP 儲存未完成。寫入其他內容之前，會重新檢查相關檔案。
+	Show file details	顯示檔案詳細資料
+	Hide file details	隱藏檔案詳細資料
+	Checking files…	正在檢查檔案…
+	Recovered edits	已復原的編輯
+	Cache version	快取版本
+	Saved edits	已儲存的編輯
+	XMP sidecar version	XMP 附屬檔案版本
+	Resume recovered edits	繼續使用已復原的編輯
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	從最新可用的 PhotoCraft 復原檢查點還原編輯。
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	在 PhotoCraft 意外關閉，或「開啟影像」、「完成」或「取消」操作中斷後使用此選項。它可能會還原從未儲存至 XMP 附屬檔案的工作。上次確認的檢查點之後的變更可能無法使用。
+	Open saved XMP edits	開啟已儲存的 XMP 編輯
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	以 XMP 檔案中目前儲存的受支援編輯重新開啟原始相片。
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	選擇此項可使用已儲存的附屬檔案版本，而非未儲存的復原檢查點。並非每張相片都有 XMP 檔案；沒有 XMP 檔案的相片會使用其目前的檔案設定或預設設定。此操作不會還原快取中未儲存的變更。
+	Open other files	開啟其他檔案
+	Discard recovered copy…	放棄已復原的副本…
+	Discard recovered copy?	放棄已復原的副本？
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	這會永久移除此工作階段的復原檢查點。已儲存的 XMP 檔案和原始相片不會變更。
+	Discard recovered copy	放棄已復原的副本
+	Keep recovered copy	保留已復原的副本
+	{n} of {total} photos are missing or changed	{total} 張相片中有 {n} 張遺失或已變更
+	{n} photos have no XMP file	{n} 張相片沒有 XMP 檔案
+	{n} XMP files changed after the checkpoint	{n} 個 XMP 檔案在檢查點之後已變更
+	No usable checkpoint can be opened.	沒有可開啟的可用檢查點。
+	None of the photographs is available.	沒有可用的相片。
+	Photo available	相片可用
+	Photo missing or changed	相片遺失或已變更
+	No XMP file	無 XMP 檔案
+	XMP as at the checkpoint	檢查點時的 XMP
+	XMP changed after the checkpoint	檢查點之後已變更的 XMP
+	XMP unreadable	無法讀取 XMP
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	部分 XMP 檔案在檢查點之後已變更（例如在 Lightroom 中）。請在選擇前檢查這些檔案。
+	Camera Raw Preferences…	Camera Raw 偏好設定…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	只有在工作階段未正常結束後才會提供復原。使用「完成」、「開啟影像」和「取消」結束後，不會留下需要復原的內容。
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	「完成」和「開啟影像」會先將受支援的編輯儲存至 XMP 附屬檔案。原始相片維持不變。
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	關閉復原會將此工作階段從已儲存的復原資料中移除。正在進行的編輯會保留在記憶體中，直到選擇「完成」、「開啟影像」或「取消」。
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	啟用快取儲存後，Camera Raw 變更會在背景儲存以供復原。「完成」和「開啟影像」會將調整儲存至 XMP 附屬檔案。
+	Saving XMP before opening…	開啟前正在儲存 XMP…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	捨棄本次工作期間的變更並關閉。先前復原的草稿及本次工作期間儲存的 XMP 檔案都會保留。
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	關閉復原功能會停止自動檢查點。先前復原的工作會保留，直到您完成工作或捨棄其復原副本。
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	發生中斷或選擇保留工作以供復原後，將提供復原選項。「完成」與「開啟影像」會移除已完成的工作階段。捨棄已繼續之工作階段的變更時，會保留先前復原的工作。
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	適用於保留以供復原的工作、PhotoCraft 意外關閉後，或「開啟影像」、「完成」、「取消」操作中斷後。它可能復原從未儲存至 XMP 附屬檔案的工作。自上次確認的檢查點以來所做的變更可能無法使用。
 	Sync Settings	同步設定
 	Reset Settings	重設設定
 	Copy settings from {photo} to the selected photos.	將 {photo} 的設定複製到所選相片。

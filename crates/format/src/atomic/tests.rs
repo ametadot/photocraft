@@ -31,6 +31,37 @@ fn assert_no_temp(dir: &Path) {
 
 const ORIGINAL: &[u8] = b"the user's precious original document";
 
+#[test]
+fn publication_observer_sees_staged_then_replaced_real_bytes() {
+    let dir = TempDir::new("observer");
+    let target = dir.0.join("target.xmp");
+    std::fs::write(&target, ORIGINAL).unwrap();
+    let stages = std::cell::RefCell::new(Vec::new());
+    let updated = b"replacement packet";
+    let result = atomic_write_outcome_observed(&target, updated, &|stage| {
+        stages.borrow_mut().push(stage);
+        let actual = std::fs::read(&target).unwrap();
+        if stage == PublicationStage::AfterReplacement {
+            assert_eq!(actual, updated);
+        } else {
+            assert_eq!(actual, ORIGINAL);
+        }
+        if stage == PublicationStage::BeforeReplacement {
+            let staged: Vec<_> = std::fs::read_dir(&dir.0)
+                .unwrap()
+                .filter_map(Result::ok)
+                .filter(|entry| entry.file_name().to_string_lossy().ends_with(".pcsave.tmp"))
+                .collect();
+            assert_eq!(staged.len(), 1);
+            assert_eq!(std::fs::read(staged[0].path()).unwrap(), updated);
+        }
+    })
+    .unwrap();
+    assert!(matches!(result, PublicationOutcome::Published));
+    assert_eq!(*stages.borrow(), vec![PublicationStage::BeforeStaging, PublicationStage::BeforeReplacement, PublicationStage::AfterReplacement]);
+    assert_no_temp(&dir.0);
+}
+
 /// Real file system with failures injected at chosen steps.
 #[derive(Default)]
 struct Faulty {
@@ -41,6 +72,7 @@ struct Faulty {
     /// Fail the first N renames with PermissionDenied (a transient lock), then succeed.
     locked_renames: Cell<u32>,
     renames: Cell<u32>,
+    fail_directory_sync: bool,
 }
 
 impl AtomicFs for Faulty {
@@ -67,6 +99,9 @@ impl AtomicFs for Faulty {
         RealFs.remove(path)
     }
     fn sync_dir(&self, dir: &Path) -> io::Result<()> {
+        if self.fail_directory_sync {
+            return Err(io::Error::other("injected post-replacement sync failure"));
+        }
         RealFs.sync_dir(dir)
     }
     fn copy_metadata(&self, from: &Path, to: &Path) -> io::Result<()> {
@@ -75,6 +110,54 @@ impl AtomicFs for Faulty {
 }
 
 const NO_RETRY: RenameRetry = RenameRetry { attempts: 0, first_delay_ms: 0 };
+
+#[test]
+fn phase_aware_sync_failure_retains_published_content_and_uncertainty() {
+    let d = TempDir::new("phase-sync");
+    let p = d.0.join("photo.xmp");
+    std::fs::write(&p, ORIGINAL).unwrap();
+    let fs = Faulty { fail_directory_sync: true, ..Default::default() };
+    let outcome = atomic_write_outcome_with(&fs, NO_RETRY, &p, b"intended", &|_| {}).unwrap();
+    assert!(matches!(outcome, PublicationOutcome::PublishedUnconfirmed(_)));
+    assert_eq!(std::fs::read(&p).unwrap(), b"intended");
+    assert_eq!(fs.renames.get(), 1);
+    assert_no_temp(&d.0);
+}
+
+#[test]
+fn phase_aware_prepublication_failure_keeps_original() {
+    let d = TempDir::new("phase-before");
+    let p = d.0.join("photo.xmp");
+    std::fs::write(&p, ORIGINAL).unwrap();
+    let fs = Faulty { fail_write_after: Some(2), ..Default::default() };
+    assert!(atomic_write_outcome_with(&fs, NO_RETRY, &p, b"intended", &|_| {}).is_err());
+    assert_eq!(std::fs::read(&p).unwrap(), ORIGINAL);
+    assert_eq!(fs.renames.get(), 0);
+    assert_no_temp(&d.0);
+}
+
+#[test]
+fn phase_aware_native_publication_reports_supported_sync_success() {
+    let d = TempDir::new("phase-native");
+    let p = d.0.join("photo.xmp");
+    assert!(matches!(atomic_write_outcome(&p, b"intended").unwrap(), PublicationOutcome::Published));
+    assert_eq!(std::fs::read(&p).unwrap(), b"intended");
+}
+
+#[cfg(windows)]
+#[test]
+fn native_windows_sharing_denial_preserves_existing_target() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let d = TempDir::new("native-sharing");
+    let p = d.0.join("photo.xmp");
+    std::fs::write(&p, ORIGINAL).unwrap();
+    let held = std::fs::OpenOptions::new().read(true).share_mode(0).open(&p).unwrap();
+    let result = atomic_write_outcome_with(&RealFs, NO_RETRY, &p, b"replacement", &|_| {});
+    assert!(result.is_err(), "real Windows sharing must prevent replacement");
+    drop(held);
+    assert_eq!(std::fs::read(&p).unwrap(), ORIGINAL);
+    assert_no_temp(&d.0);
+}
 
 #[test]
 fn replaces_and_creates() {

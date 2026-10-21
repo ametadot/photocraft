@@ -3486,19 +3486,28 @@ curves	Smooth	매끄럽게
 	{n} hidden, {m} selected	{n}개 숨김, {m}개 선택
 	Shown; hidden by filter	표시됨, 필터로 숨김
 	Defaults	기본값
+	Workflow	작업 흐름
+	Generative AI	생성형 AI
+	Long-session recovery	장시간 세션 복구
+	Camera Raw Preferences	Camera Raw 환경 설정
 	All photos	모든 사진
 	Any	모두
 	Any colour	모든 색상
 	Back	뒤로
 	Blue — Review	파랑 — 검토
 	Blue — Review (9)	파랑 — 검토 (9)
+	Cancelling before publication…	파일 기록 전에 취소하는 중…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Camera Raw에서 필름 스트립 크기, 방향 및 격자 보기를 변경합니다. 이 표시 설정은 사진을 편집하지 않습니다.
 	Changes not yet saved to XMP	변경 사항이 아직 XMP에 저장되지 않았습니다
 	Clear filters	필터 지우기
 	Colour label	색상 레이블
+	Destination folder	대상 폴더
 	Filename	파일 이름
 	Green — Approved	초록 — 승인됨
 	Green — Approved (8)	초록 — 승인됨 (8)
 	JPEG quality	JPEG 품질
+	Live save is planned for a later release.	실시간 저장은 향후 릴리스에 추가될 예정입니다.
+	Live save — Planned	실시간 저장 — 예정
 	Mark	표시하기
 	Marked	표시됨
 	Marked and unmarked	표시 여부 무관
@@ -3512,28 +3521,153 @@ curves	Smooth	매끄럽게
 	Rating	등급
 	Red — Select	빨강 — 선정
 	Red — Select (6)	빨강 — 선정 (6)
+	Remove…	제거…
+	Replace existing JPEG?	기존 JPEG를 바꾸시겠습니까?
 	Return to photo preview	사진 미리 보기로 돌아가기
+	Save JPEG	JPEG 저장
+	Save JPEG:	JPEG 저장:
+	Save this photo as JPEG	이 사진을 JPEG로 저장
+	Saving JPEG	JPEG 저장 중
+	Saving mode: Cache saving	저장 모드: 캐시 저장
 	Show grid	격자 표시
 	Show hidden photos	숨긴 사진 표시
 	Unmark	표시 해제
 	Unmarked	표시 안 됨
 	Unrated (0)	등급 없음 (0)
+	Uses the settings captured when Save was chosen.	저장을 선택했을 때 기록한 설정을 사용합니다.
 	Yellow — Second	노랑 — 차선
 	Yellow — Second (7)	노랑 — 차선 (7)
 	hidden	숨김
 	selected photos	선택한 사진
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	작업 중 Camera Raw 변경 사항이 복구를 위해 저장됩니다. 완료를 선택하면 변경 사항이 사진의 XMP 사이드카 파일에 저장됩니다.
+	A recovered photograph has no retained source binding.	복구된 사진에 보존된 원본 파일 연결 정보가 없습니다.
+	Applies the same value to every selected photograph. Other settings remain independent.	선택한 모든 사진에 같은 값을 적용합니다. 다른 설정은 각 사진의 값을 유지합니다.
+	Back to editing	편집으로 돌아가기
+	Camera Raw recovery details	Camera Raw 복구 세부 정보
+	Camera Raw recovery needs attention	Camera Raw 복구에 확인이 필요합니다
 	Camera Raw session	Camera Raw 세션
+	Choose how to leave this visit's changes.	이번에 연 후 변경한 내용을 어떻게 처리할지 선택하세요.
+	Close Camera Raw session	Camera Raw 세션 닫기
+	Close details	세부 정보 닫기
+	Discard this photo's changes and remove	이 사진의 변경 사항을 버리고 제거
+	Discard this visit's changes and close	이번에 연 후 변경한 내용을 버리고 닫기
+	Finish Camera Raw session	Camera Raw 세션 완료
+	Keep editing	계속 편집
+	Keep in recovery and close	복구용으로 보존하고 닫기
+	Keep in session	세션에 유지
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	현재 미리 볼 수 있는 사진이 없습니다. 해결되지 않은 작업은 복구 세부 정보에 보존됩니다.
+	Open from files	파일에서 열기
+	Original NEF files remain unchanged.	원본 NEF 파일은 변경되지 않습니다.
+	Remove photograph from session	세션에서 사진 제거
 	Reset selected	선택한 사진 초기화
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	원본 파일을 기록된 경로에 복원한 후 복구 저장 다시 시도를 선택하세요. 내용이나 식별 정보가 바뀐 파일은 원본으로 인정할 수 없습니다.
+	Resume saved session	저장된 세션 재개
+	Retry recovery save	복구 저장 다시 시도
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	완료하기 전에 사용할 수 없는 파일, 중단된 가져오기 및 복구 메시지를 확인하세요.
+	Save XMP and close	XMP 저장 후 닫기
+	Save XMP and remove	XMP 저장 후 제거
+	Saved Camera Raw sessions	저장된 Camera Raw 세션
 	Set value	값 설정
+	Set value for selected photos	선택한 사진의 값 설정
 	Set value…	값 설정…
+	Show recovery details	복구 세부 정보 표시
+	Skip removes this unfinished import from the current request. You can open the file again later.	건너뛰면 현재 요청에서 이 미완료 가져오기가 제거됩니다. 나중에 파일을 다시 열 수 있습니다.
+	Skip unfinished import	미완료 가져오기 건너뛰기
 	Synchronise selected	선택한 사진 동기화
+	This changes session membership. Hide and filters keep photographs in the session.	세션에 포함된 사진이 변경됩니다. 숨기기와 필터는 사진을 세션에 유지합니다.
 	Undo group edit	그룹 편집 실행 취소
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw는 JPEG와 TIFF의 설정을 XMP 사이드카 파일에 저장하며 원본 이미지 파일은 변경하지 않습니다.
+	Disable Camera Raw support	Camera Raw 지원 사용 안 함
 	Hide	숨기기
+	JPEG and TIFF Handling	JPEG 및 TIFF 처리
+	JPEG handling	JPEG 처리
+	Layered TIFF files open in the editor with their layers preserved.	레이어가 있는 TIFF 파일은 레이어를 유지한 채 편집기에서 열립니다.
+	Open all supported files	지원되는 모든 파일 열기
+	Open files with Camera Raw settings	Camera Raw 설정이 있는 파일 열기
+	Original image files remain unchanged.	원본 이미지 파일은 변경되지 않습니다.
+	Recovery details	복구 세부 정보
+	Save XMP and keep editing	XMP를 저장하고 계속 편집
+	Save edits	편집 내용 저장
+	Saved edits to XMP; Camera Raw remains open	편집 내용을 XMP에 저장했습니다. Camera Raw는 열린 상태로 유지됩니다
+	TIFF handling	TIFF 처리
 	Disabled	사용 안 함
+	Existing settings	기존 설정
+	Jpeg handling	JPEG 처리
+	Tiff handling	TIFF 처리
+	Open in Camera Raw…	Camera Raw에서 열기…
+	Discard edits	편집 내용 버리기
 	Cache	캐시
+	Recovery mode	복구 모드
+	Show recovery progress	복구 진행 상황 표시
+	PhotoCraft default — recovery off	PhotoCraft 기본값 — 복구 꺼짐
+	Long-session recovery — cache saving	장시간 세션 복구 — 캐시 저장
 	Opening photographs	사진 여는 중
 	Preparing Camera Raw previews…	Camera Raw 미리 보기 준비 중…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	이번 세션의 편집 내용을 버립니다. 이전에 저장한 XMP 파일은 변경되지 않습니다.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	완료의 기본 동작은 XMP를 저장하고 닫는 것입니다. 원본 사진은 변경되지 않습니다.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	복구는 기본적으로 꺼져 있습니다. 긴 편집 세션을 백그라운드에서 보호하려면 캐시 저장을 켜세요.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	복구를 끄면 이 세션이 저장된 복구 데이터에서 제거됩니다. 열려 있는 편집 내용은 완료를 선택하거나 버릴 때까지 메모리에 남습니다.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	캐시 저장을 켜면 Camera Raw 변경 내용이 복구를 위해 백그라운드에 저장됩니다. 완료는 조정 내용을 XMP 사이드카 파일에 저장합니다.
+	Discard edits?	편집 내용 버리기?
+	Show recovery progress in Camera Raw	Camera Raw — 복구 진행 상황 표시
+	Long-session recovery…	장시간 세션 복구…
+	Recovery details…	복구 세부 정보…
+	Keep in recovery and close…	복구용으로 보존하고 닫기…
+	Live saving — planned	실시간 저장 — 예정
+	Discard unsaved edits?	저장하지 않은 편집 내용을 버리시겠습니까?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	이 Camera Raw 세션에서 아직 XMP에 저장하지 않은 편집 내용을 모두 버리고 닫습니다. 이전에 저장한 XMP 파일은 변경되지 않습니다.
+	Discard unsaved edits and close	저장하지 않은 편집 내용 버리고 닫기
+	Save and open images	저장 후 이미지 열기
+	Save XMP and open images	XMP 저장 후 이미지 열기
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	저장 후 필터나 선택과 관계없이 이 세션의 모든 사진이 연 순서대로 편집기에서 열립니다.
+	Recover Camera Raw session	Camera Raw 세션 복구
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	이전 Camera Raw 세션이 정상적으로 종료되지 않았습니다. 열 편집 내용의 버전을 선택하세요.
 	Session	세션
+	{count} photos · last checkpoint {time}	사진 {count}장 · 마지막 체크포인트 {time}
+	{count} photos have edits not saved to XMP	사진 {count}장에 XMP에 저장되지 않은 편집 내용이 있습니다
+	The newest checkpoint is unusable; the one from {time} is used instead.	최신 체크포인트를 사용할 수 없어 {time}의 체크포인트를 대신 사용합니다.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	이 세션의 XMP 저장이 완료되지 않았습니다. 다른 내용을 기록하기 전에 해당 파일을 다시 확인합니다.
+	Show file details	파일 세부 정보 표시
+	Hide file details	파일 세부 정보 숨기기
+	Checking files…	파일 확인 중…
+	Recovered edits	복구된 편집 내용
+	Cache version	캐시 버전
+	Saved edits	저장된 편집 내용
+	XMP sidecar version	XMP 사이드카 버전
+	Resume recovered edits	복구된 편집 내용으로 재개
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	사용 가능한 최신 PhotoCraft 복구 체크포인트에서 편집 내용을 복원합니다.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	PhotoCraft가 예기치 않게 종료되었거나 이미지 열기, 완료 또는 취소 작업이 중단된 경우에 사용하세요. XMP 사이드카 파일에 저장되지 않은 작업을 복원할 수 있습니다. 마지막으로 확인된 체크포인트 이후의 변경 사항은 사용할 수 없을 수도 있습니다.
+	Open saved XMP edits	저장된 XMP 편집 내용 열기
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	XMP 파일에 현재 저장된 지원되는 편집 내용으로 원본 사진을 다시 엽니다.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	저장되지 않은 복구 체크포인트 대신 저장된 사이드카 버전을 사용하려면 이 옵션을 선택하세요. 모든 사진에 XMP 파일이 있는 것은 아니며, XMP 파일이 없는 사진은 현재 파일 설정 또는 기본 설정을 사용합니다. 캐시에만 있는 저장되지 않은 변경 사항은 복원되지 않습니다.
+	Open other files	다른 파일 열기
+	Discard recovered copy…	복구된 사본 버리기…
+	Discard recovered copy?	복구된 사본을 버리시겠습니까?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	이 세션의 복구 체크포인트를 영구적으로 제거합니다. 저장된 XMP 파일과 원본 사진은 변경되지 않습니다.
+	Discard recovered copy	복구된 사본 버리기
+	Keep recovered copy	복구된 사본 유지
+	{n} of {total} photos are missing or changed	사진 {total}장 중 {n}장이 없거나 변경되었습니다
+	{n} photos have no XMP file	사진 {n}장에 XMP 파일이 없습니다
+	{n} XMP files changed after the checkpoint	XMP 파일 {n}개가 체크포인트 이후 변경되었습니다
+	No usable checkpoint can be opened.	열 수 있는 사용 가능한 체크포인트가 없습니다.
+	None of the photographs is available.	사용할 수 있는 사진이 없습니다.
+	Photo available	사진 사용 가능
+	Photo missing or changed	사진이 없거나 변경됨
+	No XMP file	XMP 파일 없음
+	XMP as at the checkpoint	체크포인트 시점의 XMP
+	XMP changed after the checkpoint	체크포인트 이후 변경된 XMP
+	XMP unreadable	XMP를 읽을 수 없음
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	일부 XMP 파일이 체크포인트 이후 Lightroom 등에서 변경되었습니다. 선택하기 전에 확인하세요.
+	Camera Raw Preferences…	Camera Raw 환경 설정…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	복구는 정상적으로 종료되지 않은 세션 이후에만 제공됩니다. 완료, 이미지 열기, 취소로 종료하면 복구할 내용이 남지 않습니다.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	완료와 이미지 열기는 지원되는 편집 내용을 먼저 XMP 사이드카 파일에 저장합니다. 원본 사진은 변경되지 않습니다.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	복구를 끄면 이 세션이 저장된 복구 데이터에서 제거됩니다. 열려 있는 편집 내용은 완료, 이미지 열기 또는 취소를 선택할 때까지 메모리에 남습니다.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	캐시 저장을 켜면 Camera Raw 변경 내용이 복구를 위해 백그라운드에 저장됩니다. 완료와 이미지 열기는 조정 내용을 XMP 사이드카 파일에 저장합니다.
+	Saving XMP before opening…	열기 전에 XMP 저장 중…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	이번 작업의 변경 사항을 버리고 닫습니다. 이전에 복구한 초안과 이번 작업 중 저장한 XMP 파일은 유지됩니다.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	복구를 끄면 자동 체크포인트 생성이 중지됩니다. 이전에 복구한 작업은 완료하거나 복구 사본을 버릴 때까지 유지됩니다.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	작업이 중단되거나 복구용으로 작업을 보관하면 복구가 제공됩니다. 완료와 이미지 열기는 완료된 세션을 정리합니다. 재개한 세션의 변경 사항을 버려도 이전에 복구한 작업은 유지됩니다.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	복구용으로 보관한 작업, PhotoCraft가 예기치 않게 닫힌 경우 또는 이미지 열기, 완료, 취소 작업이 중단된 경우에 사용합니다. XMP 사이드카 파일에 저장한 적이 없는 작업을 복원할 수 있습니다. 마지막으로 확인된 체크포인트 이후의 변경 사항은 사용할 수 없을 수 있습니다.
 	Sync Settings	설정 동기화
 	Reset Settings	설정 초기화
 	Copy settings from {photo} to the selected photos.	{photo}의 설정을 선택한 사진에 복사합니다.

@@ -3907,17 +3907,26 @@ navigator	Zoom	Zvětšení
 	{n} hidden	Skryto: {n}
 	{n} hidden, {m} selected	Skryto: {n}, vybráno: {m}
 	Shown; hidden by filter	Zobrazeno; skryto filtrem
+	Workflow	Pracovní postup
+	Generative AI	Generativní AI
+	Long-session recovery	Obnova dlouhých relací
+	Camera Raw Preferences	Předvolby Camera Raw
 	All photos	Všechny fotografie
 	Any	Libovolné
 	Any colour	Libovolná barva
 	Blue — Review	Modrá — Ke kontrole
 	Blue — Review (9)	Modrá — Ke kontrole (9)
+	Cancelling before publication…	Rušení před zápisem…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Velikost, orientaci a zobrazení mřížky filmového pásu můžete změnit v Camera Raw. Tyto volby zobrazení fotografie neupravují.
 	Changes not yet saved to XMP	Změny dosud neuložené do XMP
 	Clear filters	Vymazat filtry
 	Colour label	Barevný štítek
+	Destination folder	Cílová složka
 	Green — Approved	Zelená — Schváleno
 	Green — Approved (8)	Zelená — Schváleno (8)
 	JPEG quality	Kvalita JPEG
+	Live save is planned for a later release.	Průběžné ukládání je plánováno pro pozdější verzi.
+	Live save — Planned	Průběžné ukládání — Plánováno
 	Mark	Označit
 	Marked	Označené
 	Marked and unmarked	Označené i neoznačené
@@ -3931,26 +3940,151 @@ navigator	Zoom	Zvětšení
 	Rating	Hodnocení
 	Red — Select	Červená — Výběr
 	Red — Select (6)	Červená — Výběr (6)
+	Remove…	Odebrat…
+	Replace existing JPEG?	Nahradit stávající JPEG?
 	Return to photo preview	Zpět na náhled fotografie
+	Save JPEG	Uložit JPEG
+	Save JPEG:	Uložit JPEG:
+	Save this photo as JPEG	Uložit tuto fotografii jako JPEG
+	Saving JPEG	Ukládání JPEG
+	Saving mode: Cache saving	Režim ukládání: Ukládání do mezipaměti
 	Show grid	Zobrazit mřížku
 	Show hidden photos	Zobrazit skryté fotografie
 	Unmark	Zrušit označení
 	Unmarked	Neoznačené
 	Unrated (0)	Nehodnocené (0)
+	Uses the settings captured when Save was chosen.	Použije nastavení zachycená při zvolení příkazu Uložit.
 	Yellow — Second	Žlutá — Druhý výběr
 	Yellow — Second (7)	Žlutá — Druhý výběr (7)
 	hidden	skryté
 	selected photos	vybrané fotografie
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Změny v Camera Raw se během práce ukládají pro případ obnovení. Zvolením příkazu Hotovo uložíte změny do doprovodných souborů XMP fotografií.
+	A recovered photograph has no retained source binding.	Obnovená fotografie nemá uloženou vazbu na zdrojový soubor.
+	Applies the same value to every selected photograph. Other settings remain independent.	Použije stejnou hodnotu na všechny vybrané fotografie. Ostatní nastavení zůstanou nezávislá.
+	Back to editing	Zpět k úpravám
+	Camera Raw recovery details	Podrobnosti obnovení Camera Raw
+	Camera Raw recovery needs attention	Obnovení Camera Raw vyžaduje pozornost
 	Camera Raw session	Relace Camera Raw
+	Choose how to leave this visit's changes.	Zvolte, co udělat se změnami od tohoto otevření.
+	Close Camera Raw session	Zavřít relaci Camera Raw
+	Close details	Zavřít podrobnosti
+	Discard this photo's changes and remove	Zahodit změny této fotografie a odebrat
+	Discard this visit's changes and close	Zahodit změny od tohoto otevření a zavřít
+	Finish Camera Raw session	Dokončit relaci Camera Raw
+	Keep editing	Pokračovat v úpravách
+	Keep in recovery and close	Uchovat pro obnovení a zavřít
+	Keep in session	Ponechat v relaci
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Nyní nejsou k dispozici žádné fotografie k náhledu. Podrobnosti obnovení uchovávají veškerou nevyřešenou práci.
+	Open from files	Otevřít ze souborů
+	Original NEF files remain unchanged.	Původní soubory NEF zůstanou beze změny.
+	Remove photograph from session	Odebrat fotografii z relace
 	Reset selected	Obnovit výchozí nastavení vybraných
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Obnovte původní soubor na zaznamenané cestě a poté zvolte Znovu zkusit uložit pro obnovení. Soubor se změněným obsahem nebo identitou nelze přijmout jako původní zdroj.
+	Resume saved session	Pokračovat v uložené relaci
+	Retry recovery save	Znovu zkusit uložit pro obnovení
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Před dokončením zkontrolujte nedostupné soubory, přerušené importy a zprávy o obnovení.
+	Save XMP and close	Uložit XMP a zavřít
+	Save XMP and remove	Uložit XMP a odebrat
+	Saved Camera Raw sessions	Uložené relace Camera Raw
 	Set value	Nastavit hodnotu
+	Set value for selected photos	Nastavit hodnotu pro vybrané fotografie
 	Set value…	Nastavit hodnotu…
+	Show recovery details	Zobrazit podrobnosti obnovení
+	Skip removes this unfinished import from the current request. You can open the file again later.	Přeskočení odebere tento nedokončený import z aktuálního požadavku. Soubor můžete později otevřít znovu.
+	Skip unfinished import	Přeskočit nedokončený import
 	Synchronise selected	Synchronizovat vybrané
+	This changes session membership. Hide and filters keep photographs in the session.	Tímto se změní složení relace. Skrytí a filtry fotografie v relaci ponechávají.
 	Undo group edit	Vrátit skupinovou úpravu
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw ukládá doprovodné soubory XMP pro JPEG a TIFF; původní obrazové soubory zůstávají nezměněné.
+	Disable Camera Raw support	Zakázat podporu Camera Raw
+	JPEG and TIFF Handling	Zpracování souborů JPEG a TIFF
+	JPEG handling	Zpracování souborů JPEG
+	Layered TIFF files open in the editor with their layers preserved.	Soubory TIFF s vrstvami se otevírají v editoru se zachováním vrstev.
+	Open all supported files	Otevírat všechny podporované soubory
+	Open files with Camera Raw settings	Otevírat soubory s nastavením Camera Raw
+	Original image files remain unchanged.	Původní obrazové soubory zůstávají nezměněné.
+	Recovery details	Podrobnosti obnovení
+	Save XMP and keep editing	Uložit XMP a pokračovat v úpravách
+	Save edits	Uložit úpravy
+	Saved edits to XMP; Camera Raw remains open	Úpravy byly uloženy do XMP; Camera Raw zůstává otevřený
+	TIFF handling	Zpracování souborů TIFF
+	Existing settings	Existující nastavení
+	Jpeg handling	Zpracování souborů JPEG
+	Tiff handling	Zpracování souborů TIFF
+	Open in Camera Raw…	Otevírat v Camera Raw…
+	Discard edits	Zahodit úpravy
 	Cache	Mezipaměť
+	Recovery mode	Režim obnovy
+	Show recovery progress	Zobrazit průběh obnovy
+	PhotoCraft default — recovery off	Výchozí PhotoCraft — obnova vypnuta
+	Long-session recovery — cache saving	Obnova dlouhých relací — ukládání do mezipaměti
 	Opening photographs	Otevírání fotografií
 	Preparing Camera Raw previews…	Příprava náhledů Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Zahodit úpravy z této relace. Dříve uložené soubory XMP zůstanou beze změny.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Hotovo ve výchozím nastavení uloží XMP a zavře okno. Původní fotografie zůstanou beze změny.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Obnova je ve výchozím nastavení vypnuta. Zapněte ukládání do mezipaměti pro ochranu dlouhé relace úprav na pozadí.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Vypnutí obnovy odstraní tuto relaci z uložených dat obnovy. Otevřené úpravy zůstanou v paměti, dokud nezvolíte Hotovo nebo je nezahodíte.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Při zapnutém ukládání do mezipaměti se změny Camera Raw ukládají na pozadí pro obnovu. Hotovo uloží nastavení do doprovodných souborů XMP.
+	Discard edits?	Zahodit úpravy?
+	Show recovery progress in Camera Raw	Camera Raw — Zobrazit průběh obnovy
+	Long-session recovery…	Obnova dlouhých relací…
+	Recovery details…	Podrobnosti obnovení…
+	Keep in recovery and close…	Uchovat pro obnovení a zavřít…
+	Live saving — planned	Průběžné ukládání — Plánováno
+	Discard unsaved edits?	Zahodit neuložené úpravy?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Zahodit všechny úpravy z této relace Camera Raw, které dosud nebyly uloženy do XMP, a zavřít. Dříve uložené soubory XMP zůstanou beze změny.
+	Discard unsaved edits and close	Zahodit neuložené úpravy a zavřít
+	Save and open images	Uložit a otevřít obrazy
+	Save XMP and open images	Uložit XMP a otevřít obrazy
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Po uložení se všechny fotografie této relace otevřou v editoru v pořadí, v jakém byly otevřeny, bez ohledu na filtr nebo výběr.
+	Recover Camera Raw session	Obnovit relaci Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Předchozí relace Camera Raw nebyla normálně dokončena. Zvolte, kterou verzi jejích úprav chcete otevřít.
 	Session	Relace
+	{count} photos · last checkpoint {time}	Fotografie: {count} · poslední kontrolní bod: {time}
+	{count} photos have edits not saved to XMP	Fotografie s úpravami neuloženými do XMP: {count}
+	The newest checkpoint is unusable; the one from {time} is used instead.	Nejnovější kontrolní bod nelze použít; místo něj se použije bod z {time}.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Ukládání XMP v této relaci nebylo dokončeno. Jeho soubory se znovu zkontrolují dříve, než se zapíše cokoli dalšího.
+	Show file details	Zobrazit podrobnosti souborů
+	Hide file details	Skrýt podrobnosti souborů
+	Checking files…	Kontrola souborů…
+	Recovered edits	Obnovené úpravy
+	Cache version	Verze z mezipaměti
+	Saved edits	Uložené úpravy
+	XMP sidecar version	Verze z doprovodného souboru XMP
+	Resume recovered edits	Pokračovat s obnovenými úpravami
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Obnovit úpravy z nejnovějšího použitelného kontrolního bodu obnovení PhotoCraft.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Tuto možnost použijte, když se PhotoCraft neočekávaně zavřel nebo byla přerušena operace Otevřít obrazy, Hotovo či Zrušit. Může obnovit práci, která nikdy nebyla uložena do doprovodného souboru XMP. Změny od posledního potvrzeného kontrolního bodu nemusí být k dispozici.
+	Open saved XMP edits	Otevřít úpravy uložené v XMP
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Znovu otevřít původní fotografie s podporovanými úpravami, které jsou aktuálně uloženy v jejich souborech XMP.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Tuto možnost zvolte, chcete-li místo neuloženého kontrolního bodu obnovení použít verze uložené v doprovodných souborech. Ne každá fotografie musí mít soubor XMP; fotografie bez něj použijí aktuální nastavení souboru nebo výchozí nastavení. Tím se neobnoví neuložené změny v mezipaměti.
+	Open other files	Otevřít jiné soubory
+	Discard recovered copy…	Zahodit obnovenou kopii…
+	Discard recovered copy?	Zahodit obnovenou kopii?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Tím se trvale odstraní kontrolní bod obnovení této relace. Uložené soubory XMP a původní fotografie se nezmění.
+	Discard recovered copy	Zahodit obnovenou kopii
+	Keep recovered copy	Ponechat obnovenou kopii
+	{n} of {total} photos are missing or changed	Chybějící nebo změněné fotografie: {n} z {total}
+	{n} photos have no XMP file	Fotografie bez souboru XMP: {n}
+	{n} XMP files changed after the checkpoint	Soubory XMP změněné po kontrolním bodu: {n}
+	No usable checkpoint can be opened.	Nelze otevřít žádný použitelný kontrolní bod.
+	None of the photographs is available.	Žádná z fotografií není k dispozici.
+	Photo available	Fotografie je k dispozici
+	Photo missing or changed	Fotografie chybí nebo byla změněna
+	No XMP file	Bez souboru XMP
+	XMP as at the checkpoint	XMP odpovídá kontrolnímu bodu
+	XMP changed after the checkpoint	XMP změněn po kontrolním bodu
+	XMP unreadable	XMP nelze přečíst
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Některé soubory XMP byly po kontrolním bodu změněny, například v Lightroomu. Před výběrem je zkontrolujte.
+	Camera Raw Preferences…	Předvolby Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Obnovení se nabízí pouze po relaci, která nebyla normálně dokončena. Po volbě Hotovo, Otevřít obrazy nebo Zrušit nezůstane nic k obnovení.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Hotovo a Otevřít obrazy nejprve uloží podporované úpravy do doprovodných souborů XMP. Původní fotografie zůstanou beze změny.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Vypnutí obnovy odstraní tuto relaci z uložených dat obnovy. Otevřené úpravy zůstanou v paměti, dokud nezvolíte Hotovo, Otevřít obrazy nebo Zrušit.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Při zapnutém ukládání do mezipaměti se změny Camera Raw ukládají na pozadí pro obnovu. Hotovo a Otevřít obrazy uloží nastavení do doprovodných souborů XMP.
+	Saving XMP before opening…	Ukládání XMP před otevřením…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Zahodit změny z této návštěvy a zavřít. Dříve obnovené koncepty a soubory XMP uložené během této návštěvy zůstanou zachovány.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Vypnutím obnovy se zastaví automatické kontrolní body. Dříve obnovená práce zůstane zachována, dokud ji nedokončíte nebo nezahodíte její kopii pro obnovu.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Obnova se nabízí po přerušení nebo když zvolíte ponechání práce pro obnovu. Hotovo a Otevřít obrazy odstraní dokončené relace. Zahození změn v obnovené relaci zachová dříve obnovenou práci.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Tuto možnost použijte pro práci ponechanou pro obnovu, po neočekávaném ukončení PhotoCraftu nebo při přerušení operace Otevřít obrazy, Hotovo či Zrušit. Může obnovit práci, která nikdy nebyla uložena do doprovodného souboru XMP. Změny od posledního potvrzeného kontrolního bodu nemusí být dostupné.
 	Sync Settings	Synchronizovat nastavení
 	Reset Settings	Obnovit výchozí nastavení
 	Copy settings from {photo} to the selected photos.	Zkopírovat nastavení z fotografie {photo} do vybraných fotografií.

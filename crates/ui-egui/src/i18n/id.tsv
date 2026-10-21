@@ -3296,19 +3296,28 @@ curves	Smooth	Haluskan
 	{n} hidden, {m} selected	{n} tersembunyi, {m} dipilih
 	Shown; hidden by filter	Ditampilkan; disembunyikan oleh filter
 	Defaults	Bawaan
+	Workflow	Alur Kerja
+	Generative AI	AI Generatif
+	Long-session recovery	Pemulihan Sesi Panjang
+	Camera Raw Preferences	Preferensi Camera Raw
 	All photos	Semua foto
 	Any	Apa saja
 	Any colour	Semua warna
 	Back	Kembali
 	Blue — Review	Biru — Tinjau
 	Blue — Review (9)	Biru — Tinjau (9)
+	Cancelling before publication…	Membatalkan sebelum penulisan…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Ubah ukuran, orientasi, dan tampilan kisi filmstrip di Camera Raw. Pilihan tampilan ini tidak mengedit foto.
 	Changes not yet saved to XMP	Perubahan belum disimpan ke XMP
 	Clear filters	Hapus filter
 	Colour label	Label warna
+	Destination folder	Folder tujuan
 	Filename	Nama file
 	Green — Approved	Hijau — Disetujui
 	Green — Approved (8)	Hijau — Disetujui (8)
 	JPEG quality	Kualitas JPEG
+	Live save is planned for a later release.	Penyimpanan langsung direncanakan untuk rilis mendatang.
+	Live save — Planned	Penyimpanan langsung — Direncanakan
 	Mark	Tandai
 	Marked	Ditandai
 	Marked and unmarked	Ditandai dan tidak ditandai
@@ -3322,29 +3331,154 @@ curves	Smooth	Haluskan
 	Rating	Peringkat
 	Red — Select	Merah — Pilihan
 	Red — Select (6)	Merah — Pilihan (6)
+	Remove…	Keluarkan…
+	Replace existing JPEG?	Ganti JPEG yang sudah ada?
 	Return to photo preview	Kembali ke pratinjau foto
+	Save JPEG	Simpan JPEG
+	Save JPEG:	Simpan JPEG:
+	Save this photo as JPEG	Simpan foto ini sebagai JPEG
+	Saving JPEG	Menyimpan JPEG
+	Saving mode: Cache saving	Mode penyimpanan: Penyimpanan cache
 	Show grid	Tampilkan kisi
 	Show hidden photos	Tampilkan foto tersembunyi
 	Unmark	Hapus tanda
 	Unmarked	Tidak ditandai
 	Unrated (0)	Tanpa peringkat (0)
+	Uses the settings captured when Save was chosen.	Menggunakan pengaturan yang direkam saat Simpan dipilih.
 	Yellow — Second	Kuning — Pilihan kedua
 	Yellow — Second (7)	Kuning — Pilihan kedua (7)
 	hidden	tersembunyi
 	selected photos	foto terpilih
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Perubahan Camera Raw disimpan untuk pemulihan selama Anda bekerja. Pilih Selesai untuk menyimpan perubahan ke file pendamping XMP foto.
+	A recovered photograph has no retained source binding.	Foto yang dipulihkan tidak memiliki ikatan sumber yang tersimpan.
+	Applies the same value to every selected photograph. Other settings remain independent.	Menerapkan nilai yang sama ke setiap foto terpilih. Pengaturan lain tetap terpisah untuk tiap foto.
+	Back to editing	Kembali mengedit
+	Camera Raw recovery details	Rincian pemulihan Camera Raw
+	Camera Raw recovery needs attention	Pemulihan Camera Raw perlu perhatian
 	Camera Raw session	Sesi Camera Raw
+	Choose how to leave this visit's changes.	Pilih cara menangani perubahan sejak sesi ini dibuka.
+	Close Camera Raw session	Tutup sesi Camera Raw
+	Close details	Tutup rincian
+	Discard this photo's changes and remove	Buang perubahan foto ini dan keluarkan
+	Discard this visit's changes and close	Buang perubahan sejak sesi dibuka dan tutup
+	Finish Camera Raw session	Selesaikan sesi Camera Raw
+	Keep editing	Lanjutkan mengedit
+	Keep in recovery and close	Simpan untuk pemulihan dan tutup
+	Keep in session	Pertahankan dalam sesi
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Saat ini tidak ada foto yang dapat dipratinjau. Rincian pemulihan menyimpan pekerjaan yang belum terselesaikan.
+	Open from files	Buka dari file
+	Original NEF files remain unchanged.	File NEF asli tetap tidak berubah.
+	Remove photograph from session	Keluarkan foto dari sesi
 	Reset selected	Atur ulang foto terpilih
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Pulihkan file asli ke jalur yang tercatat, lalu pilih Coba lagi penyimpanan pemulihan. File dengan isi atau identitas yang berubah tidak dapat diterima sebagai sumber asli.
+	Resume saved session	Lanjutkan sesi tersimpan
+	Retry recovery save	Coba lagi penyimpanan pemulihan
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Periksa file yang tidak tersedia, impor yang terputus, dan pesan pemulihan sebelum menyelesaikan.
+	Save XMP and close	Simpan XMP dan tutup
+	Save XMP and remove	Simpan XMP dan keluarkan
+	Saved Camera Raw sessions	Sesi Camera Raw tersimpan
 	Set value	Tetapkan nilai
+	Set value for selected photos	Tetapkan nilai untuk foto terpilih
 	Set value…	Tetapkan nilai…
+	Show recovery details	Tampilkan rincian pemulihan
+	Skip removes this unfinished import from the current request. You can open the file again later.	Lewati menghapus impor yang belum selesai ini dari permintaan saat ini. Anda dapat membuka file lagi nanti.
+	Skip unfinished import	Lewati impor yang belum selesai
 	Synchronise selected	Sinkronkan foto terpilih
+	This changes session membership. Hide and filters keep photographs in the session.	Ini mengubah foto yang disertakan dalam sesi. Sembunyikan dan filter tetap mempertahankan foto dalam sesi.
 	Undo group edit	Urungkan pengeditan grup
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw menyimpan berkas pendamping XMP untuk JPEG dan TIFF; berkas gambar asli tetap tidak berubah.
+	Disable Camera Raw support	Nonaktifkan dukungan Camera Raw
+	JPEG and TIFF Handling	Penanganan JPEG dan TIFF
+	JPEG handling	Penanganan JPEG
 	Label	Label
+	Layered TIFF files open in the editor with their layers preserved.	Berkas TIFF berlapis dibuka di editor dengan semua lapisannya tetap utuh.
+	Open all supported files	Buka semua berkas yang didukung
+	Open files with Camera Raw settings	Buka berkas dengan pengaturan Camera Raw
+	Original image files remain unchanged.	Berkas gambar asli tetap tidak berubah.
+	Recovery details	Detail pemulihan
+	Save XMP and keep editing	Simpan XMP dan lanjutkan mengedit
+	Save edits	Simpan perubahan
+	Saved edits to XMP; Camera Raw remains open	Perubahan disimpan ke XMP; Camera Raw tetap terbuka
 	Stars	Bintang
+	TIFF handling	Penanganan TIFF
 	Disabled	Dinonaktifkan
+	Existing settings	Pengaturan yang ada
+	Jpeg handling	Penanganan JPEG
+	Tiff handling	Penanganan TIFF
+	Open in Camera Raw…	Buka di Camera Raw…
+	Discard edits	Buang suntingan
 	Cache	Tembolok
+	Recovery mode	Mode pemulihan
+	Show recovery progress	Tampilkan kemajuan pemulihan
+	PhotoCraft default — recovery off	Bawaan PhotoCraft — pemulihan nonaktif
+	Long-session recovery — cache saving	Pemulihan sesi panjang — penyimpanan tembolok
 	Opening photographs	Membuka foto
 	Preparing Camera Raw previews…	Menyiapkan pratinjau Camera Raw…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Buang suntingan selama sesi ini. Berkas XMP yang telah disimpan sebelumnya tidak berubah.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Selesai secara bawaan menyimpan XMP dan menutup. Foto asli tidak berubah.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Pemulihan nonaktif secara bawaan. Aktifkan penyimpanan tembolok untuk melindungi sesi penyuntingan panjang di latar belakang.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Menonaktifkan pemulihan menghapus sesi ini dari data pemulihan tersimpan. Suntingan terbuka tetap di memori hingga Anda memilih Selesai atau membuangnya.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Saat penyimpanan tembolok aktif, perubahan Camera Raw disimpan di latar belakang untuk pemulihan. Selesai menyimpan penyesuaian ke berkas pendamping XMP.
+	Discard edits?	Buang suntingan?
+	Show recovery progress in Camera Raw	Camera Raw — Tampilkan kemajuan pemulihan
+	Long-session recovery…	Pemulihan Sesi Panjang…
+	Recovery details…	Detail pemulihan…
+	Keep in recovery and close…	Simpan untuk pemulihan dan tutup…
+	Live saving — planned	Penyimpanan langsung — Direncanakan
+	Discard unsaved edits?	Buang suntingan yang belum disimpan?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Buang setiap suntingan dalam sesi Camera Raw ini yang belum disimpan ke XMP, lalu tutup. Berkas XMP yang disimpan sebelumnya tidak berubah.
+	Discard unsaved edits and close	Buang suntingan yang belum disimpan dan tutup
+	Save and open images	Simpan dan buka gambar
+	Save XMP and open images	Simpan XMP dan buka gambar
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Setelah disimpan, setiap foto dalam sesi ini dibuka di editor sesuai urutan saat dibuka, apa pun filter atau pilihannya.
+	Recover Camera Raw session	Pulihkan sesi Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Sesi Camera Raw sebelumnya tidak selesai secara normal. Pilih versi suntingan yang akan dibuka.
 	Session	Sesi
+	{count} photos · last checkpoint {time}	{count} foto · titik pemeriksaan terakhir {time}
+	{count} photos have edits not saved to XMP	{count} foto memiliki suntingan yang belum disimpan ke XMP
+	The newest checkpoint is unusable; the one from {time} is used instead.	Titik pemeriksaan terbaru tidak dapat digunakan; titik pemeriksaan dari {time} digunakan sebagai gantinya.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Penyimpanan XMP dalam sesi ini tidak selesai. Berkasnya diperiksa ulang sebelum ada hal lain yang ditulis.
+	Show file details	Tampilkan detail berkas
+	Hide file details	Sembunyikan detail berkas
+	Checking files…	Memeriksa berkas…
+	Recovered edits	Suntingan yang dipulihkan
+	Cache version	Versi tembolok
+	Saved edits	Suntingan tersimpan
+	XMP sidecar version	Versi berkas pendamping XMP
+	Resume recovered edits	Lanjutkan suntingan yang dipulihkan
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Pulihkan suntingan dari titik pemeriksaan pemulihan PhotoCraft terbaru yang dapat digunakan.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Gunakan ini setelah PhotoCraft tertutup secara tak terduga atau operasi Buka Gambar, Selesai, atau Batal terputus. Ini dapat memulihkan pekerjaan yang belum pernah disimpan ke berkas pendamping XMP. Perubahan sejak titik pemeriksaan terakhir yang dikonfirmasi mungkin tidak tersedia.
+	Open saved XMP edits	Buka suntingan XMP tersimpan
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Buka kembali foto asli beserta suntingan yang didukung dan saat ini tersimpan di berkas XMP-nya.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Pilih ini untuk menggunakan versi berkas pendamping yang tersimpan, bukan titik pemeriksaan pemulihan yang belum disimpan. Tidak semua foto memiliki berkas XMP; foto tanpa berkas XMP menggunakan pengaturan berkas saat ini atau pengaturan bawaan. Ini tidak memulihkan perubahan tembolok yang belum disimpan.
+	Open other files	Buka berkas lain
+	Discard recovered copy…	Buang salinan yang dipulihkan…
+	Discard recovered copy?	Buang salinan yang dipulihkan?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Tindakan ini menghapus titik pemeriksaan pemulihan sesi ini secara permanen. Berkas XMP tersimpan dan foto asli tidak diubah.
+	Discard recovered copy	Buang salinan yang dipulihkan
+	Keep recovered copy	Pertahankan salinan yang dipulihkan
+	{n} of {total} photos are missing or changed	{n} dari {total} foto hilang atau berubah
+	{n} photos have no XMP file	{n} foto tidak memiliki berkas XMP
+	{n} XMP files changed after the checkpoint	{n} berkas XMP berubah setelah titik pemeriksaan
+	No usable checkpoint can be opened.	Tidak ada titik pemeriksaan yang dapat digunakan untuk dibuka.
+	None of the photographs is available.	Tidak ada foto yang tersedia.
+	Photo available	Foto tersedia
+	Photo missing or changed	Foto hilang atau berubah
+	No XMP file	Tidak ada berkas XMP
+	XMP as at the checkpoint	XMP sesuai titik pemeriksaan
+	XMP changed after the checkpoint	XMP berubah setelah titik pemeriksaan
+	XMP unreadable	XMP tidak dapat dibaca
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Beberapa berkas XMP berubah setelah titik pemeriksaan, misalnya di Lightroom. Tinjau berkas tersebut sebelum memilih.
+	Camera Raw Preferences…	Preferensi Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Pemulihan hanya ditawarkan setelah sesi yang tidak selesai secara normal. Selesai, Buka Gambar, dan Batal tidak meninggalkan apa pun untuk dipulihkan.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Selesai dan Buka Gambar terlebih dahulu menyimpan suntingan yang didukung ke berkas pendamping XMP. Foto asli tidak berubah.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Menonaktifkan pemulihan menghapus sesi ini dari data pemulihan tersimpan. Suntingan terbuka tetap di memori hingga Anda memilih Selesai, Buka Gambar, atau Batal.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Saat penyimpanan tembolok aktif, perubahan Camera Raw disimpan di latar belakang untuk pemulihan. Selesai dan Buka Gambar menyimpan penyesuaian ke berkas pendamping XMP.
+	Saving XMP before opening…	Menyimpan XMP sebelum membuka…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Buang perubahan pada kunjungan ini dan tutup. Draf yang dipulihkan sebelumnya dan berkas XMP yang disimpan selama kunjungan ini tetap dipertahankan.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Menonaktifkan pemulihan menghentikan titik pemeriksaan otomatis. Pekerjaan yang dipulihkan sebelumnya tetap disimpan hingga Anda menyelesaikannya atau membuang salinan pemulihannya.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Pemulihan ditawarkan setelah gangguan atau saat Anda memilih menyimpan pekerjaan untuk pemulihan. Selesai dan Buka Gambar menghapus sesi yang telah selesai. Membuang perubahan pada sesi yang dilanjutkan tetap mempertahankan pekerjaan yang dipulihkan sebelumnya.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Gunakan ini untuk pekerjaan yang disimpan untuk pemulihan, setelah PhotoCraft tertutup secara tak terduga, atau saat operasi Buka Gambar, Selesai, atau Batal terputus. Ini dapat memulihkan pekerjaan yang belum pernah disimpan ke berkas pendamping XMP. Perubahan sejak titik pemeriksaan terakhir yang dikonfirmasi mungkin tidak tersedia.
 	Sync Settings	Sinkronkan pengaturan
 	Reset Settings	Atur ulang pengaturan
 	Copy settings from {photo} to the selected photos.	Salin pengaturan dari {photo} ke foto yang dipilih.

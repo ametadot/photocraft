@@ -181,16 +181,6 @@ fn map_xmp_error(error: XmpError) -> XmpImportError {
     XmpImportError::Xml(error.to_string())
 }
 
-/// Read the current resource's literal label for the in-memory workspace.
-/// The complete session service takes ownership of metadata in the finish feature.
-pub fn read_workspace_label(bytes: &[u8]) -> Option<String> {
-    let packet = XmpPacket::parse(bytes).ok()?;
-    match packet.property(XMP_NS, "Label") {
-        ValueState::Text(label) => Some(label.to_owned()),
-        _ => None,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

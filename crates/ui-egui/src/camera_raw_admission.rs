@@ -64,6 +64,7 @@ impl AdmissionState {
 }
 pub(crate) fn register(app: &mut PhotocraftApp, name: &str, path: Option<&str>) -> Result<u64, String> {
     let id = app.raw_filmstrip.admission.register(name, path)?;
+    crate::camera_raw_ui::admission_changed(app);
     Ok(id)
 }
 /// Atomically register a routed batch. No partial batch survives a capacity error.
@@ -72,12 +73,81 @@ pub(crate) fn register_many(app: &mut PhotocraftApp, inputs: &[Option<(String, O
     let ids =
         inputs.iter().map(|input| input.as_ref().map(|(name, path)| candidate.register(name, path.as_deref())).transpose()).collect::<Result<Vec<_>, _>>()?;
     app.raw_filmstrip.admission = candidate;
+    crate::camera_raw_ui::admission_changed(app);
     Ok(ids)
+}
+/// Explain why an input can or cannot be explicitly skipped from recovery.
+pub(crate) fn can_cancel_request(app: &PhotocraftApp, key: &str) -> Result<(), String> {
+    crate::camera_raw_ui::admission_allowed(app)?;
+    let state = &app.raw_filmstrip.admission;
+    let row = state.requests.values().find(|row| row.key == key).ok_or("Requested input no longer exists")?;
+    if row.outcome != Outcome::Pending {
+        return Err("Requested input has already settled".into());
+    }
+    let id = row.sequence;
+    if state.current == Some(id)
+        || state.jobs.values().any(|request| *request == id)
+        || app.held_opens.iter().any(|held| state.documents.get(&held.doc.id.0) == Some(&id))
+    {
+        return Err("This input is still opening; cancel its import or profile prompt and wait for completion".into());
+    }
+    Ok(())
+}
+/// Explicitly skip a recovered request which has no live decoder or profile prompt.
+pub(crate) fn cancel_request(app: &mut PhotocraftApp, key: &str) -> Result<(), String> {
+    can_cancel_request(app, key)?;
+    let state = &mut app.raw_filmstrip.admission;
+    let id = state.requests.values().find(|row| row.key == key).map(|row| row.sequence).ok_or("Requested input no longer exists")?;
+    if !state.settle(id, Outcome::Cancelled) {
+        return Err("Requested input has already settled".into());
+    }
+    crate::camera_raw_ui::admission_changed(app);
+    Ok(())
+}
+/// A photograph that opened in Camera Raw but whose admission was refused (for example an
+/// over-budget sidecar): skipping it settles its ticket so the others can still be saved.
+pub(crate) fn can_skip_unadmitted(app: &PhotocraftApp, key: &str) -> Result<(), String> {
+    crate::camera_raw_ui::admission_allowed(app)?;
+    let row = app.raw_filmstrip.admission.requests.values().find(|row| row.key == key).ok_or("Requested input no longer exists")?;
+    if row.outcome != Outcome::Ready {
+        return Err("Only an opened photograph that was not admitted can be skipped here".into());
+    }
+    if !crate::camera_raw_ui::unadmitted(app, key) {
+        return Err("This photograph is part of the session; remove it from the session instead".into());
+    }
+    Ok(())
+}
+/// Skip such a photograph: close its review and settle its ticket as cancelled. Nothing is
+/// written next to the photograph; it can be opened again later.
+pub(crate) fn skip_unadmitted(app: &mut PhotocraftApp, key: &str) -> Result<(), String> {
+    can_skip_unadmitted(app, key)?;
+    crate::camera_raw_ui::forget_admission(app, key);
+    if let Some(row) = app.raw_filmstrip.admission.requests.values_mut().find(|row| row.key == key) {
+        row.outcome = Outcome::Cancelled;
+    }
+    crate::camera_raw_ui::admission_changed(app);
+    Ok(())
+}
+/// "Skip this unfinished import", shared by the recovery details and the control channel:
+/// a pending request, or one that opened but was never admitted.
+pub(crate) fn skip(app: &mut PhotocraftApp, key: &str) -> Result<(), String> {
+    let ready = app.raw_filmstrip.admission.requests.values().any(|row| row.key == key && row.outcome == Outcome::Ready);
+    if ready { skip_unadmitted(app, key) } else { cancel_request(app, key) }
 }
 /// End a completed visit without reusing request keys in this process.
 pub(crate) fn clear(app: &mut PhotocraftApp) {
     let next = app.raw_filmstrip.admission.next;
     app.raw_filmstrip.admission = AdmissionState { next, ..Default::default() };
+}
+/// Restore filename outcomes; old runtime document/job IDs are deliberately not rebound.
+pub(crate) fn restore(app: &mut PhotocraftApp, rows: Vec<Request>) {
+    clear(app);
+    let state = &mut app.raw_filmstrip.admission;
+    for mut row in rows {
+        state.next = state.next.max(row.sequence);
+        row.document = None;
+        state.requests.insert(row.sequence, row);
+    }
 }
 pub(crate) fn bind_restored(app: &mut PhotocraftApp, document: DocId, key: &str) {
     let state = &mut app.raw_filmstrip.admission;
@@ -105,6 +175,9 @@ pub(crate) fn input<T>(app: &mut PhotocraftApp, name: &str, path: Option<&str>, 
     // still exists. Only an unfinished nested wrapper inherits that parent's ticket.
     let inherited =
         app.raw_filmstrip.admission.current.filter(|id| app.raw_filmstrip.admission.requests.get(id).is_some_and(|row| row.outcome == Outcome::Pending));
+    if inherited.is_none() {
+        crate::camera_raw_ui::admission_allowed(app)?;
+    }
     let id = match inherited {
         Some(id) => id,
         None => register(app, name, path)?,
@@ -145,12 +218,16 @@ pub(crate) fn bind_document(app: &mut PhotocraftApp, doc: DocId) {
 pub(crate) fn outcome(app: &mut PhotocraftApp, outcome: Outcome) {
     if let Some(id) = app.raw_filmstrip.admission.current
         && app.raw_filmstrip.admission.settle(id, outcome)
-    {}
+    {
+        crate::camera_raw_ui::admission_changed(app);
+    }
 }
 pub(crate) fn cancel_document(app: &mut PhotocraftApp, doc: DocId) {
     if let Some(id) = for_document(app, doc)
         && app.raw_filmstrip.admission.settle(id, Outcome::Cancelled)
-    {}
+    {
+        crate::camera_raw_ui::admission_changed(app);
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -215,6 +292,21 @@ mod tests {
         assert!(settled(&app));
     }
     #[test]
+    fn restore_advances_keys_and_does_not_rebind_stale_runtime_documents() {
+        let mut app = app();
+        let id = register(&mut app, "pending.nef", None).unwrap();
+        let _: Result<(), String> = scoped(&mut app, Some(id), |app| {
+            bind_document(app, DocId(123));
+            Ok(())
+        });
+        let rows = snapshot(&app);
+        restore(&mut app, rows);
+        assert!(request_for_doc(&app, DocId(123)).is_none());
+        assert!(!settled(&app));
+        let next = register(&mut app, "next.nef", None).unwrap();
+        assert!(next > id);
+    }
+    #[test]
     fn reentrant_open_after_completion_gets_its_own_ticket() {
         let mut app = app();
         let _: Result<(), String> = input(&mut app, "parent.nef", None, |app| {
@@ -259,6 +351,8 @@ mod tests {
         assert!(app.jobs.opens.is_empty());
         assert_eq!(app.held_opens.len(), 2);
         assert!(!settled(&app));
+        let key = snapshot(&app)[0].key.clone();
+        assert!(cancel_request(&mut app, &key).is_err());
         assert!(snapshot(&app).iter().all(|row| row.outcome == Outcome::Pending));
         crate::open_prompt::answer(&mut app, None).unwrap();
         assert!(settled(&app));
@@ -278,5 +372,47 @@ mod tests {
         assert!(register_many(&mut app, &inputs).is_err());
         assert!(snapshot(&app).is_empty());
         assert_eq!(app.raw_filmstrip.admission.next, 0);
+    }
+    #[test]
+    fn recovered_skip_refuses_live_job_but_settles_jobless_pending_request() {
+        let mut app = app();
+        let id = register(&mut app, "pending.nef", None).unwrap();
+        let _: Result<(), String> = scoped(&mut app, Some(id), |app| {
+            bind_job(app, JobId(42));
+            Ok(())
+        });
+        let key = snapshot(&app)[0].key.clone();
+        assert!(cancel_request(&mut app, &key).is_err());
+        assert!(!settled(&app));
+        let rows = snapshot(&app);
+        restore(&mut app, rows);
+        cancel_request(&mut app, &key).unwrap();
+        assert_eq!(snapshot(&app)[0].outcome, Outcome::Cancelled);
+        assert!(settled(&app));
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn persistence_control_skip_is_exact_and_survives_another_restore() {
+        let mut app = app();
+        register(&mut app, "missing-a.nef", Some("C:/missing-a.nef")).unwrap();
+        register(&mut app, "missing-b.nef", Some("C:/missing-b.nef")).unwrap();
+        let rows = snapshot(&app);
+        restore(&mut app, rows);
+        let key = snapshot(&app)[0].key.clone();
+        let ctx = egui::Context::default();
+        let invoke = |app: &mut PhotocraftApp, value: serde_json::Value| {
+            crate::camera_raw_ui::menu(app, &ctx, "filter.cameraRaw", &serde_json::json!({"ui": {"persistence": value}})).unwrap()
+        };
+        assert!(invoke(&mut app, serde_json::json!({"action":"skipRequest"})).is_err());
+        assert!(invoke(&mut app, serde_json::json!({"action":"skipRequest","requestKey":"unknown"})).is_err());
+        invoke(&mut app, serde_json::json!({"action":"skipRequest","requestKey":key})).unwrap();
+        assert!(invoke(&mut app, serde_json::json!({"action":"skipRequest","requestKey":key})).is_err());
+        let rows = serde_json::from_slice::<Vec<Request>>(&serde_json::to_vec(&snapshot(&app)).unwrap()).unwrap();
+        restore(&mut app, rows);
+        assert_eq!(snapshot(&app)[0].name, "missing-a.nef");
+        assert_eq!(snapshot(&app)[0].outcome, Outcome::Cancelled);
+        assert_eq!(snapshot(&app)[1].outcome, Outcome::Pending);
+        assert!(!settled(&app));
     }
 }

@@ -97,6 +97,33 @@ fn rendered_admission_keeps_native_depth_profile_and_metadata() {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn rendered_gray_and_float_development_retains_alpha_depth_and_hdr() {
+    use crate::raw_session::controller::render_recipe;
+    let image = Image::from_f32(1, 1, ChannelLayout::GrayA, &[0.25, 0.375]).unwrap().with_icc(Some(photocraft_cms::builtin::linear_gray().to_bytes().to_vec()));
+    let bytes = encode(&image, Format::Tiff, &EncodeOptions::default()).unwrap();
+    let mut recipe = initial_recipe(&bytes, None).unwrap();
+    assert!((recipe.adjustments.encoding_gamma - 1.0).abs() < 0.0001);
+    recipe.adjustments.exposure = 1.0;
+    let imported = render_recipe("gray.tif", &bytes, &recipe).unwrap().document;
+    assert_eq!(imported.depth, photocraft_color::SampleType::F32);
+    assert_eq!(imported.mode, photocraft_color::ColorMode::Grayscale);
+    let pixel = imported.layers[0].surface().unwrap().pixel(0, 0);
+    assert!(pixel[0] > 0.3 && pixel[0] < 0.4, "{pixel:?}");
+    assert!((pixel[1] - 0.375).abs() < 0.0001, "{pixel:?}");
+    assert_eq!(imported.icc_profile.as_deref().map(Vec::as_slice), image.icc.as_deref());
+
+    let image =
+        Image::from_f32(1, 1, ChannelLayout::Rgb, &[0.75, 0.8, 0.9]).unwrap().with_icc(Some(photocraft_cms::Builtin::LinearSrgb.profile().to_bytes().to_vec()));
+    let bytes = encode(&image, Format::Tiff, &EncodeOptions::default()).unwrap();
+    let mut recipe = initial_recipe(&bytes, None).unwrap();
+    recipe.adjustments.exposure = 1.0;
+    let imported = render_recipe("hdr.tif", &bytes, &recipe).unwrap().document;
+    let pixel = imported.layers[0].surface().unwrap().pixel(0, 0);
+    assert!(pixel[0] > 1.0 && pixel[1] > 1.0 && pixel[2] > 1.0, "{pixel:?}");
+}
+
 #[test]
 fn mismatched_profile_and_sensor_options_are_rejected() {
     let image = photograph(SampleType::U8).with_icc(Some(photocraft_cms::Builtin::GrayGamma22.profile().to_bytes().to_vec()));

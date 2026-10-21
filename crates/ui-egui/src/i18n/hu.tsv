@@ -4213,17 +4213,26 @@ cameraRaw	Yellow	Sárga
 	{n} hidden	Rejtett: {n}
 	{n} hidden, {m} selected	Rejtett: {n}, kijelölt: {m}
 	Shown; hidden by filter	Megjelenítve; a szűrő elrejti
+	Workflow	Munkafolyamat
+	Generative AI	Generatív MI
+	Long-session recovery	Hosszú munkamenetek helyreállítása
+	Camera Raw Preferences	Camera Raw beállítások
 	All photos	Összes fénykép
 	Any	Bármelyik
 	Any colour	Bármilyen szín
 	Blue — Review	Kék — Ellenőrzésre
 	Blue — Review (9)	Kék — Ellenőrzésre (9)
+	Cancelling before publication…	Megszakítás az írás előtt…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	A filmszalag mérete, tájolása és rácsnézete a Camera Raw felületén módosítható. Ezek a megjelenítési beállítások nem módosítják a fényképeket.
 	Changes not yet saved to XMP	XMP-be még nem mentett módosítások
 	Clear filters	Szűrők törlése
 	Colour label	Színcímke
+	Destination folder	Célmappa
 	Green — Approved	Zöld — Jóváhagyva
 	Green — Approved (8)	Zöld — Jóváhagyva (8)
 	JPEG quality	JPEG-minőség
+	Live save is planned for a later release.	A folyamatos mentést egy későbbi kiadásra tervezzük.
+	Live save — Planned	Folyamatos mentés — Tervezett
 	Mark	Megjelölés
 	Marked	Megjelöltek
 	Marked and unmarked	Megjelöltek és jelöletlenek
@@ -4237,26 +4246,151 @@ cameraRaw	Yellow	Sárga
 	Rating	Értékelés
 	Red — Select	Piros — Kiválasztás
 	Red — Select (6)	Piros — Kiválasztás (6)
+	Remove…	Eltávolítás…
+	Replace existing JPEG?	Lecseréli a meglévő JPEG-fájlt?
 	Return to photo preview	Vissza a fénykép előnézetéhez
+	Save JPEG	JPEG mentése
+	Save JPEG:	JPEG mentése:
+	Save this photo as JPEG	Fénykép mentése JPEG-ként
+	Saving JPEG	JPEG mentése folyamatban
+	Saving mode: Cache saving	Mentési mód: Mentés gyorsítótárba
 	Show grid	Rács megjelenítése
 	Show hidden photos	Rejtett fényképek megjelenítése
 	Unmark	Megjelölés törlése
 	Unmarked	Jelöletlenek
 	Unrated (0)	Értékeletlen (0)
+	Uses the settings captured when Save was chosen.	A Mentés kiválasztásakor rögzített beállításokat használja.
 	Yellow — Second	Sárga — Második választás
 	Yellow — Second (7)	Sárga — Második választás (7)
 	hidden	rejtett
 	selected photos	kijelölt fényképek
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	A Camera Raw módosításai munka közben mentésre kerülnek, hogy helyreállíthatók legyenek. A Kész gombbal mentheti a módosításokat a fényképek XMP-kísérőfájljaiba.
+	A recovered photograph has no retained source binding.	Egy helyreállított fényképhez nincs megőrzött forrásfájl-hozzárendelés.
+	Applies the same value to every selected photograph. Other settings remain independent.	Ugyanazt az értéket alkalmazza minden kijelölt fényképre. A többi beállítás független marad.
+	Back to editing	Vissza a szerkesztéshez
+	Camera Raw recovery details	Camera Raw helyreállítási részletek
+	Camera Raw recovery needs attention	A Camera Raw helyreállítása figyelmet igényel
 	Camera Raw session	Camera Raw-munkamenet
+	Choose how to leave this visit's changes.	Válassza ki, mi történjen az e megnyitás óta végzett módosításokkal.
+	Close Camera Raw session	Camera Raw-munkamenet bezárása
+	Close details	Részletek bezárása
+	Discard this photo's changes and remove	Fénykép módosításainak elvetése és eltávolítás
+	Discard this visit's changes and close	E megnyitás óta végzett módosítások elvetése és bezárás
+	Finish Camera Raw session	Camera Raw-munkamenet befejezése
+	Keep editing	Szerkesztés folytatása
+	Keep in recovery and close	Megőrzés helyreállításhoz és bezárás
+	Keep in session	Megtartás a munkamenetben
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Jelenleg egyetlen fénykép előnézete sem érhető el. A helyreállítási részletek megőrzik az összes megoldatlan munkát.
+	Open from files	Megnyitás fájlokból
+	Original NEF files remain unchanged.	Az eredeti NEF-fájlok változatlanok maradnak.
+	Remove photograph from session	Fénykép eltávolítása a munkamenetből
 	Reset selected	Kijelöltek alaphelyzetbe állítása
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Állítsa vissza az eredeti fájlt a rögzített elérési útra, majd válassza a Helyreállítási mentés újrapróbálása lehetőséget. A módosult tartalmú vagy azonosítójú fájl nem fogadható el eredeti forrásként.
+	Resume saved session	Mentett munkamenet folytatása
+	Retry recovery save	Helyreállítási mentés újrapróbálása
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Befejezés előtt ellenőrizze az elérhetetlen fájlokat, a megszakadt importálásokat és a helyreállítási üzeneteket.
+	Save XMP and close	XMP mentése és bezárás
+	Save XMP and remove	XMP mentése és eltávolítás
+	Saved Camera Raw sessions	Mentett Camera Raw-munkamenetek
 	Set value	Érték beállítása
+	Set value for selected photos	Érték beállítása a kijelölt fényképekhez
 	Set value…	Érték beállítása…
+	Show recovery details	Helyreállítási részletek megjelenítése
+	Skip removes this unfinished import from the current request. You can open the file again later.	A kihagyás eltávolítja ezt a befejezetlen importálást az aktuális kérésből. A fájl később újra megnyitható.
+	Skip unfinished import	Befejezetlen importálás kihagyása
 	Synchronise selected	Kijelöltek szinkronizálása
+	This changes session membership. Hide and filters keep photographs in the session.	Ez megváltoztatja, mely fényképek tartoznak a munkamenethez. Az elrejtés és a szűrők a munkamenetben tartják a fényképeket.
 	Undo group edit	Csoportos szerkesztés visszavonása
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	A Camera Raw XMP-kísérőfájlokat ment a JPEG- és TIFF-képekhez; az eredeti képfájlok változatlanok maradnak.
+	Disable Camera Raw support	A Camera Raw támogatásának letiltása
+	JPEG and TIFF Handling	JPEG- és TIFF-fájlok kezelése
+	JPEG handling	JPEG-fájlok kezelése
+	Layered TIFF files open in the editor with their layers preserved.	A réteges TIFF-fájlok a szerkesztőben nyílnak meg, rétegeik megőrzésével.
+	Open all supported files	Minden támogatott fájl megnyitása
+	Open files with Camera Raw settings	Camera Raw-beállításokat tartalmazó fájlok megnyitása
+	Original image files remain unchanged.	Az eredeti képfájlok változatlanok maradnak.
+	Recovery details	Helyreállítás részletei
+	Save XMP and keep editing	XMP mentése és a szerkesztés folytatása
+	Save edits	Módosítások mentése
+	Saved edits to XMP; Camera Raw remains open	A módosítások XMP-be mentve; a Camera Raw nyitva marad
+	TIFF handling	TIFF-fájlok kezelése
+	Existing settings	Meglévő beállítások
+	Jpeg handling	JPEG-fájlok kezelése
+	Tiff handling	TIFF-fájlok kezelése
+	Open in Camera Raw…	Megnyitás a Camera Raw-ban…
+	Discard edits	Módosítások elvetése
 	Cache	Gyorsítótár
+	Recovery mode	Helyreállítási mód
+	Show recovery progress	Helyreállítási folyamat megjelenítése
+	PhotoCraft default — recovery off	PhotoCraft alapértelmezés — helyreállítás kikapcsolva
+	Long-session recovery — cache saving	Hosszú munkamenet helyreállítása — mentés gyorsítótárba
 	Opening photographs	Fényképek megnyitása
 	Preparing Camera Raw previews…	Camera Raw előnézetek előkészítése…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Az aktuális munkamenet módosításainak elvetése. A korábban mentett XMP-fájlok változatlanok maradnak.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	A Kész alapértelmezés szerint menti az XMP-t és bezár. Az eredeti fényképek változatlanok maradnak.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	A helyreállítás alapértelmezés szerint ki van kapcsolva. Kapcsolja be a gyorsítótárba mentést a hosszú szerkesztési munkamenet háttérben történő védelméhez.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	A helyreállítás kikapcsolása eltávolítja ezt a munkamenetet a helyreállítási adatokból. A nyitott módosítások a memóriában maradnak a Kész vagy az elvetés választásáig.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Bekapcsolt gyorsítótár esetén a Camera Raw módosításai a háttérben mentődnek a helyreállításhoz. A Kész az XMP-kísérőfájlokba menti a beállításokat.
+	Discard edits?	Módosítások elvetése?
+	Show recovery progress in Camera Raw	Camera Raw — Helyreállítási folyamat megjelenítése
+	Long-session recovery…	Hosszú munkamenetek helyreállítása…
+	Recovery details…	Helyreállítás részletei…
+	Keep in recovery and close…	Megőrzés helyreállításhoz és bezárás…
+	Live saving — planned	Folyamatos mentés — Tervezett
+	Discard unsaved edits?	Nem mentett módosítások elvetése?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Az ebben a Camera Raw-munkamenetben XMP-be még nem mentett összes módosítás elvetése, majd bezárás. A korábban mentett XMP-fájlok változatlanok maradnak.
+	Discard unsaved edits and close	Nem mentett módosítások elvetése és bezárás
+	Save and open images	Mentés és képek megnyitása
+	Save XMP and open images	XMP mentése és képek megnyitása
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Mentés után a munkamenet összes fényképe megnyílik a szerkesztőben a megnyitás sorrendjében, a szűrőtől és a kijelöléstől függetlenül.
+	Recover Camera Raw session	Camera Raw-munkamenet helyreállítása
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Egy korábbi Camera Raw-munkamenet nem fejeződött be szabályosan. Válassza ki, hogy a módosítások melyik változatát szeretné megnyitni.
 	Session	Munkamenet
+	{count} photos · last checkpoint {time}	{count} fénykép · utolsó ellenőrzőpont: {time}
+	{count} photos have edits not saved to XMP	{count} fénykép XMP-be nem mentett módosításokat tartalmaz
+	The newest checkpoint is unusable; the one from {time} is used instead.	A legújabb ellenőrzőpont nem használható; helyette a program a(z) {time} időpontban készültet használja.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	A munkamenet egyik XMP-mentése nem fejeződött be. Az érintett fájlokat a program újra ellenőrzi, mielőtt bármi mást írna.
+	Show file details	Fájlrészletek megjelenítése
+	Hide file details	Fájlrészletek elrejtése
+	Checking files…	Fájlok ellenőrzése…
+	Recovered edits	Helyreállított módosítások
+	Cache version	Gyorsítótárban tárolt változat
+	Saved edits	Mentett módosítások
+	XMP sidecar version	XMP-kísérőfájlban tárolt változat
+	Resume recovered edits	Folytatás a helyreállított módosításokkal
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	A módosítások visszaállítása a PhotoCraft legutóbbi használható helyreállítási ellenőrzőpontjáról.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Akkor használja, ha a PhotoCraft váratlanul bezárult, vagy megszakadt egy Képek megnyitása, Kész vagy Mégse művelet. Olyan munkát is visszaállíthat, amely sosem került XMP-kísérőfájlba. Az utolsó visszaigazolt ellenőrzőpont óta végzett módosítások nem feltétlenül érhetők el.
+	Open saved XMP edits	Mentett XMP-módosítások megnyitása
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Az eredeti fényképek újbóli megnyitása az XMP-fájljaikban jelenleg mentett, támogatott módosításokkal.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Ezt válassza, ha a nem mentett helyreállítási ellenőrzőpont helyett a kísérőfájlokba mentett változatokat szeretné használni. Nem minden fényképhez tartozik feltétlenül XMP-fájl; az ilyen fényképek a fájl jelenlegi beállításait vagy az alapértelmezett beállításokat használják. Ez nem állítja vissza a gyorsítótárban lévő, nem mentett módosításokat.
+	Open other files	Más fájlok megnyitása
+	Discard recovered copy…	Helyreállított másolat elvetése…
+	Discard recovered copy?	Helyreállított másolat elvetése?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Ez véglegesen eltávolítja a munkamenet helyreállítási ellenőrzőpontját. A mentett XMP-fájlok és az eredeti fényképek nem változnak.
+	Discard recovered copy	Helyreállított másolat elvetése
+	Keep recovered copy	Helyreállított másolat megtartása
+	{n} of {total} photos are missing or changed	{total} fényképből {n} hiányzik vagy megváltozott
+	{n} photos have no XMP file	{n} fényképhez nem tartozik XMP-fájl
+	{n} XMP files changed after the checkpoint	{n} XMP-fájl megváltozott az ellenőrzőpont után
+	No usable checkpoint can be opened.	Nincs megnyitható, használható ellenőrzőpont.
+	None of the photographs is available.	Egyik fénykép sem érhető el.
+	Photo available	Fénykép elérhető
+	Photo missing or changed	Fénykép hiányzik vagy megváltozott
+	No XMP file	Nincs XMP-fájl
+	XMP as at the checkpoint	XMP az ellenőrzőpont szerinti állapotban
+	XMP changed after the checkpoint	XMP megváltozott az ellenőrzőpont után
+	XMP unreadable	XMP nem olvasható
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Néhány XMP-fájl megváltozott az ellenőrzőpont után, például a Lightroomban. Választás előtt ellenőrizze őket.
+	Camera Raw Preferences…	Camera Raw beállítások…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	A program csak olyan munkamenet után kínál fel helyreállítást, amely nem fejeződött be szabályosan. A Kész, a Képek megnyitása és a Mégse után nincs mit helyreállítani.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	A Kész és a Képek megnyitása először az XMP-kísérőfájlokba menti a támogatott módosításokat. Az eredeti fényképek változatlanok maradnak.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	A helyreállítás kikapcsolása eltávolítja ezt a munkamenetet a helyreállítási adatokból. A nyitott módosítások a memóriában maradnak, amíg a Kész, a Képek megnyitása vagy a Mégse lehetőséget nem választja.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Bekapcsolt gyorsítótár esetén a Camera Raw módosításai a háttérben mentődnek a helyreállításhoz. A Kész és a Képek megnyitása az XMP-kísérőfájlokba menti a beállításokat.
+	Saving XMP before opening…	XMP mentése megnyitás előtt…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	A mostani munkamenet-látogatás módosításainak elvetése és bezárás. A korábban helyreállított piszkozatok és az ezalatt mentett XMP-fájlok megmaradnak.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	A helyreállítás kikapcsolása leállítja az automatikus ellenőrzőpontok készítését. A korábban helyreállított munka megmarad, amíg be nem fejezi, vagy el nem veti a helyreállítási másolatát.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	A helyreállítás megszakítás után vagy a munka helyreállításhoz való megőrzésekor érhető el. A Kész és a Képek megnyitása eltávolítja a befejezett munkameneteket. A folytatott munkamenet módosításainak elvetése megőrzi a korábban helyreállított munkát.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Ezt a helyreállításhoz megőrzött munkához, a PhotoCraft váratlan bezárása után, vagy a Képek megnyitása, Kész vagy Mégse művelet megszakításakor használja. Olyan munkát is visszaállíthat, amelyet soha nem mentett XMP-kísérőfájlba. Az utolsó visszaigazolt ellenőrzőpont óta végzett módosítások nem feltétlenül érhetők el.
 	Sync Settings	Beállítások szinkronizálása
 	Reset Settings	Beállítások visszaállítása
 	Copy settings from {photo} to the selected photos.	A(z) {photo} beállításainak másolása a kijelölt fényképekre.

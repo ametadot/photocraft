@@ -1,5 +1,5 @@
 //! Pure Camera Raw group-edit preparation. Every target is prepared and validated
-//! before the workspace applies any of them, so a group has one history entry.
+//! before the controller applies any of them, so a group has one recovery revision.
 
 use photocraft_algo::camera_raw::CameraRaw;
 use photocraft_io::raw_session::Metadata;
@@ -273,23 +273,33 @@ pub(super) fn route_photo_action(app: &mut crate::PhotocraftApp, action: &PhotoA
             Ok(true)
         }
         PhotoAction::SetRating { .. } | PhotoAction::SetLabel { .. } | PhotoAction::SetMark { .. } => {
-            let targets = match action {
-                PhotoAction::SetRating { targets, .. } | PhotoAction::SetLabel { targets, .. } | PhotoAction::SetMark { targets, .. } => targets,
-                _ => return Err("Not a metadata action".into()),
-            };
-            let present = super::filmstrip_raws(app);
-            let mut staged = std::collections::BTreeMap::new();
-            for id in targets {
-                if staged.contains_key(id) || !present.iter().any(|raw| raw.photo == *id) {
-                    return Err("Metadata target is missing or duplicated".into());
-                }
-                let before = app.raw_filmstrip.metadata.get(id).ok_or("Metadata target is no longer retained")?;
-                staged.insert(*id, metadata_change(before, action)?);
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                let targets = match action {
+                    PhotoAction::SetRating { targets, .. } | PhotoAction::SetLabel { targets, .. } | PhotoAction::SetMark { targets, .. } => targets,
+                    _ => return Err("Not a metadata action".into()),
+                };
+                // Validate before calling the controller's coherent group update.
+                let checked = metadata_change(&Metadata { rating: None, label: String::new(), marked: false }, action)?;
+                super::persistence_ui::set_metadata(app, targets, |metadata| match action {
+                    PhotoAction::SetRating { .. } => metadata.rating = checked.rating,
+                    PhotoAction::SetLabel { .. } => metadata.label = checked.label.clone(),
+                    PhotoAction::SetMark { .. } => metadata.marked = checked.marked,
+                    _ => {}
+                })?;
+                Ok(true)
             }
-            app.raw_filmstrip.metadata.extend(staged);
-            Ok(true)
+            #[cfg(target_arch = "wasm32")]
+            {
+                Err("Camera Raw metadata persistence requires native source access".into())
+            }
         }
-        PhotoAction::SyncSettings { .. } | PhotoAction::ResetSettings(_) | PhotoAction::SetValue { .. } | PhotoAction::UndoGroup => Ok(false),
+        PhotoAction::SaveJpeg(_)
+        | PhotoAction::Remove { .. }
+        | PhotoAction::SyncSettings { .. }
+        | PhotoAction::ResetSettings(_)
+        | PhotoAction::SetValue { .. }
+        | PhotoAction::UndoGroup => Ok(false),
     }
 }
 
@@ -297,6 +307,18 @@ pub(super) fn route_photo_action(app: &mut crate::PhotocraftApp, action: &PhotoA
 /// members. A visible active photo outside the group is not silently added to it.
 fn queued_baseline(raw: &super::RawOpen) -> CameraRaw {
     super::adjacent_raw_xmp(raw.path.as_deref()).ok().flatten().map(|imported| imported.params).unwrap_or_default()
+}
+
+fn has_native_recovery(app: &crate::PhotocraftApp) -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        app.raw_filmstrip.persistence.is_some() || app.services.camera_raw_recovery_root.is_some()
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = app;
+        false
+    }
 }
 
 pub(super) fn slider_group(app: &crate::PhotocraftApp, before: &CameraRaw, after: &CameraRaw) -> Result<GroupChange, String> {
@@ -325,20 +347,30 @@ pub(super) fn settings_targets(app: &crate::PhotocraftApp, ids: &[PhotoId], acti
         } else if let Some(parked) = app.raw_filmstrip.parked.iter().find(|item| item.raw.photo == id) {
             parked.params.clone()
         } else {
-            app.pending_raw_open
-                .iter()
-                .chain(app.queued_raw_opens.iter())
-                .find(|raw| raw.photo == id)
-                .map(queued_baseline)
-                .ok_or("Selected photograph is no longer available")?
+            #[cfg(not(target_arch = "wasm32"))]
+            let value = super::persistence_ui::recipe(app, id).map(|recipe| recipe.adjustments.clone());
+            #[cfg(target_arch = "wasm32")]
+            let value: Option<CameraRaw> = None;
+            if let Some(value) = value {
+                value
+            } else if !has_native_recovery(app) {
+                app.pending_raw_open
+                    .iter()
+                    .chain(app.queued_raw_opens.iter())
+                    .find(|raw| raw.photo == id)
+                    .map(queued_baseline)
+                    .ok_or("Selected photograph is no longer available")?
+            } else {
+                return Err("Wait for selected photographs to finish admission".into());
+            }
         };
         targets.push((id, params));
     }
     Ok(targets)
 }
 
-/// Update every captured display copy after the entire group has been validated.
-/// Queued members are parked with their own original and edited settings.
+/// Update display copies only after the persistence controller accepts the entire
+/// group. Queued members read their recipe when they are first previewed.
 pub(super) fn apply_display_group(app: &mut crate::PhotocraftApp, changes: &[(PhotoId, CameraRaw)]) {
     for (id, params) in changes {
         if let Some(dialog) = app.camera_raw.as_mut().filter(|d| d.raw_open.as_ref().is_some_and(|raw| raw.photo == *id)) {
@@ -353,7 +385,7 @@ pub(super) fn apply_display_group(app: &mut crate::PhotocraftApp, changes: &[(Ph
             parked.params = params.clone();
             continue;
         }
-        {
+        if !has_native_recovery(app) {
             let raw = if app.pending_raw_open.as_ref().is_some_and(|raw| raw.photo == *id) {
                 app.pending_raw_open.take()
             } else {

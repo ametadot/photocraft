@@ -504,6 +504,13 @@ pub type RightButtonDownFn = Box<dyn Fn() -> bool + Send + Sync>;
 /// I/O dependencies.
 #[derive(Default)]
 pub struct Services {
+    /// Private native Camera Raw recovery root. Tests inject an isolated directory.
+    /// None means persistence is unavailable; never fall back to the user's profile.
+    pub camera_raw_recovery_root: Option<std::path::PathBuf>,
+    /// Optional capability-based sidecar writer. A control-enabled desktop
+    /// constrains every recipe save, including native actions and worker retries.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub camera_raw_sidecar_publisher: Option<photocraft_io::raw_session::SidecarPublisher>,
     /// User-initiated desktop/browser pixel sampling.
     pub screen_pick: Option<screen_picker::Service>,
     /// Decode a file's bytes into a document (PSD, PNG, JPEG, …).

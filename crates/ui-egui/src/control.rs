@@ -1855,6 +1855,7 @@ pub fn inspect(app: &PhotocraftApp, ctx: &egui::Context) -> Value {
         "distort": app.distort.describe(),
         "jobs": crate::jobs_ui::inspect(app),
         "cameraRaw": app.camera_raw.as_ref().map(|d| d.describe(&app.ui.camera_raw_scope, &app.ui.camera_raw_preview)),
+        "cameraRawPersistence": crate::camera_raw_ui::persistence_snapshot(app),
     })
 }
 

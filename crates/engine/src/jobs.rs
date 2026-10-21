@@ -402,6 +402,36 @@ pub fn camera_raw_open_inspection(
         }
         Err(error) => return Err(EngineError::Other(error.to_string())),
     };
+    #[cfg(not(target_arch = "wasm32"))]
+    let inspection = {
+        use photocraft_io::camera_raw_source::{SourceKind, has_settings};
+        let mut inspection = inspection;
+        let mode = match inspection.kind {
+            SourceKind::Jpeg => defaults.jpeg_handling,
+            SourceKind::Tiff => defaults.tiff_handling,
+            _ => crate::prefs::RenderedRawHandling::Disabled,
+        };
+        if inspection.supported
+            && matches!(inspection.kind, SourceKind::Jpeg | SourceKind::Tiff)
+            && (explicit || mode != crate::prefs::RenderedRawHandling::Disabled)
+            && let Some(path) = native_path
+        {
+            // An ordinary open never fails on an unusable sidecar (ambiguous, over budget or
+            // unparseable): it opens in the editor, as an embedded-XMP problem does. An explicit
+            // Camera Raw open still refuses before admitting anything.
+            let checked = photocraft_io::raw_session::commit::bind(std::path::Path::new(path))
+                .map_err(|e| e.to_string())
+                .and_then(|binding| binding.original.as_deref().map(|packet| has_settings(packet).map_err(|e| e.to_string())).transpose());
+            match checked {
+                Ok(Some(settings)) => inspection.has_settings = settings,
+                Ok(None) => {}
+                Err(error) if !explicit => return Ok((None, Some(format!("Camera Raw opening unavailable; opened in the editor: {error}")))),
+                Err(error) => return Err(EngineError::Other(error)),
+            }
+        }
+        inspection
+    };
+    #[cfg(target_arch = "wasm32")]
     let _ = (native_path, defaults);
     Ok((Some(inspection), None))
 }
@@ -964,6 +994,12 @@ impl Session {
         if id == "file.scripts.browse" {
             return Ok(());
         }
+        // Camera Raw preferences affect future imports and the owning RAW
+        // worker only. This narrow path deliberately skips apply_prefs, which
+        // otherwise trims histories globally, including held documents.
+        if id == "prefs.set" && crate::prefs::raw_preferences_only(params) {
+            return Ok(());
+        }
         // The manager stores bindings; it never runs them. Its edit_prefs call reapplies history
         // limits globally, so permit it only when every held document keeps its limits/records.
         if id == "file.scripts.scriptEventsManager" {
@@ -1357,6 +1393,10 @@ pub fn specs() -> Vec<crate::commands::CommandSpec> {
 #[cfg(test)]
 #[path = "jobs_tests.rs"]
 mod tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "jobs_camera_raw_tests.rs"]
+mod camera_raw_opening_tests;
 
 /// Ownership of a document an open job admits (S2 P0): decided inside the job's apply, before any event is handled.
 #[cfg(test)]
@@ -2047,6 +2087,75 @@ mod next_gate_direct_engine_tests {
         assert_eq!(document_state(s.documents().get(held_index).unwrap()), held_before);
         assert_eq!(s.active().unwrap().doc.id, accepted);
         assert!(s.provisional_documents().contains(&raw));
+    }
+
+    #[test]
+    fn ng_engine_14_preferences_cannot_change_held_history_limits_from_an_accepted_active_document() {
+        let setup = || {
+            let (mut s, accepted) = accepted_control();
+            let raw = open_raw(&mut s, "ng-history-owner.dng");
+            for exposure in [0.1, 0.2, 0.3, 0.4] {
+                let _scope = s.begin_camera_raw_command(raw).unwrap();
+                s.execute("filter.cameraRaw", json!({"exposure": exposure})).unwrap();
+            }
+            let raw_index = s.active_index().unwrap();
+            assert!(s.documents()[raw_index].history.past_len() > 1, "real owned adjustments produced history");
+            activate_id(&mut s, accepted);
+            (s, accepted, raw, raw_index)
+        };
+        let params = json!({"path": "performance.historyStates", "value": 1});
+        // Run the positive first in an equivalent session. apply_prefs changes max_states now;
+        // History::record enforces the count on a subsequent edit, while History::trim only
+        // trims byte pressure. This small fixture is not under byte pressure.
+        let (mut positive, accepted_positive, raw_positive, positive_index) = setup();
+        let positive_past = positive.documents()[positive_index].history.past_len();
+        positive.release_admission(raw_positive);
+        positive.execute("prefs.set", params.clone()).unwrap();
+        assert_eq!(positive.documents()[positive_index].history.max_states, 1);
+        assert_eq!(positive.documents()[positive_index].history.past_len(), positive_past);
+        assert_eq!(positive.active().unwrap().doc.id, accepted_positive);
+        activate_id(&mut positive, raw_positive);
+        positive.execute("filter.cameraRaw", json!({"exposure": 0.1})).unwrap();
+        assert_eq!(positive.active().unwrap().history.past_len(), 1, "a subsequent accepted edit enforces the changed history count");
+        eprintln!(
+            "NG_PREFS_HISTORY_POSITIVE {}",
+            json!({"acceptedRawDocId": raw_positive.0, "pastAtPreferenceApply": positive_past, "maxStatesAfter": 1, "pastAfterNextEdit": 1})
+        );
+
+        let (mut s, accepted, held, held_index) = setup();
+        let held_before = document_state(&s.documents()[held_index]);
+        let past_before = s.documents()[held_index].history.past_len();
+        let caps_before = (s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes);
+        let prefs_before = s.prefs_value();
+        s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"cache"})).unwrap();
+        assert_eq!(s.prefs().raw_defaults.recovery_mode, crate::prefs::RawRecoveryMode::Cache);
+        assert_eq!(document_state(&s.documents()[held_index]), held_before);
+        assert_eq!((s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes), caps_before);
+        assert!(s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"off","values":{"performance.historyStates":1}})).is_err());
+        s.execute("prefs.set", json!({"path":"rawDefaults.recoveryMode","value":"off"})).unwrap();
+        let result = s.execute("prefs.set", params.clone());
+        eprintln!(
+            "NG_PREFS_HISTORY {}",
+            json!({
+                "result": format!("{result:?}"), "heldDocId": held.0, "activeDocId": accepted.0,
+                "pastBefore": past_before, "pastAfter": s.documents()[held_index].history.past_len(),
+                "capsBefore": caps_before, "capsAfter": [s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes],
+            })
+        );
+        assert!(result.is_err(), "prefs.set applies history limits to every document, including a held non-active RAW");
+        assert_eq!(document_state(&s.documents()[held_index]), held_before);
+        assert_eq!(s.documents()[held_index].history.past_len(), past_before);
+        assert_eq!((s.documents()[held_index].history.max_states, s.documents()[held_index].history.max_bytes), caps_before);
+        assert_eq!(s.prefs_value(), prefs_before);
+        assert_eq!(s.active().unwrap().doc.id, accepted);
+        // Query remains useful during review, and the identical mutation works normally after release.
+        s.execute("prefs.get", json!({})).unwrap();
+        s.release_admission(held);
+        s.execute("prefs.set", params).unwrap();
+        assert_eq!(s.documents()[held_index].history.max_states, 1);
+        assert_eq!(s.documents()[held_index].history.past_len(), past_before);
+        assert!(past_before > 1);
+        assert_eq!(s.active().unwrap().doc.id, accepted);
     }
 
     // Compare user document state and retained history, not the session journal: successful

@@ -4367,17 +4367,26 @@ shape	Appearance	Izgled
 	{n} hidden	Skriveno: {n}
 	{n} hidden, {m} selected	Skriveno: {n}, izabrano: {m}
 	Shown; hidden by filter	Prikazano; skriveno filterom
+	Workflow	Radni tok
+	Generative AI	Generativna veštačka inteligencija
+	Long-session recovery	Oporavak dugih sesija
+	Camera Raw Preferences	Podešavanja za Camera Raw
 	All photos	Sve fotografije
 	Any	Bilo koje
 	Any colour	Bilo koja boja
 	Blue — Review	Plavo — Za pregled
 	Blue — Review (9)	Plavo — Za pregled (9)
+	Cancelling before publication…	Otkazivanje pre upisa datoteke…
+	Change the filmstrip size, orientation and grid view in Camera Raw. These display choices do not edit photographs.	Promenite veličinu, orijentaciju filmske trake i prikaz mreže u Camera Raw. Ove opcije prikaza ne menjaju fotografije.
 	Changes not yet saved to XMP	Izmene još nisu sačuvane u XMP
 	Clear filters	Poništi filtere
 	Colour label	Oznaka u boji
+	Destination folder	Odredišna fascikla
 	Green — Approved	Zeleno — Odobreno
 	Green — Approved (8)	Zeleno — Odobreno (8)
 	JPEG quality	Kvalitet JPEG-a
+	Live save is planned for a later release.	Čuvanje uživo je planirano za kasnije izdanje.
+	Live save — Planned	Čuvanje uživo — Planirano
 	Mark	Označi
 	Marked	Označeno
 	Marked and unmarked	Označene i neoznačene
@@ -4391,26 +4400,151 @@ shape	Appearance	Izgled
 	Rating	Ocena
 	Red — Select	Crveno — Izabrano
 	Red — Select (6)	Crveno — Izabrano (6)
+	Remove…	Ukloni iz sesije…
+	Replace existing JPEG?	Zameniti postojeći JPEG?
 	Return to photo preview	Vrati se na pregled fotografije
+	Save JPEG	Sačuvaj JPEG
+	Save JPEG:	Sačuvaj JPEG:
+	Save this photo as JPEG	Sačuvaj ovu fotografiju kao JPEG
+	Saving JPEG	Čuvanje JPEG-a
+	Saving mode: Cache saving	Režim čuvanja: Čuvanje u keš
 	Show grid	Prikaži mrežu
 	Show hidden photos	Prikaži skrivene fotografije
 	Unmark	Ukloni oznaku
 	Unmarked	Neoznačeno
 	Unrated (0)	Bez ocene (0)
+	Uses the settings captured when Save was chosen.	Koristi podešavanja zabeležena kada je izabrano Sačuvaj.
 	Yellow — Second	Žuto — Drugi izbor
 	Yellow — Second (7)	Žuto — Drugi izbor (7)
 	hidden	skriveno
 	selected photos	izabranih fotografija
+	Your Camera Raw changes are saved for recovery while you work. Choose Done to save changes to the photographs' XMP sidecars.	Izmene u Camera Raw čuvaju se za oporavak dok radite. Izaberite Gotovo da sačuvate izmene u pratećim XMP datotekama fotografija.
+	A recovered photograph has no retained source binding.	Oporavljena fotografija nema sačuvanu vezu sa izvornom datotekom.
+	Applies the same value to every selected photograph. Other settings remain independent.	Primenjuje istu vrednost na svaku izabranu fotografiju. Ostala podešavanja ostaju nezavisna.
+	Back to editing	Vrati se na uređivanje
+	Camera Raw recovery details	Detalji oporavka Camera Raw
+	Camera Raw recovery needs attention	Oporavak Camera Raw zahteva pažnju
 	Camera Raw session	Sesija Camera Raw
+	Choose how to leave this visit's changes.	Izaberite kako da postupite sa izmenama od ovog otvaranja.
+	Close Camera Raw session	Zatvori sesiju Camera Raw
+	Close details	Zatvori detalje
+	Discard this photo's changes and remove	Odbaci izmene ove fotografije i ukloni je
+	Discard this visit's changes and close	Odbaci izmene od ovog otvaranja i zatvori
+	Finish Camera Raw session	Završi sesiju Camera Raw
+	Keep editing	Nastavi uređivanje
+	Keep in recovery and close	Sačuvaj za oporavak i zatvori
+	Keep in session	Zadrži u sesiji
+	No photographs are currently available to preview. Recovery details retain any unresolved work.	Trenutno nema fotografija dostupnih za pregled. Detalji oporavka čuvaju sav nerešen rad.
+	Open from files	Otvori iz datoteka
+	Original NEF files remain unchanged.	Izvorne NEF datoteke ostaju nepromenjene.
+	Remove photograph from session	Ukloni fotografiju iz sesije
 	Reset selected	Vrati izabrane na početno
+	Restore the original file at the recorded path, then choose Retry recovery save. Changed file contents or identity cannot be accepted as the original source.	Vratite izvornu datoteku na zabeleženu putanju, pa izaberite Ponovi čuvanje za oporavak. Datoteka sa izmenjenim sadržajem ili identitetom ne može se prihvatiti kao izvorna.
+	Resume saved session	Nastavi sačuvanu sesiju
+	Retry recovery save	Ponovi čuvanje za oporavak
+	Review unavailable files, interrupted imports, and recovery messages before finishing.	Pre završetka pregledajte nedostupne datoteke, prekinute uvoze i poruke o oporavku.
+	Save XMP and close	Sačuvaj XMP i zatvori
+	Save XMP and remove	Sačuvaj XMP i ukloni
+	Saved Camera Raw sessions	Sačuvane sesije Camera Raw
 	Set value	Postavi vrednost
+	Set value for selected photos	Postavi vrednost za izabrane fotografije
 	Set value…	Postavi vrednost…
+	Show recovery details	Prikaži detalje oporavka
+	Skip removes this unfinished import from the current request. You can open the file again later.	Preskakanje uklanja ovaj nedovršeni uvoz iz trenutnog zahteva. Datoteku možete ponovo otvoriti kasnije.
+	Skip unfinished import	Preskoči nedovršeni uvoz
 	Synchronise selected	Sinhronizuj izabrane
+	This changes session membership. Hide and filters keep photographs in the session.	Ovo menja sastav sesije. Skrivanje i filteri zadržavaju fotografije u sesiji.
 	Undo group edit	Poništi grupnu izmenu
+	Camera Raw saves XMP sidecars for JPEG and TIFF; original image files remain unchanged.	Camera Raw čuva prateće XMP datoteke za JPEG i TIFF; izvorne datoteke slika ostaju neizmenjene.
+	Disable Camera Raw support	Onemogući podršku za Camera Raw
+	JPEG and TIFF Handling	Obrada JPEG i TIFF datoteka
+	JPEG handling	Obrada JPEG datoteka
+	Layered TIFF files open in the editor with their layers preserved.	TIFF datoteke sa slojevima otvaraju se u uređivaču uz očuvanje slojeva.
+	Open all supported files	Otvaraj sve podržane datoteke
+	Open files with Camera Raw settings	Otvaraj datoteke sa Camera Raw podešavanjima
+	Original image files remain unchanged.	Izvorne datoteke slika ostaju neizmenjene.
+	Recovery details	Detalji oporavka
+	Save XMP and keep editing	Sačuvaj XMP i nastavi uređivanje
+	Save edits	Sačuvaj izmene
+	Saved edits to XMP; Camera Raw remains open	Izmene su sačuvane u XMP; Camera Raw ostaje otvoren
+	TIFF handling	Obrada TIFF datoteka
+	Existing settings	Postojeća podešavanja
+	Jpeg handling	Obrada JPEG datoteka
+	Tiff handling	Obrada TIFF datoteka
+	Open in Camera Raw…	Otvori u Camera Raw-u…
+	Discard edits	Одбаци измене
 	Cache	Кеш меморија
+	Recovery mode	Режим опоравка
+	Show recovery progress	Прикажи напредак опоравка
+	PhotoCraft default — recovery off	Подразумевано у PhotoCraft-у — опоравак искључен
+	Long-session recovery — cache saving	Опоравак дугих сесија — чување у кешу
 	Opening photographs	Отварање фотографија
 	Preparing Camera Raw previews…	Припрема Camera Raw прегледа…
+	Discard edits made during this visit. Previously saved XMP files remain unchanged.	Одбаците измене из ове сесије. Раније сачуване XMP датотеке остају непромењене.
+	Done defaults to Save XMP and close. Original photographs remain unchanged.	Готово подразумевано чува XMP и затвара прозор. Оригиналне фотографије остају непромењене.
+	Recovery is off by default. Turn on cache saving to protect a long editing session in the background.	Опоравак је подразумевано искључен. Укључите чување у кешу за заштиту дуге сесије у позадини.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done or discard them.	Искључивање опоравка уклања ову сесију из сачуваних података за опоравак. Отворене измене остају у меморији док не изаберете Готово или их одбаците.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done saves adjustments to XMP sidecars.	Када је чување у кешу укључено, Camera Raw измене се чувају у позадини ради опоравка. Готово чува подешавања у пратећим XMP датотекама.
+	Discard edits?	Одбаци измене?
+	Show recovery progress in Camera Raw	Camera Raw — Прикажи напредак опоравка
+	Long-session recovery…	Oporavak dugih sesija…
+	Recovery details…	Detalji oporavka…
+	Keep in recovery and close…	Sačuvaj za oporavak i zatvori…
+	Live saving — planned	Čuvanje uživo — Planirano
+	Discard unsaved edits?	Odbaciti nesačuvane izmene?
+	Discard every edit not yet saved to XMP in this Camera Raw session, then close. XMP files saved earlier stay unchanged.	Odbacite sve izmene iz ove sesije Camera Raw koje još nisu sačuvane u XMP, pa zatvorite prozor. Ranije sačuvane XMP datoteke ostaju nepromenjene.
+	Discard unsaved edits and close	Odbaci nesačuvane izmene i zatvori
+	Save and open images	Sačuvaj i otvori slike
+	Save XMP and open images	Sačuvaj XMP i otvori slike
+	After saving, every photo in this session opens in the editor in the order it was opened, whatever the filter or selection.	Posle čuvanja, sve fotografije iz ove sesije otvaraju se u uređivaču redosledom kojim su otvorene, bez obzira na filter ili izbor.
+	Recover Camera Raw session	Oporavi sesiju Camera Raw
+	An earlier Camera Raw session did not finish normally. Choose which version of its edits to open.	Prethodna sesija Camera Raw nije normalno završena. Izaberite koju verziju njenih izmena želite da otvorite.
 	Session	Sesija
+	{count} photos · last checkpoint {time}	Fotografija: {count} · poslednja kontrolna tačka: {time}
+	{count} photos have edits not saved to XMP	Fotografija sa izmenama koje nisu sačuvane u XMP: {count}
+	The newest checkpoint is unusable; the one from {time} is used instead.	Najnovija kontrolna tačka nije upotrebljiva; umesto nje koristi se kontrolna tačka od {time}.
+	An XMP save in this session did not finish. Its files are checked again before anything else is written.	Čuvanje XMP datoteka u ovoj sesiji nije završeno. Te datoteke se ponovo proveravaju pre nego što se bilo šta drugo upiše.
+	Show file details	Prikaži detalje datoteka
+	Hide file details	Sakrij detalje datoteka
+	Checking files…	Provera datoteka…
+	Recovered edits	Oporavljene izmene
+	Cache version	Verzija iz keša
+	Saved edits	Sačuvane izmene
+	XMP sidecar version	Verzija iz prateće XMP datoteke
+	Resume recovered edits	Nastavi sa oporavljenim izmenama
+	Restore edits from the latest usable PhotoCraft recovery checkpoint.	Vrati izmene iz poslednje upotrebljive kontrolne tačke za oporavak u PhotoCraft-u.
+	Use this after PhotoCraft closed unexpectedly or an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Koristite ovo ako se PhotoCraft neočekivano zatvorio ili je prekinuta operacija Otvori slike, Gotovo ili Otkaži. Ovo može da vrati rad koji nikada nije sačuvan u prateću XMP datoteku. Izmene posle poslednje potvrđene kontrolne tačke možda neće biti dostupne.
+	Open saved XMP edits	Otvori izmene sačuvane u XMP
+	Reopen the original photographs with the supported edits currently saved in their XMP files.	Ponovo otvori originalne fotografije sa podržanim izmenama koje su trenutno sačuvane u njihovim XMP datotekama.
+	Choose this to use the saved sidecar versions instead of the unsaved recovery checkpoint. Not every photograph may have an XMP file; those without one use their current file/default settings. This does not restore unsaved cached changes.	Izaberite ovo da biste koristili sačuvane verzije iz pratećih datoteka umesto nesačuvane kontrolne tačke za oporavak. Možda nema svaka fotografija XMP datoteku; one bez nje koriste svoja trenutna podešavanja datoteke ili podrazumevana podešavanja. Ovo ne vraća nesačuvane izmene iz keša.
+	Open other files	Otvori druge datoteke
+	Discard recovered copy…	Odbaci oporavljenu kopiju…
+	Discard recovered copy?	Odbaciti oporavljenu kopiju?
+	This permanently removes the recovery checkpoint of this session. Saved XMP files and original photographs are not changed.	Ovim se trajno uklanja kontrolna tačka za oporavak ove sesije. Sačuvane XMP datoteke i originalne fotografije se ne menjaju.
+	Discard recovered copy	Odbaci oporavljenu kopiju
+	Keep recovered copy	Zadrži oporavljenu kopiju
+	{n} of {total} photos are missing or changed	Nedostaju ili su izmenjene fotografije: {n} od {total}
+	{n} photos have no XMP file	Fotografija bez XMP datoteke: {n}
+	{n} XMP files changed after the checkpoint	XMP datoteka izmenjenih posle kontrolne tačke: {n}
+	No usable checkpoint can be opened.	Nema upotrebljive kontrolne tačke koja može da se otvori.
+	None of the photographs is available.	Nijedna fotografija nije dostupna.
+	Photo available	Fotografija je dostupna
+	Photo missing or changed	Fotografija nedostaje ili je izmenjena
+	No XMP file	Nema XMP datoteke
+	XMP as at the checkpoint	XMP kao u kontrolnoj tački
+	XMP changed after the checkpoint	XMP izmenjen posle kontrolne tačke
+	XMP unreadable	XMP nije čitljiv
+	Some XMP files changed after the checkpoint, for example in Lightroom. Review them before choosing.	Neke XMP datoteke su izmenjene posle kontrolne tačke, na primer u Lightroom-u. Pregledajte ih pre nego što izaberete.
+	Camera Raw Preferences…	Podešavanja za Camera Raw…
+	Recovery is offered only after a session that did not finish normally. Done, Open Images and Cancel leave nothing to recover.	Oporavak se nudi samo posle sesije koja nije normalno završena. Gotovo, Otvori slike i Otkaži ne ostavljaju ništa za oporavak.
+	Done and Open Images save supported edits to XMP sidecars first. Original photographs remain unchanged.	Gotovo i Otvori slike prvo čuvaju podržane izmene u prateće XMP datoteke. Originalne fotografije ostaju nepromenjene.
+	Turning recovery off removes this session from saved recovery. Open edits stay in memory until you choose Done, Open Images or Cancel.	Isključivanje oporavka uklanja ovu sesiju iz sačuvanih podataka za oporavak. Otvorene izmene ostaju u memoriji dok ne izaberete Gotovo, Otvori slike ili Otkaži.
+	When cache saving is enabled, your Camera Raw changes are saved for recovery in the background. Done and Open Images save adjustments to XMP sidecars.	Kada je čuvanje u kešu uključeno, izmene u Camera Raw čuvaju se u pozadini radi oporavka. Gotovo i Otvori slike čuvaju podešavanja u pratećim XMP datotekama.
+	Saving XMP before opening…	Čuvanje XMP datoteka pre otvaranja…
+	Discard this visit's changes and close. Earlier recovered drafts and XMP files saved during this visit stay preserved.	Odbaci izmene iz ove posete i zatvori. Ranije oporavljeni nacrti i XMP datoteke sačuvane tokom ove posete ostaju sačuvani.
+	Turning recovery off stops automatic checkpoints. Earlier recovered work remains until you finish it or discard its recovered copy.	Isključivanje oporavka zaustavlja automatske kontrolne tačke. Ranije oporavljeni rad ostaje sačuvan dok ga ne završite ili ne odbacite njegovu kopiju za oporavak.
+	Recovery is offered after an interruption or when you choose Keep for recovery. Done and Open Images retire completed sessions. Discarding changes to a resumed session preserves its earlier recovered work.	Oporavak se nudi nakon prekida ili kada izaberete da sačuvate rad za oporavak. Gotovo i Otvori slike uklanjaju završene sesije. Odbacivanje izmena nastavljene sesije čuva ranije oporavljeni rad.
+	Use this for work kept in recovery, after PhotoCraft closed unexpectedly, or when an Open Images, Done, or Cancel operation was interrupted. It may restore work that was never saved to an XMP sidecar. Changes since the last acknowledged checkpoint may not be available.	Koristite ovo za rad sačuvan za oporavak, nakon neočekivanog zatvaranja PhotoCraft-a ili prekida radnje Otvori slike, Gotovo ili Otkaži. Može vratiti rad koji nikada nije sačuvan u pratećoj XMP datoteci. Izmene od poslednje potvrđene kontrolne tačke možda neće biti dostupne.
 	Sync Settings	Sinhronizuj podešavanja
 	Reset Settings	Vrati podrazumevana podešavanja
 	Copy settings from {photo} to the selected photos.	Kopiraj podešavanja sa fotografije {photo} na izabrane fotografije.

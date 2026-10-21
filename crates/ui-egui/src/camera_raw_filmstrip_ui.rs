@@ -680,6 +680,7 @@ pub(super) struct Entry {
 /// export and guarded removal through the same operations used by keyboard actions.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) enum PhotoAction {
+    SaveJpeg(PhotoId),
     SyncSettings { source: PhotoId, targets: Vec<PhotoId> },
     ResetSettings(PhotoId),
     SetValue { targets: Vec<PhotoId> },
@@ -689,6 +690,7 @@ pub(super) enum PhotoAction {
     SetMark { targets: Vec<PhotoId>, marked: bool },
     Hide { targets: Vec<PhotoId> },
     ShowHidden,
+    Remove { targets: Vec<PhotoId> },
 }
 
 /// Call only after focused fields and tools have had first refusal. This pure mapping
@@ -1224,9 +1226,9 @@ fn card(ui: &mut Ui, t: &Tokens, view: &mut FilmstripView, selection: &mut Selec
     // strip is sorted, filtered or turned to the other orientation.
     let (_, rect) = ui.allocate_space(size);
     let parts = card_parts(rect, picture_box, entry.size, view.show_filenames);
-    let [_, menu_rect] = action_rects(rect);
+    let [save_rect, menu_rect] = action_rects(rect);
     let response = ui.interact(rect, egui::Id::new(("cr-filmstrip-card", entry.photo.0)), Sense::click());
-    let on_action = response.interact_pointer_pos().is_some_and(|at| menu_rect.contains(at));
+    let on_action = response.interact_pointer_pos().is_some_and(|at| save_rect.contains(at) || menu_rect.contains(at));
     // Enter or Space on a focused thumbnail behind an open menu belongs to the menu, like the arrows (C5-R1).
     if response.clicked() && !on_action && (response.interact_pointer_pos().is_some() || !egui::Popup::is_any_open(ui.ctx())) {
         // A click does not focus a button on its own; the arrow keys continue from here.
@@ -1339,21 +1341,32 @@ fn card(ui: &mut Ui, t: &Tokens, view: &mut FilmstripView, selection: &mut Selec
         let target = ui.ctx().data_mut(|data| data.get_temp_mut_or_insert_with(context_id, || SettingsTarget::capture(selection, entry)).clone());
         photo_menu(ui, view, selection, entry, Some(&target), &mut drawn.actions);
     });
+    let save = ui.interact(save_rect, ui.id().with("jpeg-save"), Sense::click());
     let more = ui.interact(menu_rect, ui.id().with("photo-actions"), Sense::click());
+    save.widget_info(|| WidgetInfo::labeled(WidgetType::Button, true, format!("{} {}", tl!("Save JPEG"), entry.name)));
     more.widget_info(|| WidgetInfo::labeled(WidgetType::Button, true, format!("{} {}", tl!("Photo actions"), entry.name)));
+    if save.clicked() {
+        drawn.actions.push(PhotoAction::SaveJpeg(entry.photo));
+    }
     egui::Popup::menu(&more).show(|ui| photo_menu(ui, view, selection, entry, None, &mut drawn.actions));
     let show_actions = response.hovered()
         || response.has_focus()
+        || save.hovered()
+        || save.has_focus()
         || more.hovered()
         || more.has_focus()
         || egui::Popup::is_id_open(ui.ctx(), egui::Popup::default_response_id(&more));
     if show_actions {
-        painter.rect_filled(menu_rect, t.radius_sm, if more.hovered() { t.hover } else { t.chrome });
-        painter.rect_stroke(menu_rect, t.radius_sm, Stroke::new(1.0, if more.has_focus() { t.accent } else { t.card_border }), egui::StrokeKind::Inside);
+        for (r, hovered, focused) in [(save_rect, save.hovered(), save.has_focus()), (menu_rect, more.hovered(), more.has_focus())] {
+            painter.rect_filled(r, t.radius_sm, if hovered { t.hover } else { t.chrome });
+            painter.rect_stroke(r, t.radius_sm, Stroke::new(1.0, if focused { t.accent } else { t.card_border }), egui::StrokeKind::Inside);
+        }
+        painter.text(save_rect.center(), Align2::CENTER_CENTER, tl!("Save"), FontId::proportional(11.0), t.text);
         for dx in [-4.0, 0.0, 4.0] {
             painter.circle_filled(menu_rect.center() + vec2(dx, 0.0), 1.2, t.text);
         }
     }
+    save.on_hover_text(tl!("Save this photo as JPEG"));
     more.on_hover_text(tl!("Photo actions"));
     drawn.cards.push((entry.document, rect));
 }
@@ -1422,6 +1435,10 @@ fn photo_menu(ui: &mut Ui, view: &mut FilmstripView, selection: &Selection, entr
     if let Some(settings) = settings {
         settings_menu(ui, settings, actions);
     }
+    if ui.button(format!("{} {}", tl!("Save JPEG:"), entry.name)).clicked() {
+        actions.push(PhotoAction::SaveJpeg(entry.photo));
+        ui.close();
+    }
     ui.separator();
     ui.menu_button(tl!("Rating"), |ui| {
         for rating in 0..=5 {
@@ -1459,6 +1476,10 @@ fn photo_menu(ui: &mut Ui, view: &mut FilmstripView, selection: &Selection, entr
     }
     if ui.button(tl!("Show hidden photos")).clicked() {
         actions.push(PhotoAction::ShowHidden);
+        ui.close();
+    }
+    if ui.button(tl!("Remove…")).clicked() {
+        actions.push(PhotoAction::Remove { targets });
         ui.close();
     }
     ui.separator();
@@ -2016,5 +2037,40 @@ mod tests {
         assert!(metadata_shortcut(Key::Num7, Modifiers::SHIFT, targets.clone()).is_none());
         assert!(metadata_shortcut(Key::Num7, Modifiers::COMMAND, targets).is_none());
         assert!(metadata_shortcut(Key::Num1, Modifiers::NONE, Vec::new()).is_none());
+    }
+
+    fn grid_frame(ctx: &egui::Context, view: &mut FilmstripView, selection: &mut Selection, entries: &[Entry], events: Vec<egui::Event>) -> Drawn {
+        let rect = Rect::from_min_size(egui::Pos2::ZERO, vec2(900.0, 600.0));
+        let input = egui::RawInput { screen_rect: Some(rect), events, ..Default::default() };
+        let mut result = Drawn::default();
+        let mut output = ctx.run_ui(input, |ui| {
+            let t = Tokens::get(ui.ctx());
+            result = draw_grid(ui, rect, &t, view, selection, entries, &Hidden::default());
+        });
+        output.textures_delta.clear();
+        result
+    }
+
+    #[test]
+    fn grid_and_hover_save_preserve_group_and_capture_clicked_identity() {
+        let ctx = egui::Context::default();
+        let mut view = FilmstripView { grid: true, orientation: Orientation::Horizontal, ..Default::default() };
+        let entries = vec![entry("a.nef", PhotoRating::Stars(3)), entry("b.nef", PhotoRating::Stars(1)), entry("c.nef", PhotoRating::Unrated)];
+        let mut selection = Selection::default();
+        selection.select_all(&entries.iter().map(|e| e.photo).collect::<Vec<_>>());
+        let before = selection.selected_ids().to_vec();
+        let first = grid_frame(&ctx, &mut view, &mut selection, &entries, Vec::new());
+        assert_eq!(first.cards.len(), 3);
+        assert!(first.actions.is_empty());
+        assert!(first.cards[1].1.left() > first.cards[0].1.right());
+        let save = action_rects(first.cards[1].1)[0].center();
+        grid_frame(&ctx, &mut view, &mut selection, &entries, vec![egui::Event::PointerMoved(save)]);
+        let click = |pressed| egui::Event::PointerButton { pos: save, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
+        grid_frame(&ctx, &mut view, &mut selection, &entries, vec![click(true)]);
+        let saved = grid_frame(&ctx, &mut view, &mut selection, &entries, vec![click(false)]);
+        assert_eq!(saved.actions, vec![PhotoAction::SaveJpeg(entries[1].photo)]);
+        assert_eq!(selection.selected_ids(), before);
+        assert_eq!(view.orientation, Orientation::Horizontal);
+        assert!(saved.activate.is_none());
     }
 }

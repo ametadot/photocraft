@@ -247,6 +247,12 @@ impl PhotocraftApp {
     }
 
     pub(crate) fn open_paths_mode(&mut self, paths: &[String], explicit: bool) -> usize {
+        if let Err(error) = crate::camera_raw_ui::admission_allowed(self) {
+            for path in paths {
+                self.open_failed(&display_name(path), &error);
+            }
+            return 0;
+        }
         let mut paths: Vec<String> = paths.iter().map(|p| absolute(p)).collect();
         paths.sort_by(|a, b| natural_cmp(a, b));
         let batch = crate::jobs_ui::begin_batch(self);
@@ -355,6 +361,14 @@ impl PhotocraftApp {
         }
         let submitted: Vec<String> =
             files.iter().map(|f| if f.path().is_absolute() { f.path().to_string_lossy().into_owned() } else { dropped_name(f) }).collect();
+        if target != DropTarget::Canvas
+            && let Err(error) = crate::camera_raw_ui::admission_allowed(self)
+        {
+            for path in &submitted {
+                self.open_failed(&display_name(path), &error);
+            }
+            return;
+        }
         let inputs: Vec<_> = files
             .iter()
             .zip(&submitted)
