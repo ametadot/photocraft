@@ -1242,7 +1242,8 @@ pub(super) fn discard_recovered_member(app: &mut PhotocraftApp, id: domain::Phot
 }
 
 /// Test view of the queues a refused discard must keep: (pending, restoring, ledger).
-#[cfg(test)]
+/// Only the Windows share-mode tests use it.
+#[cfg(all(test, windows))]
 pub(super) fn queued_admissions(app: &PhotocraftApp) -> (usize, usize, bool) {
     app.raw_filmstrip.persistence.as_ref().map_or((0, 0, false), |h| (h.pending.len(), h.restoring.len(), h.ledger_pending.is_some()))
 }
